@@ -1,0 +1,236 @@
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Calendar, MapPin, Phone, User, X, Check, XCircle } from 'lucide-react'
+import { format } from 'date-fns'
+import Image from 'next/image'
+import type { Booking } from '@/types/booking'
+
+interface BookingCardProps {
+  booking: Booking
+  onApprove?: (bookingId: string) => void
+  onReject?: (bookingId: string) => void
+  onCancel?: (bookingId: string) => void
+  onViewDetails?: (booking: Booking) => void
+  showActions?: boolean
+}
+
+export function BookingCard({
+  booking,
+  onApprove,
+  onReject,
+  onCancel,
+  onViewDetails,
+  showActions = false,
+}: BookingCardProps) {
+  const getStatusBadge = (status: Booking['status']) => {
+    const variants: Record<Booking['status'], { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
+      pending: { variant: 'secondary', label: 'Pending' },
+      approved: { variant: 'default', label: 'Approved' },
+      rejected: { variant: 'destructive', label: 'Rejected' },
+      cancelled: { variant: 'outline', label: 'Cancelled' },
+      completed: { variant: 'default', label: 'Completed' },
+    }
+    const config = variants[status]
+    return (
+      <Badge variant={config.variant}>
+        {config.label}
+      </Badge>
+    )
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex flex-col sm:flex-row">
+        {/* Image */}
+        {booking.propertyImage && (
+          <div className="relative h-48 w-full sm:h-auto sm:w-48 shrink-0">
+            <Image
+              src={booking.propertyImage}
+              alt={booking.propertyName}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, 192px"
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="flex-1">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <CardTitle className="text-lg">{booking.propertyName}</CardTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {booking.propertyType}
+                  </Badge>
+                  {getStatusBadge(booking.status)}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Property Address */}
+            <div className="flex items-start gap-2 text-sm">
+              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <span className="text-muted-foreground line-clamp-2">
+                {booking.propertyAddress}
+              </span>
+            </div>
+
+            {/* Booking Dates */}
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <strong>Move-in:</strong>{' '}
+                  {booking.moveInDate
+                    ? format(new Date(booking.moveInDate), 'MMM dd, yyyy')
+                    : 'Not specified'}
+                </span>
+              </div>
+              {booking.moveOutDate && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    <strong>Move-out:</strong>{' '}
+                    {format(new Date(booking.moveOutDate), 'MMM dd, yyyy')}
+                  </span>
+                </div>
+              )}
+              {booking.duration && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    <strong>Duration:</strong> {booking.duration} months
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Renter/Owner Info */}
+            <div className="flex items-center gap-2 text-sm">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">
+                {showActions ? 'Renter:' : 'Owner:'}{' '}
+                <span className="font-medium text-foreground">
+                  {showActions ? booking.renterName : booking.ownerName}
+                </span>
+              </span>
+            </div>
+
+            {/* Contact */}
+            <div className="flex items-center gap-2 text-sm">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <a
+                href={`tel:${showActions ? booking.renterPhone : booking.ownerPhone}`}
+                className="text-primary hover:underline"
+              >
+                {showActions ? booking.renterPhone : booking.ownerPhone}
+              </a>
+            </div>
+
+            {/* Pricing */}
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div>
+                <p className="text-sm text-muted-foreground">Monthly Rent</p>
+                <p className="text-lg font-bold">৳{booking.rent.toLocaleString()}</p>
+              </div>
+              {booking.deposit && (
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Deposit</p>
+                  <p className="text-lg font-bold">৳{booking.deposit.toLocaleString()}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Message Preview */}
+            {booking.message && (
+              <div className="pt-2 border-t">
+                <p className="text-xs text-muted-foreground line-clamp-2">
+                  {booking.message}
+                </p>
+              </div>
+            )}
+
+            {/* Rejection Reason */}
+            {booking.status === 'rejected' && booking.rejectionReason && (
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3">
+                <p className="text-sm font-medium text-destructive mb-1">
+                  Rejection Reason:
+                </p>
+                <p className="text-sm text-destructive/80">
+                  {booking.rejectionReason}
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            {showActions && booking.status === 'pending' && (
+              <div className="flex gap-2 pt-2 border-t">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => onApprove?.(booking.id)}
+                >
+                  <Check className="mr-2 h-4 w-4" />
+                  Approve
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => onReject?.(booking.id)}
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Reject
+                </Button>
+              </div>
+            )}
+
+            {!showActions && booking.status === 'pending' && (
+              <div className="flex gap-2 pt-2 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => onCancel?.(booking.id)}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel Booking
+                </Button>
+                {onViewDetails && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => onViewDetails(booking)}
+                  >
+                    View Details
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {!showActions && (booking.status === 'approved' || booking.status === 'completed') && (
+              <div className="pt-2 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onViewDetails?.(booking)}
+                >
+                  View Details
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </div>
+      </div>
+    </Card>
+  )
+}
