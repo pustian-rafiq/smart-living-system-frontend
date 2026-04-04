@@ -42,11 +42,19 @@ export function ViolationCard({
               {violation.ruleTitle}
             </CardTitle>
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="outline" className={`text-xs ${severityColors[violation.severity]}`}>
-                {violation.severity.charAt(0).toUpperCase() + violation.severity.slice(1)}
+              <Badge
+                variant="outline"
+                className={`text-xs ${severityColors[violation.severity]}`}
+              >
+                {violation.severity.charAt(0).toUpperCase() +
+                  violation.severity.slice(1)}
               </Badge>
-              <Badge variant="outline" className={`text-xs ${statusColors[violation.status]}`}>
-                {violation.status.charAt(0).toUpperCase() + violation.status.slice(1)}
+              <Badge
+                variant="outline"
+                className={`text-xs ${statusColors[violation.status]}`}
+              >
+                {violation.status.charAt(0).toUpperCase() +
+                  violation.status.slice(1)}
               </Badge>
             </div>
           </div>
@@ -77,7 +85,9 @@ export function ViolationCard({
             <div className="flex items-center gap-2 mb-1">
               <DollarSign className="h-4 w-4 text-red-600" />
               <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                Penalty: {violation.penalty.type.charAt(0).toUpperCase() + violation.penalty.type.slice(1)}
+                Penalty:{' '}
+                {violation.penalty.type.charAt(0).toUpperCase() +
+                  violation.penalty.type.slice(1)}
               </p>
             </div>
             {violation.penalty.amount && (
@@ -102,7 +112,8 @@ export function ViolationCard({
             </p>
             {violation.resolvedAt && (
               <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                Resolved: {format(new Date(violation.resolvedAt), 'MMM dd, yyyy')}
+                Resolved:{' '}
+                {format(new Date(violation.resolvedAt), 'MMM dd, yyyy')}
               </p>
             )}
           </div>

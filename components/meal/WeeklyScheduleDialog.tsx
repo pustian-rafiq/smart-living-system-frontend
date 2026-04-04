@@ -67,12 +67,17 @@ export function WeeklyScheduleDialog({
   onOpenChange,
   onSubmit,
 }: WeeklyScheduleDialogProps) {
-  const [scheduleData, setScheduleData] = useState<Record<MealDay, {
-    breakfast?: any[]
-    lunch?: any[]
-    dinner?: any[]
-    snack?: any[]
-  }>>({
+  const [scheduleData, setScheduleData] = useState<
+    Record<
+      MealDay,
+      {
+        breakfast?: any[]
+        lunch?: any[]
+        dinner?: any[]
+        snack?: any[]
+      }
+    >
+  >({
     monday: {},
     tuesday: {},
     wednesday: {},
@@ -102,9 +107,12 @@ export function WeeklyScheduleDialog({
       })
       setScheduleData(schedule.schedule)
     } else if (!schedule && open) {
-      const weekStart = formatISO(startOfWeek(new Date(), { weekStartsOn: 1 }), {
-        representation: 'date',
-      })
+      const weekStart = formatISO(
+        startOfWeek(new Date(), { weekStartsOn: 1 }),
+        {
+          representation: 'date',
+        }
+      )
       const weekEnd = formatISO(endOfWeek(new Date(), { weekStartsOn: 1 }), {
         representation: 'date',
       })
@@ -134,17 +142,27 @@ export function WeeklyScheduleDialog({
     onOpenChange(false)
   }
 
-  const addMealItem = (day: MealDay, category: 'breakfast' | 'lunch' | 'dinner' | 'snack') => {
+  const addMealItem = (
+    day: MealDay,
+    category: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  ) => {
     setScheduleData(prev => ({
       ...prev,
       [day]: {
         ...prev[day],
-        [category]: [...(prev[day][category] || []), { name: '', description: '', isSpecial: false }],
+        [category]: [
+          ...(prev[day][category] || []),
+          { name: '', description: '', isSpecial: false },
+        ],
       },
     }))
   }
 
-  const removeMealItem = (day: MealDay, category: 'breakfast' | 'lunch' | 'dinner' | 'snack', index: number) => {
+  const removeMealItem = (
+    day: MealDay,
+    category: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+    index: number
+  ) => {
     setScheduleData(prev => ({
       ...prev,
       [day]: {
@@ -165,9 +183,10 @@ export function WeeklyScheduleDialog({
       ...prev,
       [day]: {
         ...prev[day],
-        [category]: prev[day][category]?.map((item, i) =>
-          i === index ? { ...item, [field]: value } : item
-        ) || [],
+        [category]:
+          prev[day][category]?.map((item, i) =>
+            i === index ? { ...item, [field]: value } : item
+          ) || [],
       },
     }))
   }
@@ -196,24 +215,49 @@ export function WeeklyScheduleDialog({
             {dayData[category] && dayData[category].length > 0 ? (
               <div className="space-y-2">
                 {dayData[category].map((item, index) => (
-                  <div key={index} className="flex items-start gap-2 rounded border p-2">
+                  <div
+                    key={index}
+                    className="flex items-start gap-2 rounded border p-2"
+                  >
                     <div className="flex-1 space-y-2">
                       <Input
                         placeholder="Item name"
                         value={item.name || ''}
-                        onChange={e => updateMealItem(day, category, index, 'name', e.target.value)}
+                        onChange={e =>
+                          updateMealItem(
+                            day,
+                            category,
+                            index,
+                            'name',
+                            e.target.value
+                          )
+                        }
                       />
                       <Textarea
                         placeholder="Description"
                         rows={2}
                         value={item.description || ''}
-                        onChange={e => updateMealItem(day, category, index, 'description', e.target.value)}
+                        onChange={e =>
+                          updateMealItem(
+                            day,
+                            category,
+                            index,
+                            'description',
+                            e.target.value
+                          )
+                        }
                       />
                       <div className="flex items-center gap-2">
                         <Checkbox
                           checked={item.isSpecial || false}
                           onCheckedChange={checked =>
-                            updateMealItem(day, category, index, 'isSpecial', checked)
+                            updateMealItem(
+                              day,
+                              category,
+                              index,
+                              'isSpecial',
+                              checked
+                            )
                           }
                         />
                         <label className="text-sm">Special meal</label>
@@ -224,7 +268,13 @@ export function WeeklyScheduleDialog({
                             className="flex-1"
                             value={item.price || ''}
                             onChange={e =>
-                              updateMealItem(day, category, index, 'price', parseFloat(e.target.value) || undefined)
+                              updateMealItem(
+                                day,
+                                category,
+                                index,
+                                'price',
+                                parseFloat(e.target.value) || undefined
+                              )
                             }
                           />
                         )}
@@ -242,7 +292,9 @@ export function WeeklyScheduleDialog({
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground text-center py-2">No items</p>
+              <p className="text-xs text-muted-foreground text-center py-2">
+                No items
+              </p>
             )}
           </div>
         ))}
@@ -254,14 +306,19 @@ export function WeeklyScheduleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>{schedule ? 'Edit Weekly Schedule' : 'Create Weekly Schedule'}</DialogTitle>
+          <DialogTitle>
+            {schedule ? 'Edit Weekly Schedule' : 'Create Weekly Schedule'}
+          </DialogTitle>
           <DialogDescription>
             Set up a weekly meal schedule that repeats automatically
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Week Dates */}
@@ -298,7 +355,11 @@ export function WeeklyScheduleDialog({
                 <Tabs defaultValue="monday" className="w-full">
                   <TabsList className="grid w-full grid-cols-7">
                     {daysOfWeek.map(day => (
-                      <TabsTrigger key={day.value} value={day.value} className="text-xs">
+                      <TabsTrigger
+                        key={day.value}
+                        value={day.value}
+                        className="text-xs"
+                      >
                         {day.label.slice(0, 3)}
                       </TabsTrigger>
                     ))}
@@ -313,10 +374,16 @@ export function WeeklyScheduleDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit">{schedule ? 'Update' : 'Create'} Schedule</Button>
+              <Button type="submit">
+                {schedule ? 'Update' : 'Create'} Schedule
+              </Button>
             </DialogFooter>
           </form>
         </Form>

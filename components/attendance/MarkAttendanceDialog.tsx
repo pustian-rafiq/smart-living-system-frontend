@@ -22,12 +22,17 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Clock } from 'lucide-react'
-import type { AttendanceStatus, AttendanceType } from '@/types/attendance'
 import { mockStudents } from '@/data/mockMess'
 
 const markAttendanceSchema = z.object({
@@ -64,8 +69,8 @@ export function MarkAttendanceDialog({
     defaultValues: {
       studentIds: [],
       date: date || new Date().toISOString().split('T')[0],
-      status: 'present' as AttendanceStatus,
-      type: 'both' as AttendanceType,
+      status: 'present',
+      type: 'both',
       checkInTime: '',
       checkOutTime: '',
       mealCategory: undefined,
@@ -93,7 +98,8 @@ export function MarkAttendanceDialog({
   const handleSubmit = (data: any) => {
     onSubmit({
       ...data,
-      studentIds: selectedStudents.length > 0 ? selectedStudents : data.studentIds,
+      studentIds:
+        selectedStudents.length > 0 ? selectedStudents : data.studentIds,
     })
     form.reset()
     setSelectedStudents([])
@@ -127,7 +133,10 @@ export function MarkAttendanceDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Date */}
@@ -188,7 +197,9 @@ export function MarkAttendanceDialog({
                             htmlFor={`student-${student.id}`}
                             className="flex-1 cursor-pointer text-sm"
                           >
-                            {student.name} {student.seatNumber && `(Seat ${student.seatNumber})`}
+                            {student.name}{' '}
+                            {student.seatNumber &&
+                              `(Seat ${student.seatNumber})`}
                           </label>
                         </div>
                       ))
@@ -204,7 +215,10 @@ export function MarkAttendanceDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -229,7 +243,10 @@ export function MarkAttendanceDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Attendance Type</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -238,7 +255,9 @@ export function MarkAttendanceDialog({
                         <SelectContent>
                           <SelectItem value="general">General Only</SelectItem>
                           <SelectItem value="meal">Meal Only</SelectItem>
-                          <SelectItem value="both">Both General & Meal</SelectItem>
+                          <SelectItem value="both">
+                            Both General & Meal
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -254,7 +273,10 @@ export function MarkAttendanceDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Meal Category</FormLabel>
-                        <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value || ''}
+                          onValueChange={field.onChange}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select meal category" />
@@ -331,11 +353,16 @@ export function MarkAttendanceDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={selectedStudents.length === 0}>
-                Mark Attendance ({selectedStudents.length} student{selectedStudents.length !== 1 ? 's' : ''})
+                Mark Attendance ({selectedStudents.length} student
+                {selectedStudents.length !== 1 ? 's' : ''})
               </Button>
             </DialogFooter>
           </form>

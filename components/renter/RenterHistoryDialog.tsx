@@ -49,11 +49,13 @@ interface RenterHistoryDialogProps {
 const statusConfig = {
   completed: {
     label: 'Completed',
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    className:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
   },
   ongoing: {
     label: 'Ongoing',
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+    className:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
   },
   terminated: {
     label: 'Terminated',
@@ -64,12 +66,14 @@ const statusConfig = {
 const paymentStatusConfig = {
   paid: {
     label: 'Paid',
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    className:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
     icon: CheckCircle2,
   },
   pending: {
     label: 'Pending',
-    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+    className:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
     icon: Clock,
   },
   overdue: {
@@ -79,7 +83,8 @@ const paymentStatusConfig = {
   },
   partial: {
     label: 'Partial',
-    className: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+    className:
+      'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
     icon: Clock,
   },
 }
@@ -87,26 +92,30 @@ const paymentStatusConfig = {
 const complaintStatusConfig = {
   open: {
     label: 'Open',
-    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+    className:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
   },
   in_progress: {
     label: 'In Progress',
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+    className:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
   },
   resolved: {
     label: 'Resolved',
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    className:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
   },
   closed: {
     label: 'Closed',
-    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+    className:
+      'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
   },
 }
 
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
+      {[1, 2, 3, 4, 5].map(star => (
         <Star
           key={star}
           className={cn(
@@ -136,7 +145,9 @@ export function RenterHistoryDialog({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Renter History</DialogTitle>
-            <DialogDescription>No history found for this renter</DialogDescription>
+            <DialogDescription>
+              No history found for this renter
+            </DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>
@@ -147,7 +158,9 @@ export function RenterHistoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl">Renter History</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl">
+            Renter History
+          </DialogTitle>
           <DialogDescription>{renterName}</DialogDescription>
         </DialogHeader>
 
@@ -168,7 +181,9 @@ export function RenterHistoryDialog({
                 <Star className="h-4 w-4 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Avg Rating</p>
               </div>
-              <p className="mt-1 text-2xl font-bold">{history.averageRating.toFixed(1)}</p>
+              <p className="mt-1 text-2xl font-bold">
+                {history.averageRating.toFixed(1)}
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -177,7 +192,9 @@ export function RenterHistoryDialog({
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Complaints</p>
               </div>
-              <p className="mt-1 text-2xl font-bold">{history.totalComplaints}</p>
+              <p className="mt-1 text-2xl font-bold">
+                {history.totalComplaints}
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -186,7 +203,9 @@ export function RenterHistoryDialog({
                 <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Resolved</p>
               </div>
-              <p className="mt-1 text-2xl font-bold">{history.resolvedComplaints}</p>
+              <p className="mt-1 text-2xl font-bold">
+                {history.resolvedComplaints}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -202,20 +221,25 @@ export function RenterHistoryDialog({
 
           {/* Rental History Tab */}
           <TabsContent value="rentals" className="space-y-4">
-            {history.rentalHistories.map((rental) => {
+            {history.rentalHistories.map(rental => {
               const status = statusConfig[rental.status]
               return (
                 <Card key={rental.id}>
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg">{rental.propertyName}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {rental.propertyName}
+                        </CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
                           {rental.propertyAddress}
                           {rental.flatNumber && ` • Flat ${rental.flatNumber}`}
                         </p>
                       </div>
-                      <Badge variant="outline" className={cn('shrink-0', status.className)}>
+                      <Badge
+                        variant="outline"
+                        className={cn('shrink-0', status.className)}
+                      >
                         {status.label}
                       </Badge>
                     </div>
@@ -223,8 +247,12 @@ export function RenterHistoryDialog({
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                       <div>
-                        <p className="text-xs text-muted-foreground">Monthly Rent</p>
-                        <p className="text-lg font-semibold">৳{rental.monthlyRent.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Monthly Rent
+                        </p>
+                        <p className="text-lg font-semibold">
+                          ৳{rental.monthlyRent.toLocaleString()}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Move In</p>
@@ -234,14 +262,21 @@ export function RenterHistoryDialog({
                       </div>
                       {rental.moveOutDate && (
                         <div>
-                          <p className="text-xs text-muted-foreground">Move Out</p>
+                          <p className="text-xs text-muted-foreground">
+                            Move Out
+                          </p>
                           <p className="text-sm font-medium">
-                            {format(new Date(rental.moveOutDate), 'MMM dd, yyyy')}
+                            {format(
+                              new Date(rental.moveOutDate),
+                              'MMM dd, yyyy'
+                            )}
                           </p>
                         </div>
                       )}
                       <div>
-                        <p className="text-xs text-muted-foreground">Duration</p>
+                        <p className="text-xs text-muted-foreground">
+                          Duration
+                        </p>
                         <p className="text-sm font-medium">
                           {rental.moveOutDate
                             ? Math.ceil(
@@ -250,7 +285,8 @@ export function RenterHistoryDialog({
                                   (1000 * 60 * 60 * 24 * 30)
                               )
                             : Math.ceil(
-                                (Date.now() - new Date(rental.moveInDate).getTime()) /
+                                (Date.now() -
+                                  new Date(rental.moveInDate).getTime()) /
                                   (1000 * 60 * 60 * 24 * 30)
                               )}{' '}
                           months
@@ -258,11 +294,15 @@ export function RenterHistoryDialog({
                       </div>
                     </div>
                     <div className="rounded-lg border p-3">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Owner</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">
+                        Owner
+                      </p>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{rental.ownerName}</p>
-                          <p className="text-sm text-muted-foreground">{rental.ownerPhone}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {rental.ownerPhone}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -298,7 +338,7 @@ export function RenterHistoryDialog({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {history.paymentHistories.map((payment) => {
+                  {history.paymentHistories.map(payment => {
                     const rental = history.rentalHistories.find(
                       rh => rh.id === payment.rentalHistoryId
                     )
@@ -334,8 +374,13 @@ export function RenterHistoryDialog({
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <StatusIcon className={cn('h-4 w-4', statusInfo.className)} />
-                            <Badge variant="outline" className={cn('text-xs', statusInfo.className)}>
+                            <StatusIcon
+                              className={cn('h-4 w-4', statusInfo.className)}
+                            />
+                            <Badge
+                              variant="outline"
+                              className={cn('text-xs', statusInfo.className)}
+                            >
                               {statusInfo.label}
                             </Badge>
                           </div>
@@ -350,7 +395,7 @@ export function RenterHistoryDialog({
 
           {/* Complaint History Tab */}
           <TabsContent value="complaints" className="space-y-4">
-            {history.complaintHistories.map((complaint) => {
+            {history.complaintHistories.map(complaint => {
               const rental = history.rentalHistories.find(
                 rh => rh.id === complaint.rentalHistoryId
               )
@@ -360,37 +405,54 @@ export function RenterHistoryDialog({
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-base">{complaint.title}</CardTitle>
+                        <CardTitle className="text-base">
+                          {complaint.title}
+                        </CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
                           {rental?.propertyName || 'N/A'}
                         </p>
                       </div>
-                      <Badge variant="outline" className={cn('shrink-0', status.className)}>
+                      <Badge
+                        variant="outline"
+                        className={cn('shrink-0', status.className)}
+                      >
                         {status.label}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Category</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">
+                        Category
+                      </p>
                       <Badge variant="outline">{complaint.category}</Badge>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Description</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">
+                        Description
+                      </p>
                       <p className="text-sm">{complaint.description}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Created</p>
                         <p className="text-sm font-medium">
-                          {format(new Date(complaint.createdAt), 'MMM dd, yyyy')}
+                          {format(
+                            new Date(complaint.createdAt),
+                            'MMM dd, yyyy'
+                          )}
                         </p>
                       </div>
                       {complaint.resolvedAt && (
                         <div>
-                          <p className="text-xs text-muted-foreground">Resolved</p>
+                          <p className="text-xs text-muted-foreground">
+                            Resolved
+                          </p>
                           <p className="text-sm font-medium">
-                            {format(new Date(complaint.resolvedAt), 'MMM dd, yyyy')}
+                            {format(
+                              new Date(complaint.resolvedAt),
+                              'MMM dd, yyyy'
+                            )}
                           </p>
                         </div>
                       )}
@@ -413,7 +475,7 @@ export function RenterHistoryDialog({
 
           {/* Owner References Tab */}
           <TabsContent value="references" className="space-y-4">
-            {history.ownerReferences.map((reference) => {
+            {history.ownerReferences.map(reference => {
               const rental = history.rentalHistories.find(
                 rh => rh.id === reference.rentalHistoryId
               )
@@ -422,7 +484,9 @@ export function RenterHistoryDialog({
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-base">{reference.ownerName}</CardTitle>
+                        <CardTitle className="text-base">
+                          {reference.ownerName}
+                        </CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
                           {reference.propertyName}
                         </p>
@@ -430,7 +494,10 @@ export function RenterHistoryDialog({
                       <div className="flex items-center gap-2">
                         <StarRating rating={reference.rating} />
                         {reference.verified && (
-                          <Badge variant="outline" className="bg-green-50 text-green-700">
+                          <Badge
+                            variant="outline"
+                            className="bg-green-50 text-green-700"
+                          >
                             <CheckCircle2 className="mr-1 h-3 w-3" />
                             Verified
                           </Badge>
@@ -439,7 +506,9 @@ export function RenterHistoryDialog({
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <p className="text-sm leading-relaxed">{reference.referenceText}</p>
+                    <p className="text-sm leading-relaxed">
+                      {reference.referenceText}
+                    </p>
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
@@ -462,7 +531,7 @@ export function RenterHistoryDialog({
 
           {/* Owner Ratings Tab */}
           <TabsContent value="ratings" className="space-y-4">
-            {history.ownerRatings.map((rating) => {
+            {history.ownerRatings.map(rating => {
               const rental = history.rentalHistories.find(
                 rh => rh.id === rating.rentalHistoryId
               )
@@ -471,7 +540,9 @@ export function RenterHistoryDialog({
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-base">{rating.ownerName}</CardTitle>
+                        <CardTitle className="text-base">
+                          {rating.ownerName}
+                        </CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
                           {rental?.propertyName || 'N/A'}
                         </p>
@@ -482,25 +553,35 @@ export function RenterHistoryDialog({
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">Punctuality</p>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Punctuality
+                        </p>
                         <StarRating rating={rating.punctualityRating} />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">Cleanliness</p>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Cleanliness
+                        </p>
                         <StarRating rating={rating.cleanlinessRating} />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">Behavior</p>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Behavior
+                        </p>
                         <StarRating rating={rating.behaviorRating} />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">Communication</p>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Communication
+                        </p>
                         <StarRating rating={rating.communicationRating} />
                       </div>
                     </div>
                     {rating.comment && (
                       <div className="rounded-lg border p-3">
-                        <p className="text-xs font-medium text-muted-foreground mb-1">Comment</p>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">
+                          Comment
+                        </p>
                         <p className="text-sm">{rating.comment}</p>
                       </div>
                     )}

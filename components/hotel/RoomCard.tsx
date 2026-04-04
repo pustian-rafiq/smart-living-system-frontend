@@ -14,7 +14,12 @@ interface RoomCardProps {
   selected?: boolean
 }
 
-export function RoomCard({ room, onSelect, showSelectButton = false, selected = false }: RoomCardProps) {
+export function RoomCard({
+  room,
+  onSelect,
+  showSelectButton = false,
+  selected = false,
+}: RoomCardProps) {
   const roomTypeLabels: Record<string, string> = {
     single: 'Single Room',
     double: 'Double Room',
@@ -48,7 +53,9 @@ export function RoomCard({ room, onSelect, showSelectButton = false, selected = 
             <div className="mb-2 flex items-start justify-between">
               <div>
                 <h4 className="font-semibold">Room {room.roomNumber}</h4>
-                <p className="text-sm text-muted-foreground">{roomTypeLabels[room.type]}</p>
+                <p className="text-sm text-muted-foreground">
+                  {roomTypeLabels[room.type]}
+                </p>
               </div>
               <Badge variant={room.available ? 'default' : 'secondary'}>
                 {room.available ? 'Available' : 'Occupied'}

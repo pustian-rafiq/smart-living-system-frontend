@@ -22,7 +22,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -53,8 +59,18 @@ interface MeterReadingDialogProps {
 }
 
 const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ]
 
 const currentYear = new Date().getFullYear()
@@ -66,15 +82,21 @@ export function MeterReadingDialog({
   onSubmit,
   reading,
 }: MeterReadingDialogProps) {
-  const [selectedPropertyType, setSelectedPropertyType] = useState<'apartment' | 'mess'>(
-    reading?.propertyType || 'apartment'
+  const [selectedPropertyType, setSelectedPropertyType] = useState<
+    'apartment' | 'mess'
+  >(reading?.propertyType || 'apartment')
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>(
+    reading?.propertyId || ''
   )
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string>(reading?.propertyId || '')
-  const [selectedFlatId, setSelectedFlatId] = useState<string>(reading?.flatId || '')
-  const [previousReading, setPreviousReading] = useState<MeterReading | undefined>()
+  const [selectedFlatId, setSelectedFlatId] = useState<string>(
+    reading?.flatId || ''
+  )
+  const [previousReading, setPreviousReading] = useState<
+    MeterReading | undefined
+  >()
 
   const form = useForm<MeterReadingFormData>({
-    resolver: zodResolver(meterReadingSchema),
+    resolver: zodResolver(meterReadingSchema) as never,
     defaultValues: reading
       ? {
           propertyId: reading.propertyId,
@@ -128,7 +150,8 @@ export function MeterReadingDialog({
     }
   }
 
-  const properties = selectedPropertyType === 'apartment' ? mockBuildings : mockMess
+  const properties =
+    selectedPropertyType === 'apartment' ? mockBuildings : mockMess
   const availableFlats = selectedPropertyId
     ? mockFlats.filter(f => f.buildingId === selectedPropertyId)
     : []
@@ -147,7 +170,9 @@ export function MeterReadingDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{reading ? 'Edit Meter Reading' : 'Add Meter Reading'}</DialogTitle>
+          <DialogTitle>
+            {reading ? 'Edit Meter Reading' : 'Add Meter Reading'}
+          </DialogTitle>
           <DialogDescription>
             {reading
               ? 'Update the meter reading information'
@@ -156,7 +181,10 @@ export function MeterReadingDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -165,7 +193,7 @@ export function MeterReadingDialog({
                   <FormItem>
                     <FormLabel>Property Type</FormLabel>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value)
                         setSelectedPropertyType(value as 'apartment' | 'mess')
                         form.setValue('propertyId', '')
@@ -197,7 +225,7 @@ export function MeterReadingDialog({
                   <FormItem>
                     <FormLabel>Property</FormLabel>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value)
                         setSelectedPropertyId(value)
                         form.setValue('flatId', '')
@@ -211,7 +239,7 @@ export function MeterReadingDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {properties.map((prop) => (
+                        {properties.map(prop => (
                           <SelectItem key={prop.id} value={prop.id}>
                             {prop.name}
                           </SelectItem>
@@ -224,38 +252,39 @@ export function MeterReadingDialog({
               />
             </div>
 
-            {selectedPropertyType === 'apartment' && availableFlats.length > 0 && (
-              <FormField
-                control={form.control}
-                name="flatId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Flat</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value)
-                        setSelectedFlatId(value)
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select flat" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableFlats.map((flat) => (
-                          <SelectItem key={flat.id} value={flat.id}>
-                            {flat.flatNumber} - Floor {flat.floor}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            {selectedPropertyType === 'apartment' &&
+              availableFlats.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="flatId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Flat</FormLabel>
+                      <Select
+                        onValueChange={value => {
+                          field.onChange(value)
+                          setSelectedFlatId(value)
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select flat" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableFlats.map(flat => (
+                            <SelectItem key={flat.id} value={flat.id}>
+                              {flat.flatNumber} - Floor {flat.floor}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
@@ -264,14 +293,17 @@ export function MeterReadingDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Month</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {months.map((month) => (
+                        {months.map(month => (
                           <SelectItem key={month} value={month}>
                             {month}
                           </SelectItem>
@@ -302,25 +334,35 @@ export function MeterReadingDialog({
             {previousReading && (
               <Card className="bg-muted/50">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Previous Reading</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Previous Reading
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   {previousReading.electricity !== undefined && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Electricity:</span>
-                      <span className="font-medium">{previousReading.electricity} units</span>
+                      <span className="text-muted-foreground">
+                        Electricity:
+                      </span>
+                      <span className="font-medium">
+                        {previousReading.electricity} units
+                      </span>
                     </div>
                   )}
                   {previousReading.gas !== undefined && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Gas:</span>
-                      <span className="font-medium">{previousReading.gas} units</span>
+                      <span className="font-medium">
+                        {previousReading.gas} units
+                      </span>
                     </div>
                   )}
                   {previousReading.water !== undefined && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Water:</span>
-                      <span className="font-medium">{previousReading.water} units</span>
+                      <span className="font-medium">
+                        {previousReading.water} units
+                      </span>
                     </div>
                   )}
                 </CardContent>
@@ -329,7 +371,9 @@ export function MeterReadingDialog({
 
             {/* Meter Readings */}
             <div className="space-y-4">
-              <Label className="text-base font-semibold">Current Meter Readings</Label>
+              <Label className="text-base font-semibold">
+                Current Meter Readings
+              </Label>
 
               <FormField
                 control={form.control}
@@ -342,15 +386,20 @@ export function MeterReadingDialog({
                         type="number"
                         placeholder="Enter current reading"
                         {...field}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseFloat(e.target.value) : undefined
+                        onChange={e => {
+                          const value = e.target.value
+                            ? parseFloat(e.target.value)
+                            : undefined
                           field.onChange(value)
                         }}
                       />
                     </FormControl>
                     {electricityConsumption !== undefined && (
                       <FormDescription>
-                        Consumption: <Badge variant="outline">{electricityConsumption} units</Badge>
+                        Consumption:{' '}
+                        <Badge variant="outline">
+                          {electricityConsumption} units
+                        </Badge>
                       </FormDescription>
                     )}
                     <FormMessage />
@@ -369,15 +418,18 @@ export function MeterReadingDialog({
                         type="number"
                         placeholder="Enter current reading"
                         {...field}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseFloat(e.target.value) : undefined
+                        onChange={e => {
+                          const value = e.target.value
+                            ? parseFloat(e.target.value)
+                            : undefined
                           field.onChange(value)
                         }}
                       />
                     </FormControl>
                     {gasConsumption !== undefined && (
                       <FormDescription>
-                        Consumption: <Badge variant="outline">{gasConsumption} units</Badge>
+                        Consumption:{' '}
+                        <Badge variant="outline">{gasConsumption} units</Badge>
                       </FormDescription>
                     )}
                     <FormMessage />
@@ -396,15 +448,20 @@ export function MeterReadingDialog({
                         type="number"
                         placeholder="Enter current reading"
                         {...field}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseFloat(e.target.value) : undefined
+                        onChange={e => {
+                          const value = e.target.value
+                            ? parseFloat(e.target.value)
+                            : undefined
                           field.onChange(value)
                         }}
                       />
                     </FormControl>
                     {waterConsumption !== undefined && (
                       <FormDescription>
-                        Consumption: <Badge variant="outline">{waterConsumption} units</Badge>
+                        Consumption:{' '}
+                        <Badge variant="outline">
+                          {waterConsumption} units
+                        </Badge>
                       </FormDescription>
                     )}
                     <FormMessage />
@@ -425,7 +482,9 @@ export function MeterReadingDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit">{reading ? 'Update Reading' : 'Save Reading'}</Button>
+              <Button type="submit">
+                {reading ? 'Update Reading' : 'Save Reading'}
+              </Button>
             </div>
           </form>
         </Form>

@@ -21,10 +21,20 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -89,7 +99,10 @@ export function JobInfoDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             {/* Type */}
             <FormField
               control={form.control}
@@ -97,7 +110,10 @@ export function JobInfoDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
@@ -106,7 +122,9 @@ export function JobInfoDialog({
                     <SelectContent>
                       <SelectItem value="student">Student</SelectItem>
                       <SelectItem value="employed">Employed</SelectItem>
-                      <SelectItem value="self_employed">Self Employed</SelectItem>
+                      <SelectItem value="self_employed">
+                        Self Employed
+                      </SelectItem>
                       <SelectItem value="unemployed">Unemployed</SelectItem>
                     </SelectContent>
                   </Select>
@@ -237,7 +255,7 @@ export function JobInfoDialog({
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) => date > new Date()}
+                            disabled={date => date > new Date()}
                             initialFocus
                           />
                         </PopoverContent>

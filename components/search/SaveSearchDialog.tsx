@@ -27,7 +27,10 @@ import { Loader2 } from 'lucide-react'
 import type { SearchFilters } from '@/types/property'
 
 const saveSearchSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(50, 'Name must be less than 50 characters'),
+  name: z
+    .string()
+    .min(1, 'Name is required')
+    .max(50, 'Name must be less than 50 characters'),
   enableNotifications: z.boolean().default(true),
 })
 
@@ -35,7 +38,11 @@ interface SaveSearchDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   filters: SearchFilters
-  onSave: (name: string, filters: SearchFilters, enableNotifications: boolean) => void
+  onSave: (
+    name: string,
+    filters: SearchFilters,
+    enableNotifications: boolean
+  ) => void
 }
 
 export function SaveSearchDialog({
@@ -71,7 +78,10 @@ export function SaveSearchDialog({
   const suggestedName = () => {
     const parts: string[] = []
     if (filters.propertyType && filters.propertyType !== 'all') {
-      parts.push(filters.propertyType.charAt(0).toUpperCase() + filters.propertyType.slice(1))
+      parts.push(
+        filters.propertyType.charAt(0).toUpperCase() +
+          filters.propertyType.slice(1)
+      )
     }
     if (filters.city) {
       parts.push(filters.city)
@@ -103,7 +113,10 @@ export function SaveSearchDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             {/* Search Summary */}
             <div className="rounded-lg border p-3 bg-muted/50">
               <p className="text-sm font-medium mb-2">Search Criteria:</p>
@@ -114,7 +127,8 @@ export function SaveSearchDialog({
                 {filters.city && <p>City: {filters.city}</p>}
                 {filters.area && <p>Area: {filters.area}</p>}
                 <p>
-                  Rent: ৳{filters.rentRange[0].toLocaleString()} - ৳{filters.rentRange[1].toLocaleString()}
+                  Rent: ৳{filters.rentRange[0].toLocaleString()} - ৳
+                  {filters.rentRange[1].toLocaleString()}
                 </p>
                 {filters.availableOnly && <p>Available only</p>}
                 {filters.verifiedOnly && <p>Verified only</p>}
@@ -129,10 +143,7 @@ export function SaveSearchDialog({
                 <FormItem>
                   <FormLabel>Search Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="e.g., Mess in Mirpur"
-                      {...field}
-                    />
+                    <Input placeholder="e.g., Mess in Mirpur" {...field} />
                   </FormControl>
                   <FormDescription>
                     Give this search a memorable name
@@ -149,7 +160,9 @@ export function SaveSearchDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Enable Notifications</FormLabel>
+                    <FormLabel className="text-base">
+                      Enable Notifications
+                    </FormLabel>
                     <FormDescription>
                       Get notified when new properties match this search
                     </FormDescription>
@@ -175,11 +188,7 @@ export function SaveSearchDialog({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" className="flex-1" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

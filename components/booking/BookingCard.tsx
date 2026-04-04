@@ -26,7 +26,13 @@ export function BookingCard({
   showActions = false,
 }: BookingCardProps) {
   const getStatusBadge = (status: Booking['status']) => {
-    const variants: Record<Booking['status'], { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
+    const variants: Record<
+      Booking['status'],
+      {
+        variant: 'default' | 'secondary' | 'destructive' | 'outline'
+        label: string
+      }
+    > = {
       pending: { variant: 'secondary', label: 'Pending' },
       approved: { variant: 'default', label: 'Approved' },
       rejected: { variant: 'destructive', label: 'Rejected' },
@@ -34,11 +40,7 @@ export function BookingCard({
       completed: { variant: 'default', label: 'Completed' },
     }
     const config = variants[status]
-    return (
-      <Badge variant={config.variant}>
-        {config.label}
-      </Badge>
-    )
+    return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
   return (
@@ -62,7 +64,9 @@ export function BookingCard({
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <CardTitle className="text-lg">{booking.propertyName}</CardTitle>
+                <CardTitle className="text-lg">
+                  {booking.propertyName}
+                </CardTitle>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="outline" className="text-xs capitalize">
                     {booking.propertyType}
@@ -137,12 +141,16 @@ export function BookingCard({
             <div className="flex items-center justify-between pt-2 border-t">
               <div>
                 <p className="text-sm text-muted-foreground">Monthly Rent</p>
-                <p className="text-lg font-bold">৳{booking.rent.toLocaleString()}</p>
+                <p className="text-lg font-bold">
+                  ৳{booking.rent.toLocaleString()}
+                </p>
               </div>
               {booking.deposit && (
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Deposit</p>
-                  <p className="text-lg font-bold">৳{booking.deposit.toLocaleString()}</p>
+                  <p className="text-lg font-bold">
+                    ৳{booking.deposit.toLocaleString()}
+                  </p>
                 </div>
               )}
             </div>
@@ -216,18 +224,20 @@ export function BookingCard({
               </div>
             )}
 
-            {!showActions && (booking.status === 'approved' || booking.status === 'completed') && (
-              <div className="pt-2 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => onViewDetails?.(booking)}
-                >
-                  View Details
-                </Button>
-              </div>
-            )}
+            {!showActions &&
+              (booking.status === 'approved' ||
+                booking.status === 'completed') && (
+                <div className="pt-2 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => onViewDetails?.(booking)}
+                  >
+                    View Details
+                  </Button>
+                </div>
+              )}
           </CardContent>
         </div>
       </div>

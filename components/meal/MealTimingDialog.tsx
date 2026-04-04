@@ -100,7 +100,10 @@ export function MealTimingDialog({
     onOpenChange(false)
   }
 
-  const renderMealTiming = (category: 'breakfast' | 'lunch' | 'dinner' | 'snack', label: string) => (
+  const renderMealTiming = (
+    category: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+    label: string
+  ) => (
     <div className="space-y-3 rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">{label}</h3>
@@ -110,7 +113,10 @@ export function MealTimingDialog({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -160,7 +166,10 @@ export function MealTimingDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <div className="space-y-4">
               {renderMealTiming('breakfast', 'Breakfast')}
               {renderMealTiming('lunch', 'Lunch')}
@@ -169,7 +178,11 @@ export function MealTimingDialog({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">Save Timings</Button>

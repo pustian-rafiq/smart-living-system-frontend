@@ -1,6 +1,12 @@
 export type HotelType = 'hotel' | 'guest-house' | 'resort'
 export type RoomType = 'single' | 'double' | 'suite' | 'family'
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'checked-in' | 'checked-out'
+export type BookingStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'cancelled'
+  | 'completed'
+  | 'checked-in'
+  | 'checked-out'
 export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'partial'
 
 export interface Room {

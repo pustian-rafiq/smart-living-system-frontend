@@ -45,7 +45,7 @@ export function AddBuildingDialog({
   onAdd,
 }: AddBuildingDialogProps) {
   const form = useForm<BuildingFormData>({
-    resolver: zodResolver(buildingSchema),
+    resolver: zodResolver(buildingSchema) as never,
     defaultValues: {
       name: '',
       address: '',
@@ -85,7 +85,10 @@ export function AddBuildingDialog({
                 <FormItem>
                   <FormLabel>Building Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Green Valley Apartments" {...field} />
+                    <Input
+                      placeholder="e.g., Green Valley Apartments"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

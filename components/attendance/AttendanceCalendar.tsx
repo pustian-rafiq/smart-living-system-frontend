@@ -4,9 +4,22 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+} from 'lucide-react'
 import type { AttendanceRecord } from '@/types/attendance'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns'
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+} from 'date-fns'
 
 interface AttendanceCalendarProps {
   records: AttendanceRecord[]
@@ -54,7 +67,9 @@ export function AttendanceCalendar({
     return grouped
   }, [monthRecords, studentId])
 
-  const getStatusForDate = (date: string): AttendanceRecord['status'] | null => {
+  const getStatusForDate = (
+    date: string
+  ): AttendanceRecord['status'] | null => {
     const dayRecords = recordsByDate[date]
     if (!dayRecords || dayRecords.length === 0) return null
 
@@ -117,7 +132,10 @@ export function AttendanceCalendar({
           {/* Week day headers */}
           <div className="grid grid-cols-7 gap-1">
             {weekDays.map(day => (
-              <div key={day} className="text-center text-xs font-semibold text-muted-foreground p-2">
+              <div
+                key={day}
+                className="text-center text-xs font-semibold text-muted-foreground p-2"
+              >
                 {day}
               </div>
             ))}

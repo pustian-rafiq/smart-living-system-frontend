@@ -24,7 +24,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
@@ -53,7 +59,11 @@ interface BulkSMSDialogProps {
   onSubmit: (data: BulkSMSData) => void
 }
 
-export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogProps) {
+export function BulkSMSDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+}: BulkSMSDialogProps) {
   const [selectedBuilding, setSelectedBuilding] = useState<string>('')
   const [selectedFloors, setSelectedFloors] = useState<string[]>([])
   const [selectedFlats, setSelectedFlats] = useState<string[]>([])
@@ -92,7 +102,8 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
       floorIds: selectedFloors.length > 0 ? selectedFloors : undefined,
       flatIds: selectedFlats.length > 0 ? selectedFlats : undefined,
       messId: selectedMess || undefined,
-      customRecipients: customRecipients.length > 0 ? customRecipients : undefined,
+      customRecipients:
+        customRecipients.length > 0 ? customRecipients : undefined,
     })
     form.reset()
     setSelectedBuilding('')
@@ -118,7 +129,8 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
   const recipientType = form.watch('recipientType')
   const selectedCount = useMemo(() => {
     if (recipientType === 'custom') return customRecipients.length
-    if (selectedMess) return mockMess.find(m => m.id === selectedMess)?.totalSeats || 0
+    if (selectedMess)
+      return mockMess.find(m => m.id === selectedMess)?.totalSeats || 0
     if (selectedFlats.length > 0) return selectedFlats.length
     if (selectedFloors.length > 0) {
       return floors
@@ -127,7 +139,16 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
     }
     if (selectedBuilding) return availableFlats.length
     return 0
-  }, [recipientType, customRecipients.length, selectedMess, selectedFlats, selectedFloors, selectedBuilding, floors, availableFlats])
+  }, [
+    recipientType,
+    customRecipients.length,
+    selectedMess,
+    selectedFlats,
+    selectedFloors,
+    selectedBuilding,
+    floors,
+    availableFlats,
+  ])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -143,7 +164,10 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Recipient Type */}
@@ -161,19 +185,27 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="all" id="all" />
-                            <label htmlFor="all" className="cursor-pointer">All</label>
+                            <label htmlFor="all" className="cursor-pointer">
+                              All
+                            </label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="owners" id="owners" />
-                            <label htmlFor="owners" className="cursor-pointer">Owners</label>
+                            <label htmlFor="owners" className="cursor-pointer">
+                              Owners
+                            </label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="renters" id="renters" />
-                            <label htmlFor="renters" className="cursor-pointer">Renters</label>
+                            <label htmlFor="renters" className="cursor-pointer">
+                              Renters
+                            </label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="custom" id="custom" />
-                            <label htmlFor="custom" className="cursor-pointer">Custom</label>
+                            <label htmlFor="custom" className="cursor-pointer">
+                              Custom
+                            </label>
                           </div>
                         </RadioGroup>
                       </FormControl>
@@ -206,7 +238,11 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
                     {customRecipients.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
                         {customRecipients.map(phone => (
-                          <Badge key={phone} variant="outline" className="flex items-center gap-1">
+                          <Badge
+                            key={phone}
+                            variant="outline"
+                            className="flex items-center gap-1"
+                          >
                             {phone}
                             <Button
                               type="button"
@@ -250,7 +286,10 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
                             </FormControl>
                             <SelectContent>
                               {mockBuildings.map(building => (
-                                <SelectItem key={building.id} value={building.id}>
+                                <SelectItem
+                                  key={building.id}
+                                  value={building.id}
+                                >
                                   {building.name}
                                 </SelectItem>
                               ))}
@@ -302,16 +341,26 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
                         <FormLabel>Select Floors (Optional)</FormLabel>
                         <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
                           {floors.map(floor => (
-                            <div key={floor.id} className="flex items-center space-x-2">
+                            <div
+                              key={floor.id}
+                              className="flex items-center space-x-2"
+                            >
                               <Checkbox
                                 id={`floor-${floor.id}`}
                                 checked={selectedFloors.includes(floor.id)}
                                 onCheckedChange={checked => {
                                   if (checked) {
-                                    setSelectedFloors([...selectedFloors, floor.id])
+                                    setSelectedFloors([
+                                      ...selectedFloors,
+                                      floor.id,
+                                    ])
                                     setSelectedFlats([])
                                   } else {
-                                    setSelectedFloors(selectedFloors.filter(id => id !== floor.id))
+                                    setSelectedFloors(
+                                      selectedFloors.filter(
+                                        id => id !== floor.id
+                                      )
+                                    )
                                   }
                                 }}
                               />
@@ -333,16 +382,24 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
                         <FormLabel>Select Flats (Optional)</FormLabel>
                         <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
                           {availableFlats.map(flat => (
-                            <div key={flat.id} className="flex items-center space-x-2">
+                            <div
+                              key={flat.id}
+                              className="flex items-center space-x-2"
+                            >
                               <Checkbox
                                 id={`flat-${flat.id}`}
                                 checked={selectedFlats.includes(flat.id)}
                                 onCheckedChange={checked => {
                                   if (checked) {
-                                    setSelectedFlats([...selectedFlats, flat.id])
+                                    setSelectedFlats([
+                                      ...selectedFlats,
+                                      flat.id,
+                                    ])
                                     setSelectedFloors([])
                                   } else {
-                                    setSelectedFlats(selectedFlats.filter(id => id !== flat.id))
+                                    setSelectedFlats(
+                                      selectedFlats.filter(id => id !== flat.id)
+                                    )
                                   }
                                 }}
                               />
@@ -418,7 +475,8 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
                   <div>
                     <p className="text-sm font-medium">Recipients</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {selectedCount} recipient{selectedCount !== 1 ? 's' : ''} will receive this SMS
+                      {selectedCount} recipient{selectedCount !== 1 ? 's' : ''}{' '}
+                      will receive this SMS
                     </p>
                   </div>
                   <Badge variant="outline" className="text-lg px-3 py-1">
@@ -429,7 +487,11 @@ export function BulkSMSDialog({ open, onOpenChange, onSubmit }: BulkSMSDialogPro
             )}
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={selectedCount === 0}>

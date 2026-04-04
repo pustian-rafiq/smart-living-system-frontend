@@ -28,10 +28,7 @@ export function AnalyticsChart({ title, data, total }: AnalyticsChartProps) {
                   {total && ` (${((item.value / total) * 100).toFixed(1)}%)`}
                 </span>
               </div>
-              <Progress
-                value={(item.value / maxValue) * 100}
-                className="h-2"
-              />
+              <Progress value={(item.value / maxValue) * 100} className="h-2" />
             </div>
           ))}
         </div>

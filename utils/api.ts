@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
 
 export interface ApiResponse<T> {
   data?: T
@@ -40,7 +41,8 @@ export async function apiRequest<T>(
   options?: RequestInit
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('token') : null
 
   const config: RequestInit = {
     ...options,

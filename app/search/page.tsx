@@ -11,20 +11,54 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { PropertyCard } from '@/components/property/PropertyCard'
 import { PropertyDetailDialog } from '@/components/property/PropertyDetailDialog'
 import { PropertyMap } from '@/components/map/PropertyMap'
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation'
 import { SaveSearchDialog } from '@/components/search/SaveSearchDialog'
-import { Filter, X, ChevronDown, ChevronUp, Map, List, Navigation, MapPin, Bookmark, BookmarkCheck } from 'lucide-react'
-import { mockProperties, getCities, getAreasByCity, getAllNearbyFacilities } from '@/data/mockProperties'
-import { calculateDistance, getCurrentLocation, formatDistance } from '@/utils/location'
+import {
+  Filter,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Map,
+  List,
+  Navigation,
+  MapPin,
+  Bookmark,
+  BookmarkCheck,
+} from 'lucide-react'
+import {
+  mockProperties,
+  getCities,
+  getAreasByCity,
+  getAllNearbyFacilities,
+} from '@/data/mockProperties'
+import {
+  calculateDistance,
+  getCurrentLocation,
+  formatDistance,
+} from '@/utils/location'
 import { mockBookings, addBooking } from '@/data/mockBookings'
 import { mockSavedSearches } from '@/data/mockSavedSearches'
 import { addSearchHistory } from '@/data/mockSearchHistory'
-import type { Property, PropertyType, Gender, SeatType, MealPlan, FurnishingStatus, SearchFilters } from '@/types/property'
+import type {
+  Property,
+  PropertyType,
+  Gender,
+  SeatType,
+  MealPlan,
+  FurnishingStatus,
+  SearchFilters,
+} from '@/types/property'
 import type { BookingFormData, Booking } from '@/types/booking'
 
 const searchSchema = z.object({
@@ -52,14 +86,19 @@ export default function SearchPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null
+  )
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [showBookingConfirmation, setShowBookingConfirmation] = useState(false)
   const [lastBooking, setLastBooking] = useState<Booking | null>(null)
   const [showSaveSearchDialog, setShowSaveSearchDialog] = useState(false)
   const [selectedCity, setSelectedCity] = useState<string>('all')
   const [availableAreas, setAvailableAreas] = useState<string[]>([])
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [userLocation, setUserLocation] = useState<{
+    lat: number
+    lng: number
+  } | null>(null)
   const [searchByLocation, setSearchByLocation] = useState(false)
   const [searchRadius, setSearchRadius] = useState(10) // in km
   const [locationLoading, setLocationLoading] = useState(false)
@@ -141,7 +180,8 @@ export default function SearchPage() {
 
     // Filter by rent range
     filtered = filtered.filter(
-      p => p.rent >= formValues.rentRange[0] && p.rent <= formValues.rentRange[1]
+      p =>
+        p.rent >= formValues.rentRange[0] && p.rent <= formValues.rentRange[1]
     )
 
     // Filter by availability
@@ -150,28 +190,48 @@ export default function SearchPage() {
     }
 
     // Filter by gender (for mess/hostel)
-    if (formValues.gender && (formValues.propertyType === 'mess' || formValues.propertyType === 'hostel' || formValues.propertyType === 'all')) {
+    if (
+      formValues.gender &&
+      (formValues.propertyType === 'mess' ||
+        formValues.propertyType === 'hostel' ||
+        formValues.propertyType === 'all')
+    ) {
       filtered = filtered.filter(
-        p => (p.type === 'mess' || p.type === 'hostel') && (p.gender === formValues.gender || p.gender === 'mixed')
+        p =>
+          (p.type === 'mess' || p.type === 'hostel') &&
+          (p.gender === formValues.gender || p.gender === 'mixed')
       )
     }
 
     // Filter by seat type (for mess/hostel)
-    if (formValues.seatType && (formValues.propertyType === 'mess' || formValues.propertyType === 'hostel' || formValues.propertyType === 'all')) {
+    if (
+      formValues.seatType &&
+      (formValues.propertyType === 'mess' ||
+        formValues.propertyType === 'hostel' ||
+        formValues.propertyType === 'all')
+    ) {
       filtered = filtered.filter(
-        p => (p.type === 'mess' || p.type === 'hostel') && p.seatType === formValues.seatType
+        p =>
+          (p.type === 'mess' || p.type === 'hostel') &&
+          p.seatType === formValues.seatType
       )
     }
 
     // Filter by meal included (for mess)
-    if (formValues.mealIncluded !== undefined && (formValues.propertyType === 'mess' || formValues.propertyType === 'all')) {
+    if (
+      formValues.mealIncluded !== undefined &&
+      (formValues.propertyType === 'mess' || formValues.propertyType === 'all')
+    ) {
       filtered = filtered.filter(
         p => p.type === 'mess' && p.mealIncluded === formValues.mealIncluded
       )
     }
 
     // Filter by meal plan (for mess)
-    if (formValues.mealPlan && (formValues.propertyType === 'mess' || formValues.propertyType === 'all')) {
+    if (
+      formValues.mealPlan &&
+      (formValues.propertyType === 'mess' || formValues.propertyType === 'all')
+    ) {
       filtered = filtered.filter(
         p => p.type === 'mess' && p.mealPlan === formValues.mealPlan
       )
@@ -188,12 +248,16 @@ export default function SearchPage() {
 
     // Filter by building age
     if (formValues.buildingAge !== undefined) {
-      filtered = filtered.filter(p => p.buildingAge && p.buildingAge <= formValues.buildingAge!)
+      filtered = filtered.filter(
+        p => p.buildingAge && p.buildingAge <= formValues.buildingAge!
+      )
     }
 
     // Filter by floor level
     if (formValues.floorLevel !== undefined) {
-      filtered = filtered.filter(p => p.floorLevel && p.floorLevel <= formValues.floorLevel!)
+      filtered = filtered.filter(
+        p => p.floorLevel && p.floorLevel <= formValues.floorLevel!
+      )
     }
 
     // Filter by furnishing
@@ -213,8 +277,8 @@ export default function SearchPage() {
 
     // Filter by verified only
     if (formValues.verifiedOnly) {
-      filtered = filtered.filter(p => 
-        p.verified === true || p.verificationStatus === 'verified'
+      filtered = filtered.filter(
+        p => p.verified === true || p.verificationStatus === 'verified'
       )
     }
 
@@ -238,7 +302,8 @@ export default function SearchPage() {
   // Save search to history when filters change (after filtering is done)
   useEffect(() => {
     // Only save if there are meaningful filters and we have results
-    const hasFilters = formValues.propertyType !== 'all' ||
+    const hasFilters =
+      formValues.propertyType !== 'all' ||
       formValues.city ||
       formValues.area ||
       formValues.rentRange[0] !== 2000 ||
@@ -308,7 +373,7 @@ export default function SearchPage() {
         duration: data.duration || 1,
         rent: property.rent,
         deposit: property.rent * 2, // Typically 2 months rent as deposit
-        totalAmount: (property.rent * (data.duration || 1)) + (property.rent * 2),
+        totalAmount: property.rent * (data.duration || 1) + property.rent * 2,
         status: 'pending',
         message: data.message,
         createdAt: new Date().toISOString(),
@@ -353,7 +418,11 @@ export default function SearchPage() {
     })
   }
 
-  const handleSaveSearch = (name: string, filters: SearchFilters, enableNotifications: boolean) => {
+  const handleSaveSearch = (
+    name: string,
+    filters: SearchFilters,
+    enableNotifications: boolean
+  ) => {
     // In real app, this would call an API
     const newSavedSearch = {
       id: `search-${Date.now()}`,
@@ -408,9 +477,13 @@ export default function SearchPage() {
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold sm:text-3xl">Search Properties</h1>
+              <h1 className="text-2xl font-bold sm:text-3xl">
+                Search Properties
+              </h1>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                {filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'} found
+                {filteredProperties.length}{' '}
+                {filteredProperties.length === 1 ? 'property' : 'properties'}{' '}
+                found
                 {searchByLocation && userLocation && (
                   <span className="ml-2 inline-flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5" />
@@ -444,7 +517,7 @@ export default function SearchPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.location.href = '/saved-searches'}
+                onClick={() => (window.location.href = '/saved-searches')}
                 className="hidden sm:flex"
               >
                 <Bookmark className="mr-2 h-4 w-4" />
@@ -471,7 +544,9 @@ export default function SearchPage() {
           {/* Filters Sidebar */}
           <div
             className={`${
-              showFilters ? 'fixed inset-0 z-50 bg-background p-4 overflow-y-auto' : 'hidden'
+              showFilters
+                ? 'fixed inset-0 z-50 bg-background p-4 overflow-y-auto'
+                : 'hidden'
             } lg:relative lg:block lg:w-80 lg:shrink-0`}
           >
             <Card className="h-full border-border/50 shadow-sm">
@@ -491,7 +566,10 @@ export default function SearchPage() {
                   {/* City Selection */}
                   <div className="space-y-2.5">
                     <Label className="text-sm font-semibold">City</Label>
-                    <Select value={selectedCity} onValueChange={handleCityChange}>
+                    <Select
+                      value={selectedCity}
+                      onValueChange={handleCityChange}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select city" />
                       </SelectTrigger>
@@ -507,31 +585,40 @@ export default function SearchPage() {
                   </div>
 
                   {/* Area Selection */}
-                  {selectedCity && selectedCity !== 'all' && availableAreas.length > 0 && (
-                    <div className="space-y-2.5">
-                      <Label className="text-sm font-semibold">Area</Label>
-                      <Select
-                        value={formValues.area || 'all'}
-                        onValueChange={(value) => setValue('area', value === 'all' ? undefined : value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select area" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Areas</SelectItem>
-                          {availableAreas.map(area => (
-                            <SelectItem key={area} value={area}>
-                              {area}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  {selectedCity &&
+                    selectedCity !== 'all' &&
+                    availableAreas.length > 0 && (
+                      <div className="space-y-2.5">
+                        <Label className="text-sm font-semibold">Area</Label>
+                        <Select
+                          value={formValues.area || 'all'}
+                          onValueChange={value =>
+                            setValue(
+                              'area',
+                              value === 'all' ? undefined : value
+                            )
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select area" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Areas</SelectItem>
+                            {availableAreas.map(area => (
+                              <SelectItem key={area} value={area}>
+                                {area}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
 
                   {/* Property Type */}
                   <div className="space-y-2.5">
-                    <Label className="text-sm font-semibold">Property Type</Label>
+                    <Label className="text-sm font-semibold">
+                      Property Type
+                    </Label>
                     <RadioGroup
                       value={formValues.propertyType}
                       onValueChange={(value: PropertyType | 'all') =>
@@ -540,31 +627,46 @@ export default function SearchPage() {
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="all" id="type-all" />
-                        <Label htmlFor="type-all" className="font-normal cursor-pointer">
+                        <Label
+                          htmlFor="type-all"
+                          className="font-normal cursor-pointer"
+                        >
                           All
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="mess" id="type-mess" />
-                        <Label htmlFor="type-mess" className="font-normal cursor-pointer">
+                        <Label
+                          htmlFor="type-mess"
+                          className="font-normal cursor-pointer"
+                        >
                           Mess
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="apartment" id="type-apartment" />
-                        <Label htmlFor="type-apartment" className="font-normal cursor-pointer">
+                        <Label
+                          htmlFor="type-apartment"
+                          className="font-normal cursor-pointer"
+                        >
                           Apartment
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="hostel" id="type-hostel" />
-                        <Label htmlFor="type-hostel" className="font-normal cursor-pointer">
+                        <Label
+                          htmlFor="type-hostel"
+                          className="font-normal cursor-pointer"
+                        >
                           Hostel
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="hotel" id="type-hotel" />
-                        <Label htmlFor="type-hotel" className="font-normal cursor-pointer">
+                        <Label
+                          htmlFor="type-hotel"
+                          className="font-normal cursor-pointer"
+                        >
                           Hotel
                         </Label>
                       </div>
@@ -574,14 +676,19 @@ export default function SearchPage() {
                   {/* Rent Range */}
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-semibold">Rent Range</Label>
+                      <Label className="text-sm font-semibold">
+                        Rent Range
+                      </Label>
                       <span className="text-sm text-muted-foreground">
-                        ৳{formValues.rentRange[0].toLocaleString()} - ৳{formValues.rentRange[1].toLocaleString()}
+                        ৳{formValues.rentRange[0].toLocaleString()} - ৳
+                        {formValues.rentRange[1].toLocaleString()}
                       </span>
                     </div>
                     <Slider
                       value={formValues.rentRange}
-                      onValueChange={(value) => setValue('rentRange', value as [number, number])}
+                      onValueChange={value =>
+                        setValue('rentRange', value as [number, number])
+                      }
                       min={minRent}
                       max={maxRent}
                       step={500}
@@ -596,39 +703,52 @@ export default function SearchPage() {
                   {/* Availability Toggle */}
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-semibold">Available Only</Label>
+                      <Label className="text-sm font-semibold">
+                        Available Only
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Show only available properties
                       </p>
                     </div>
                     <Switch
                       checked={formValues.availableOnly}
-                      onCheckedChange={(checked) => setValue('availableOnly', checked)}
+                      onCheckedChange={checked =>
+                        setValue('availableOnly', checked)
+                      }
                     />
                   </div>
 
                   {/* Verified Only Toggle */}
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-semibold">Verified Only</Label>
+                      <Label className="text-sm font-semibold">
+                        Verified Only
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Show only verified properties
                       </p>
                     </div>
                     <Switch
                       checked={formValues.verifiedOnly || false}
-                      onCheckedChange={(checked) => setValue('verifiedOnly', checked)}
+                      onCheckedChange={checked =>
+                        setValue('verifiedOnly', checked)
+                      }
                     />
                   </div>
 
                   {/* Gender (for Mess/Hostel) */}
-                  {(formValues.propertyType === 'mess' || formValues.propertyType === 'hostel' || formValues.propertyType === 'all') && (
+                  {(formValues.propertyType === 'mess' ||
+                    formValues.propertyType === 'hostel' ||
+                    formValues.propertyType === 'all') && (
                     <div className="space-y-2.5">
                       <Label className="text-sm font-semibold">Gender</Label>
                       <Select
                         value={formValues.gender || 'all'}
-                        onValueChange={(value) =>
-                          setValue('gender', value === 'all' ? null : (value as Gender))
+                        onValueChange={value =>
+                          setValue(
+                            'gender',
+                            value === 'all' ? null : (value as Gender)
+                          )
                         }
                       >
                         <SelectTrigger>
@@ -645,13 +765,18 @@ export default function SearchPage() {
                   )}
 
                   {/* Seat Type (for Mess/Hostel) */}
-                  {(formValues.propertyType === 'mess' || formValues.propertyType === 'hostel' || formValues.propertyType === 'all') && (
+                  {(formValues.propertyType === 'mess' ||
+                    formValues.propertyType === 'hostel' ||
+                    formValues.propertyType === 'all') && (
                     <div className="space-y-2.5">
                       <Label className="text-sm font-semibold">Seat Type</Label>
                       <Select
                         value={formValues.seatType || 'all'}
-                        onValueChange={(value) =>
-                          setValue('seatType', value === 'all' ? null : (value as SeatType))
+                        onValueChange={value =>
+                          setValue(
+                            'seatType',
+                            value === 'all' ? null : (value as SeatType)
+                          )
                         }
                       >
                         <SelectTrigger>
@@ -670,17 +795,24 @@ export default function SearchPage() {
                   {formValues.propertyType === 'mess' && (
                     <div className="space-y-2.5">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold">Meal Included</Label>
+                        <Label className="text-sm font-semibold">
+                          Meal Included
+                        </Label>
                         <Switch
                           checked={formValues.mealIncluded || false}
-                          onCheckedChange={(checked) => setValue('mealIncluded', checked)}
+                          onCheckedChange={checked =>
+                            setValue('mealIncluded', checked)
+                          }
                         />
                       </div>
                       {formValues.mealIncluded && (
                         <Select
                           value={formValues.mealPlan || 'all'}
-                          onValueChange={(value) =>
-                            setValue('mealPlan', value === 'all' ? null : (value as MealPlan))
+                          onValueChange={value =>
+                            setValue(
+                              'mealPlan',
+                              value === 'all' ? null : (value as MealPlan)
+                            )
                           }
                         >
                           <SelectTrigger>
@@ -688,7 +820,9 @@ export default function SearchPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Meals</SelectItem>
-                            <SelectItem value="breakfast">Breakfast Only</SelectItem>
+                            <SelectItem value="breakfast">
+                              Breakfast Only
+                            </SelectItem>
                             <SelectItem value="lunch">Lunch Only</SelectItem>
                             <SelectItem value="dinner">Dinner Only</SelectItem>
                           </SelectContent>
@@ -699,7 +833,9 @@ export default function SearchPage() {
 
                   {/* Location-based Search */}
                   <div className="space-y-3 border-t pt-5">
-                    <Label className="text-sm font-semibold">Location Search</Label>
+                    <Label className="text-sm font-semibold">
+                      Location Search
+                    </Label>
                     <div className="space-y-3">
                       <Button
                         type="button"
@@ -709,17 +845,23 @@ export default function SearchPage() {
                         disabled={locationLoading}
                       >
                         <Navigation className="mr-2 h-4 w-4" />
-                        {locationLoading ? 'Getting Location...' : 'Use My Location'}
+                        {locationLoading
+                          ? 'Getting Location...'
+                          : 'Use My Location'}
                       </Button>
                       {userLocation && (
                         <div className="space-y-2 rounded border p-3">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Search Radius:</span>
-                            <span className="font-medium">{formatDistance(searchRadius)}</span>
+                            <span className="text-muted-foreground">
+                              Search Radius:
+                            </span>
+                            <span className="font-medium">
+                              {formatDistance(searchRadius)}
+                            </span>
                           </div>
                           <Slider
                             value={[searchRadius]}
-                            onValueChange={(value) => setSearchRadius(value[0])}
+                            onValueChange={value => setSearchRadius(value[0])}
                             min={1}
                             max={50}
                             step={1}
@@ -734,16 +876,22 @@ export default function SearchPage() {
                               type="checkbox"
                               id="searchByLocation"
                               checked={searchByLocation}
-                              onChange={(e) => setSearchByLocation(e.target.checked)}
+                              onChange={e =>
+                                setSearchByLocation(e.target.checked)
+                              }
                               className="h-4 w-4 rounded border-gray-300"
                             />
-                            <Label htmlFor="searchByLocation" className="text-sm font-normal cursor-pointer">
+                            <Label
+                              htmlFor="searchByLocation"
+                              className="text-sm font-normal cursor-pointer"
+                            >
                               Filter by distance
                             </Label>
                           </div>
                           {searchByLocation && (
                             <p className="text-xs text-muted-foreground">
-                              Showing properties within {formatDistance(searchRadius)} of your location
+                              Showing properties within{' '}
+                              {formatDistance(searchRadius)} of your location
                             </p>
                           )}
                         </div>
@@ -771,15 +919,28 @@ export default function SearchPage() {
                     <div className="space-y-5 border-t pt-5">
                       {/* Nearby Facilities */}
                       <div className="space-y-2.5">
-                        <Label className="text-sm font-semibold">Nearby Facilities</Label>
+                        <Label className="text-sm font-semibold">
+                          Nearby Facilities
+                        </Label>
                         <div className="space-y-2">
                           {allNearbyFacilities.map(facility => (
-                            <div key={facility} className="flex items-center space-x-2">
+                            <div
+                              key={facility}
+                              className="flex items-center space-x-2"
+                            >
                               <Switch
-                                checked={formValues.nearbyFacilities?.includes(facility) || false}
-                                onCheckedChange={() => handleNearbyFacilityToggle(facility)}
+                                checked={
+                                  formValues.nearbyFacilities?.includes(
+                                    facility
+                                  ) || false
+                                }
+                                onCheckedChange={() =>
+                                  handleNearbyFacilityToggle(facility)
+                                }
                               />
-                              <Label className="text-sm font-normal cursor-pointer">{facility}</Label>
+                              <Label className="text-sm font-normal cursor-pointer">
+                                {facility}
+                              </Label>
                             </div>
                           ))}
                         </div>
@@ -788,11 +949,17 @@ export default function SearchPage() {
                       {/* Building Age */}
                       <div className="space-y-2.5">
                         <Label className="text-sm font-semibold">
-                          Building Age (Max: {formValues.buildingAge || 'Any'} years)
+                          Building Age (Max: {formValues.buildingAge || 'Any'}{' '}
+                          years)
                         </Label>
                         <Slider
                           value={[formValues.buildingAge || 50]}
-                          onValueChange={(value) => setValue('buildingAge', value[0] === 50 ? undefined : value[0])}
+                          onValueChange={value =>
+                            setValue(
+                              'buildingAge',
+                              value[0] === 50 ? undefined : value[0]
+                            )
+                          }
                           min={0}
                           max={50}
                           step={1}
@@ -807,7 +974,12 @@ export default function SearchPage() {
                         </Label>
                         <Slider
                           value={[formValues.floorLevel || 20]}
-                          onValueChange={(value) => setValue('floorLevel', value[0] === 20 ? undefined : value[0])}
+                          onValueChange={value =>
+                            setValue(
+                              'floorLevel',
+                              value[0] === 20 ? undefined : value[0]
+                            )
+                          }
                           min={0}
                           max={20}
                           step={1}
@@ -817,11 +989,18 @@ export default function SearchPage() {
 
                       {/* Furnishing */}
                       <div className="space-y-2.5">
-                        <Label className="text-sm font-semibold">Furnishing</Label>
+                        <Label className="text-sm font-semibold">
+                          Furnishing
+                        </Label>
                         <Select
                           value={formValues.furnishing || 'all'}
-                          onValueChange={(value) =>
-                            setValue('furnishing', value === 'all' ? null : (value as FurnishingStatus))
+                          onValueChange={value =>
+                            setValue(
+                              'furnishing',
+                              value === 'all'
+                                ? null
+                                : (value as FurnishingStatus)
+                            )
                           }
                         >
                           <SelectTrigger>
@@ -830,27 +1009,39 @@ export default function SearchPage() {
                           <SelectContent>
                             <SelectItem value="all">All</SelectItem>
                             <SelectItem value="furnished">Furnished</SelectItem>
-                            <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
-                            <SelectItem value="unfurnished">Unfurnished</SelectItem>
+                            <SelectItem value="semi-furnished">
+                              Semi-Furnished
+                            </SelectItem>
+                            <SelectItem value="unfurnished">
+                              Unfurnished
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       {/* Parking */}
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold">Parking Available</Label>
+                        <Label className="text-sm font-semibold">
+                          Parking Available
+                        </Label>
                         <Switch
                           checked={formValues.parking || false}
-                          onCheckedChange={(checked) => setValue('parking', checked || undefined)}
+                          onCheckedChange={checked =>
+                            setValue('parking', checked || undefined)
+                          }
                         />
                       </div>
 
                       {/* Security */}
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold">Security</Label>
+                        <Label className="text-sm font-semibold">
+                          Security
+                        </Label>
                         <Switch
                           checked={formValues.security || false}
-                          onCheckedChange={(checked) => setValue('security', checked || undefined)}
+                          onCheckedChange={checked =>
+                            setValue('security', checked || undefined)
+                          }
                         />
                       </div>
                     </div>
@@ -902,19 +1093,29 @@ export default function SearchPage() {
                     No properties found
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
-                    Try adjusting your filters or search criteria to find more results
+                    Try adjusting your filters or search criteria to find more
+                    results
                   </p>
-                  <Button variant="outline" onClick={handleReset} className="mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={handleReset}
+                    className="mt-6"
+                  >
                     Reset Filters
                   </Button>
                 </CardContent>
               </Card>
             ) : viewMode === 'list' ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProperties.map((property) => {
+                {filteredProperties.map(property => {
                   // Calculate distance if location search is enabled
                   let distance: string | undefined
-                  if (searchByLocation && userLocation && property.latitude && property.longitude) {
+                  if (
+                    searchByLocation &&
+                    userLocation &&
+                    property.latitude &&
+                    property.longitude
+                  ) {
                     const dist = calculateDistance(
                       userLocation.lat,
                       userLocation.lng,

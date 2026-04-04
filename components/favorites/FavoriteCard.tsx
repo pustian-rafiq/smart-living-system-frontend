@@ -3,7 +3,15 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Heart, MapPin, DollarSign, Trash2, Share2, Eye, FileText } from 'lucide-react'
+import {
+  Heart,
+  MapPin,
+  DollarSign,
+  Trash2,
+  Share2,
+  Eye,
+  FileText,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import Image from 'next/image'
 import type { Favorite } from '@/types/favorites'
@@ -40,7 +48,10 @@ export function FavoriteCard({
           </div>
         )}
         <div className="absolute right-2 top-2">
-          <Badge variant="secondary" className="bg-background/90 backdrop-blur capitalize">
+          <Badge
+            variant="secondary"
+            className="bg-background/90 backdrop-blur capitalize"
+          >
             {favorite.propertyType}
           </Badge>
         </div>

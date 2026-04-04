@@ -112,11 +112,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             {/* Navigation */}
             <ScrollArea className="flex-1">
               <nav className="p-4 space-y-1">
-                {adminMenuItems.map((item) => {
+                {adminMenuItems.map(item => {
                   const Icon = item.icon
-                  const isActive = pathname === item.href || 
+                  const isActive =
+                    pathname === item.href ||
                     (item.href !== '/admin' && pathname.startsWith(item.href))
-                  
+
                   return (
                     <Link
                       key={item.href}
@@ -131,9 +132,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     >
                       <Icon className="h-5 w-5" />
                       <span>{item.title}</span>
-                      {isActive && (
-                        <ChevronRight className="ml-auto h-4 w-4" />
-                      )}
+                      {isActive && <ChevronRight className="ml-auto h-4 w-4" />}
                     </Link>
                   )
                 })}
@@ -145,7 +144,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <div className="rounded-lg bg-muted p-3">
                 <p className="text-xs font-semibold">Admin Panel</p>
                 <p className="text-xs text-muted-foreground">
-                  Smart Living Ecosystem
+                  Smart Living System
                 </p>
               </div>
             </div>
@@ -167,9 +166,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </Button>
               <div>
                 <h1 className="text-lg font-semibold">
-                  {adminMenuItems.find(item => 
-                    pathname === item.href || 
-                    (item.href !== '/admin' && pathname.startsWith(item.href))
+                  {adminMenuItems.find(
+                    item =>
+                      pathname === item.href ||
+                      (item.href !== '/admin' && pathname.startsWith(item.href))
                   )?.title || 'Admin Dashboard'}
                 </h1>
               </div>
@@ -178,9 +178,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Page Content */}
           <ScrollArea className="flex-1">
-            <div className="p-4 lg:p-6">
-              {children}
-            </div>
+            <div className="p-4 lg:p-6">{children}</div>
           </ScrollArea>
         </div>
       </div>

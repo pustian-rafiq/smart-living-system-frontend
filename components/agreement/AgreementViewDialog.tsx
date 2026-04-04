@@ -38,7 +38,8 @@ export function AgreementViewDialog({
             Rental Agreement Details
           </DialogTitle>
           <DialogDescription>
-            {agreement.propertyName} {agreement.flatNumber && `- Flat ${agreement.flatNumber}`}
+            {agreement.propertyName}{' '}
+            {agreement.flatNumber && `- Flat ${agreement.flatNumber}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -52,11 +53,12 @@ export function AgreementViewDialog({
                   agreement.status === 'active'
                     ? 'bg-green-50 text-green-700 border-green-200'
                     : agreement.status === 'expired'
-                    ? 'bg-red-50 text-red-700 border-red-200'
-                    : 'bg-gray-50 text-gray-700 border-gray-200'
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-gray-50 text-gray-700 border-gray-200'
                 }
               >
-                {agreement.status.charAt(0).toUpperCase() + agreement.status.slice(1)}
+                {agreement.status.charAt(0).toUpperCase() +
+                  agreement.status.slice(1)}
               </Badge>
               <Badge variant="outline">{agreement.agreementType}</Badge>
             </div>
@@ -98,16 +100,24 @@ export function AgreementViewDialog({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Monthly Rent:</span>
-                    <span className="font-medium">৳{agreement.monthlyRent.toLocaleString()}</span>
+                    <span className="font-medium">
+                      ৳{agreement.monthlyRent.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Security Deposit:</span>
-                    <span className="font-medium">৳{agreement.securityDeposit.toLocaleString()}</span>
+                    <span className="text-muted-foreground">
+                      Security Deposit:
+                    </span>
+                    <span className="font-medium">
+                      ৳{agreement.securityDeposit.toLocaleString()}
+                    </span>
                   </div>
                   {agreement.terms && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Duration:</span>
-                      <span className="font-medium">{agreement.terms.duration} months</span>
+                      <span className="font-medium">
+                        {agreement.terms.duration} months
+                      </span>
                     </div>
                   )}
                 </div>
@@ -135,16 +145,21 @@ export function AgreementViewDialog({
                       </p>
                     </div>
                   )}
-                  {agreement.terms.specialConditions && agreement.terms.specialConditions.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Special Conditions</p>
-                      <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                        {agreement.terms.specialConditions.map((condition, idx) => (
-                          <li key={idx}>{condition}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {agreement.terms.specialConditions &&
+                    agreement.terms.specialConditions.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">
+                          Special Conditions
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                          {agreement.terms.specialConditions.map(
+                            (condition, idx) => (
+                              <li key={idx}>{condition}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
                 </div>
               </div>
             )}
@@ -159,12 +174,17 @@ export function AgreementViewDialog({
                     <div>
                       <p className="font-medium">{agreement.documentName}</p>
                       <p className="text-xs text-muted-foreground">
-                        Uploaded {format(new Date(agreement.uploadedAt), 'MMM dd, yyyy')}
+                        Uploaded{' '}
+                        {format(new Date(agreement.uploadedAt), 'MMM dd, yyyy')}
                       </p>
                     </div>
                   </div>
                   {onDownload && (
-                    <Button variant="outline" size="sm" onClick={() => onDownload(agreement)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onDownload(agreement)}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Download
                     </Button>

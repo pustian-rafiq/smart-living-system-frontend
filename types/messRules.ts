@@ -7,7 +7,14 @@ export interface MessRule {
   messId: string
   title: string
   description: string
-  category: 'general' | 'payment' | 'attendance' | 'meal' | 'behavior' | 'facility' | 'other'
+  category:
+    | 'general'
+    | 'payment'
+    | 'attendance'
+    | 'meal'
+    | 'behavior'
+    | 'facility'
+    | 'other'
   severity: ViolationSeverity
   penalty?: string // e.g., "Fine: ৳500"
   status: RuleStatus

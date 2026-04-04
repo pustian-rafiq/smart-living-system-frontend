@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Search, Building2, CheckCircle } from 'lucide-react'
 import { isLoggedIn } from '@/utils/auth'
@@ -24,7 +30,8 @@ export function CTASection() {
               Ready to Get Started?
             </CardTitle>
             <CardDescription className="mx-auto max-w-2xl text-lg">
-              Join thousands of users who are already using Smart Living Ecosystem to find and manage properties in Bangladesh.
+              Join thousands of users who are already using Smart Living System
+              to find and manage properties in Bangladesh.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -47,7 +54,7 @@ export function CTASection() {
               {loggedIn ? 'Manage Properties' : 'List Your Property'}
             </Button>
           </CardContent>
-          
+
           {/* Benefits List */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 px-6 pb-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">

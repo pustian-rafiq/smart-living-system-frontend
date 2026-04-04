@@ -9,11 +9,23 @@ import { MeterReadingDialog } from '@/components/bill/MeterReadingDialog'
 import { BillGenerationRuleDialog } from '@/components/bill/BillGenerationRuleDialog'
 import { BulkBillDialog } from '@/components/bulk/BulkBillDialog'
 import { SchedulePaymentDialog } from '@/components/payment/SchedulePaymentDialog'
-import { getScheduledPaymentsByUserId } from '@/data/mockPayments'
+import { addScheduledPayment } from '@/data/mockPayments'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -33,13 +45,20 @@ import {
   mockBillTemplates,
   mockBillGenerationRules,
   mockMeterReadings,
-  getTemplatesByProperty,
-  getActiveTemplates,
-  getActiveRules,
+  getMeterReading,
+  getPreviousMeterReading,
 } from '@/data/mockBillTemplates'
-import { mockBuildings, mockFlats } from '@/data/mockBuildings'
+import { mockBuildings, mockFlats, mockRenters } from '@/data/mockBuildings'
 import { mockMess } from '@/data/mockMess'
-import type { Bill, BillStatus, BillTemplate, BillGenerationRule, MeterReading } from '@/types/bill'
+import type {
+  Bill,
+  BillStatus,
+  BillTemplate,
+  BillGenerationRule,
+  MeterReading,
+} from '@/types/bill'
+import type { BulkBillGenerationData } from '@/types/bulk'
+import type { PaymentMethod } from '@/types/payment'
 import { getStoredRole } from '@/utils/auth'
 
 export default function BillsPage() {
@@ -50,12 +69,23 @@ export default function BillsPage() {
   const [statusFilter, setStatusFilter] = useState<BillStatus | 'all'>('all')
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false)
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
-  const [isMeterReadingDialogOpen, setIsMeterReadingDialogOpen] = useState(false)
+  const [isMeterReadingDialogOpen, setIsMeterReadingDialogOpen] =
+    useState(false)
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false)
   const [isBulkBillDialogOpen, setIsBulkBillDialogOpen] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState<BillTemplate | undefined>()
-  const [selectedRule, setSelectedRule] = useState<BillGenerationRule | undefined>()
-  const [selectedReading, setSelectedReading] = useState<MeterReading | undefined>()
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    BillTemplate | undefined
+  >()
+  const [selectedRule, setSelectedRule] = useState<
+    BillGenerationRule | undefined
+  >()
+  const [selectedReading, setSelectedReading] = useState<
+    MeterReading | undefined
+  >()
+  const [selectedBillForPayment, setSelectedBillForPayment] =
+    useState<Bill | null>(null)
+  const [isSchedulePaymentDialogOpen, setIsSchedulePaymentDialogOpen] =
+    useState(false)
 
   // Get user role
   const userRole = getStoredRole() || 'renter'
@@ -85,21 +115,123 @@ export default function BillsPage() {
   }
 
   const handleMarkPaid = (bill: Bill) => {
-    setBills(bills.map(b =>
-      b.id === bill.id
-        ? { ...b, status: 'paid' as BillStatus, paidDate: new Date().toISOString().split('T')[0] }
-        : b
-    ))
+    setBills(
+      bills.map(b =>
+        b.id === bill.id
+          ? {
+              ...b,
+              status: 'paid' as BillStatus,
+              paidDate: new Date().toISOString().split('T')[0],
+            }
+          : b
+      )
+    )
+  }
+
+  const handleSchedulePayment = (bill: Bill) => {
+    setSelectedBillForPayment(bill)
+    setIsSchedulePaymentDialogOpen(true)
+  }
+
+  const handleSchedulePaymentSubmit = (data: {
+    billId: string
+    billName: string
+    amount: number
+    scheduledDate: string
+    scheduledTime?: string
+    paymentMethod: string
+    accountNumber?: string
+    reminderEnabled: boolean
+    reminderDays: number[]
+    autoRetry: boolean
+    maxRetries?: number
+  }) => {
+    addScheduledPayment({
+      userId: 'r1',
+      billId: data.billId,
+      billName: data.billName,
+      amount: data.amount,
+      scheduledDate: data.scheduledDate,
+      scheduledTime: data.scheduledTime || '10:00',
+      paymentMethod: data.paymentMethod as PaymentMethod,
+      accountNumber: data.accountNumber,
+      status: 'scheduled',
+      reminderEnabled: data.reminderEnabled,
+      reminderDays: data.reminderDays,
+      autoRetry: data.autoRetry,
+      maxRetries: data.maxRetries ?? 0,
+      retryCount: 0,
+    })
+    setSelectedBillForPayment(null)
+    setIsSchedulePaymentDialogOpen(false)
   }
 
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ]
+
+  const handleBulkBillSubmit = (data: BulkBillGenerationData) => {
+    const building = mockBuildings.find(b => b.id === data.buildingId)
+    if (!data.buildingId || !building) {
+      setIsBulkBillDialogOpen(false)
+      return
+    }
+    const flatIds =
+      data.flatIds && data.flatIds.length > 0
+        ? data.flatIds
+        : mockFlats.filter(f => f.buildingId === data.buildingId).map(f => f.id)
+
+    const newBills: Bill[] = []
+    for (const flatId of flatIds) {
+      const flat = mockFlats.find(f => f.id === flatId)
+      if (!flat?.renter) continue
+      const amount = flat.rent
+      newBills.push({
+        id: `bill-bulk-${flatId}-${Date.now()}`,
+        tenantName: flat.renter.name,
+        tenantId: flat.renter.id,
+        propertyType: 'apartment',
+        propertyName: building.name,
+        propertyId: data.buildingId,
+        flatNumber: flat.flatNumber,
+        month: data.month,
+        year: data.year,
+        amount,
+        dueDate: new Date(data.year, months.indexOf(data.month), 5)
+          .toISOString()
+          .split('T')[0],
+        status: 'unpaid',
+        items: [
+          {
+            id: `item-${flatId}-${Date.now()}`,
+            description: 'Monthly rent',
+            amount,
+            type: 'rent',
+          },
+        ],
+        createdAt: new Date().toISOString().split('T')[0],
+      })
+    }
+    if (newBills.length) setBills([...newBills, ...bills])
+    setIsBulkBillDialogOpen(false)
+  }
 
   const handleGenerate = (data: any) => {
     // Get property name
-    const property = [...mockBuildings, ...mockMess].find(p => p.id === data.propertyId)
+    const property = [...mockBuildings, ...mockMess].find(
+      p => p.id === data.propertyId
+    )
     const propertyName = property?.name || 'Unknown Property'
 
     // Get tenant name
@@ -114,7 +246,6 @@ export default function BillsPage() {
     }
 
     // Get meter reading if available
-    const { getMeterReading } = require('@/data/mockBillTemplates')
     const meterReading = getMeterReading(
       data.propertyId,
       data.flatId,
@@ -133,8 +264,13 @@ export default function BillsPage() {
       flatNumber,
       month: data.month,
       year: data.year,
-      amount: data.items.reduce((sum: number, item: any) => sum + (item.amount || 0), 0),
-      dueDate: new Date(data.year, months.indexOf(data.month), 5).toISOString().split('T')[0],
+      amount: data.items.reduce(
+        (sum: number, item: any) => sum + (item.amount || 0),
+        0
+      ),
+      dueDate: new Date(data.year, months.indexOf(data.month), 5)
+        .toISOString()
+        .split('T')[0],
       status: 'unpaid',
       items: data.items.map((item: any, idx: number) => ({
         id: `item${idx}`,
@@ -157,11 +293,17 @@ export default function BillsPage() {
 
   const handleTemplateSubmit = (data: any) => {
     if (selectedTemplate) {
-      setTemplates(templates.map(t =>
-        t.id === selectedTemplate.id
-          ? { ...t, ...data, updatedAt: new Date().toISOString().split('T')[0] }
-          : t
-      ))
+      setTemplates(
+        templates.map(t =>
+          t.id === selectedTemplate.id
+            ? {
+                ...t,
+                ...data,
+                updatedAt: new Date().toISOString().split('T')[0],
+              }
+            : t
+        )
+      )
     } else {
       const newTemplate: BillTemplate = {
         id: `template${Date.now()}`,
@@ -177,7 +319,6 @@ export default function BillsPage() {
 
   const handleMeterReadingSubmit = (data: any) => {
     // Get previous reading for consumption calculation
-    const { getPreviousMeterReading } = require('@/data/mockBillTemplates')
     const prevReading = getPreviousMeterReading(
       data.propertyId,
       data.flatId,
@@ -187,11 +328,13 @@ export default function BillsPage() {
     )
 
     if (selectedReading) {
-      setMeterReadings(meterReadings.map(r =>
-        r.id === selectedReading.id
-          ? { ...r, ...data, submittedAt: new Date().toISOString() }
-          : r
-      ))
+      setMeterReadings(
+        meterReadings.map(r =>
+          r.id === selectedReading.id
+            ? { ...r, ...data, submittedAt: new Date().toISOString() }
+            : r
+        )
+      )
     } else {
       const newReading: MeterReading = {
         id: `reading${Date.now()}`,
@@ -201,15 +344,16 @@ export default function BillsPage() {
         previousElectricity: prevReading?.electricity,
         previousGas: prevReading?.gas,
         previousWater: prevReading?.water,
-        electricityConsumption: data.electricity && prevReading?.electricity
-          ? data.electricity - prevReading.electricity
-          : undefined,
-        gasConsumption: data.gas && prevReading?.gas
-          ? data.gas - prevReading.gas
-          : undefined,
-        waterConsumption: data.water && prevReading?.water
-          ? data.water - prevReading.water
-          : undefined,
+        electricityConsumption:
+          data.electricity && prevReading?.electricity
+            ? data.electricity - prevReading.electricity
+            : undefined,
+        gasConsumption:
+          data.gas && prevReading?.gas ? data.gas - prevReading.gas : undefined,
+        waterConsumption:
+          data.water && prevReading?.water
+            ? data.water - prevReading.water
+            : undefined,
       }
       setMeterReadings([...meterReadings, newReading])
     }
@@ -219,11 +363,17 @@ export default function BillsPage() {
 
   const handleRuleSubmit = (data: any) => {
     if (selectedRule) {
-      setRules(rules.map(r =>
-        r.id === selectedRule.id
-          ? { ...r, ...data, updatedAt: new Date().toISOString().split('T')[0] }
-          : r
-      ))
+      setRules(
+        rules.map(r =>
+          r.id === selectedRule.id
+            ? {
+                ...r,
+                ...data,
+                updatedAt: new Date().toISOString().split('T')[0],
+              }
+            : r
+        )
+      )
     } else {
       const newRule: BillGenerationRule = {
         id: `rule${Date.now()}`,
@@ -242,30 +392,50 @@ export default function BillsPage() {
   const calculateNextRun = (schedule: any): string => {
     const now = new Date()
     if (schedule.type === 'monthly') {
-      const next = new Date(now.getFullYear(), now.getMonth() + 1, schedule.dayOfMonth || 1)
+      const next = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        schedule.dayOfMonth || 1
+      )
       return next.toISOString().split('T')[0]
     }
-    return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0]
   }
 
   const handleToggleTemplate = (template: BillTemplate) => {
-    setTemplates(templates.map(t =>
-      t.id === template.id
-        ? { ...t, isActive: !t.isActive, updatedAt: new Date().toISOString().split('T')[0] }
-        : t
-    ))
+    setTemplates(
+      templates.map(t =>
+        t.id === template.id
+          ? {
+              ...t,
+              isActive: !t.isActive,
+              updatedAt: new Date().toISOString().split('T')[0],
+            }
+          : t
+      )
+    )
   }
 
   const handleToggleRule = (rule: BillGenerationRule) => {
-    setRules(rules.map(r =>
-      r.id === rule.id
-        ? { ...r, isActive: !r.isActive, updatedAt: new Date().toISOString().split('T')[0] }
-        : r
-    ))
+    setRules(
+      rules.map(r =>
+        r.id === rule.id
+          ? {
+              ...r,
+              isActive: !r.isActive,
+              updatedAt: new Date().toISOString().split('T')[0],
+            }
+          : r
+      )
+    )
   }
 
   const handleDeleteTemplate = (template: BillTemplate) => {
-    if (confirm(`Are you sure you want to delete template "${template.name}"?`)) {
+    if (
+      confirm(`Are you sure you want to delete template "${template.name}"?`)
+    ) {
       setTemplates(templates.filter(t => t.id !== template.id))
     }
   }
@@ -307,7 +477,10 @@ export default function BillsPage() {
                 <Plus className="mr-2 h-4 w-4" />
                 Generate Bill
               </Button>
-              <Button onClick={() => setIsBulkBillDialogOpen(true)} variant="outline">
+              <Button
+                onClick={() => setIsBulkBillDialogOpen(true)}
+                variant="outline"
+              >
                 <FileText className="mr-2 h-4 w-4" />
                 Bulk Generate
               </Button>
@@ -343,15 +516,28 @@ export default function BillsPage() {
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Filter by Status:</span>
                 </div>
-                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as BillStatus | 'all')}>
+                <Select
+                  value={statusFilter}
+                  onValueChange={value =>
+                    setStatusFilter(value as BillStatus | 'all')
+                  }
+                >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All ({statusCounts.all})</SelectItem>
-                    <SelectItem value="paid">Paid ({statusCounts.paid})</SelectItem>
-                    <SelectItem value="unpaid">Unpaid ({statusCounts.unpaid})</SelectItem>
-                    <SelectItem value="overdue">Overdue ({statusCounts.overdue})</SelectItem>
+                    <SelectItem value="all">
+                      All ({statusCounts.all})
+                    </SelectItem>
+                    <SelectItem value="paid">
+                      Paid ({statusCounts.paid})
+                    </SelectItem>
+                    <SelectItem value="unpaid">
+                      Unpaid ({statusCounts.unpaid})
+                    </SelectItem>
+                    <SelectItem value="overdue">
+                      Overdue ({statusCounts.overdue})
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -359,13 +545,18 @@ export default function BillsPage() {
               {filteredBills.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
-                    <p className="text-lg font-semibold text-muted-foreground">No bills found</p>
+                    <p className="text-lg font-semibold text-muted-foreground">
+                      No bills found
+                    </p>
                     <p className="mt-2 text-sm text-muted-foreground">
                       {statusFilter !== 'all'
                         ? `No bills with status "${statusFilter}"`
                         : 'Generate your first bill to get started'}
                     </p>
-                    <Button onClick={() => setIsGenerateDialogOpen(true)} className="mt-4">
+                    <Button
+                      onClick={() => setIsGenerateDialogOpen(true)}
+                      className="mt-4"
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Generate Bill
                     </Button>
@@ -373,7 +564,7 @@ export default function BillsPage() {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredBills.map((bill) => (
+                  {filteredBills.map(bill => (
                     <BillCard
                       key={bill.id}
                       bill={bill}
@@ -396,10 +587,12 @@ export default function BillsPage() {
                     Create reusable templates for automated bill generation
                   </p>
                 </div>
-                <Button onClick={() => {
-                  setSelectedTemplate(undefined)
-                  setIsTemplateDialogOpen(true)
-                }}>
+                <Button
+                  onClick={() => {
+                    setSelectedTemplate(undefined)
+                    setIsTemplateDialogOpen(true)
+                  }}
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Create Template
                 </Button>
@@ -408,8 +601,13 @@ export default function BillsPage() {
               {templates.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
-                    <p className="text-lg font-semibold text-muted-foreground">No templates found</p>
-                    <Button onClick={() => setIsTemplateDialogOpen(true)} className="mt-4">
+                    <p className="text-lg font-semibold text-muted-foreground">
+                      No templates found
+                    </p>
+                    <Button
+                      onClick={() => setIsTemplateDialogOpen(true)}
+                      className="mt-4"
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Create Template
                     </Button>
@@ -417,19 +615,27 @@ export default function BillsPage() {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {templates.map((template) => {
-                    const property = [...mockBuildings, ...mockMess].find(p => p.id === template.propertyId)
+                  {templates.map(template => {
+                    const property = [...mockBuildings, ...mockMess].find(
+                      p => p.id === template.propertyId
+                    )
                     return (
                       <Card key={template.id}>
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <CardTitle className="text-lg">{template.name}</CardTitle>
+                              <CardTitle className="text-lg">
+                                {template.name}
+                              </CardTitle>
                               <CardDescription className="mt-1">
                                 {template.description || 'No description'}
                               </CardDescription>
                             </div>
-                            <Badge variant={template.isActive ? 'default' : 'secondary'}>
+                            <Badge
+                              variant={
+                                template.isActive ? 'default' : 'secondary'
+                              }
+                            >
                               {template.isActive ? 'Active' : 'Inactive'}
                             </Badge>
                           </div>
@@ -437,25 +643,41 @@ export default function BillsPage() {
                         <CardContent className="space-y-4">
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Property:</span>
-                              <span className="font-medium">{property?.name || 'N/A'}</span>
+                              <span className="text-muted-foreground">
+                                Property:
+                              </span>
+                              <span className="font-medium">
+                                {property?.name || 'N/A'}
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Type:</span>
-                              <span className="font-medium capitalize">{template.propertyType}</span>
+                              <span className="text-muted-foreground">
+                                Type:
+                              </span>
+                              <span className="font-medium capitalize">
+                                {template.propertyType}
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Items:</span>
-                              <span className="font-medium">{template.items.length}</span>
+                              <span className="text-muted-foreground">
+                                Items:
+                              </span>
+                              <span className="font-medium">
+                                {template.items.length}
+                              </span>
                             </div>
                           </div>
                           <div className="flex items-center justify-between pt-2 border-t">
                             <div className="flex items-center gap-2">
                               <Switch
                                 checked={template.isActive}
-                                onCheckedChange={() => handleToggleTemplate(template)}
+                                onCheckedChange={() =>
+                                  handleToggleTemplate(template)
+                                }
                               />
-                              <span className="text-sm text-muted-foreground">Active</span>
+                              <span className="text-sm text-muted-foreground">
+                                Active
+                              </span>
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -494,10 +716,12 @@ export default function BillsPage() {
                     Record meter readings for utility bill calculation
                   </p>
                 </div>
-                <Button onClick={() => {
-                  setSelectedReading(undefined)
-                  setIsMeterReadingDialogOpen(true)
-                }}>
+                <Button
+                  onClick={() => {
+                    setSelectedReading(undefined)
+                    setIsMeterReadingDialogOpen(true)
+                  }}
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Reading
                 </Button>
@@ -506,8 +730,13 @@ export default function BillsPage() {
               {meterReadings.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
-                    <p className="text-lg font-semibold text-muted-foreground">No meter readings found</p>
-                    <Button onClick={() => setIsMeterReadingDialogOpen(true)} className="mt-4">
+                    <p className="text-lg font-semibold text-muted-foreground">
+                      No meter readings found
+                    </p>
+                    <Button
+                      onClick={() => setIsMeterReadingDialogOpen(true)}
+                      className="mt-4"
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Add Reading
                     </Button>
@@ -515,8 +744,10 @@ export default function BillsPage() {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {meterReadings.map((reading) => {
-                    const property = [...mockBuildings, ...mockMess].find(p => p.id === reading.propertyId)
+                  {meterReadings.map(reading => {
+                    const property = [...mockBuildings, ...mockMess].find(
+                      p => p.id === reading.propertyId
+                    )
                     return (
                       <Card key={reading.id}>
                         <CardHeader>
@@ -525,15 +756,20 @@ export default function BillsPage() {
                           </CardTitle>
                           <CardDescription>
                             {reading.month} {reading.year}
-                            {reading.flatId && ` • Flat ${mockFlats.find(f => f.id === reading.flatId)?.flatNumber}`}
+                            {reading.flatId &&
+                              ` • Flat ${mockFlats.find(f => f.id === reading.flatId)?.flatNumber}`}
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                           {reading.electricity !== undefined && (
                             <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Electricity:</span>
+                              <span className="text-muted-foreground">
+                                Electricity:
+                              </span>
                               <div className="text-right">
-                                <span className="font-medium">{reading.electricity} units</span>
+                                <span className="font-medium">
+                                  {reading.electricity} units
+                                </span>
                                 {reading.electricityConsumption && (
                                   <Badge variant="outline" className="ml-2">
                                     +{reading.electricityConsumption}
@@ -544,9 +780,13 @@ export default function BillsPage() {
                           )}
                           {reading.gas !== undefined && (
                             <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Gas:</span>
+                              <span className="text-muted-foreground">
+                                Gas:
+                              </span>
                               <div className="text-right">
-                                <span className="font-medium">{reading.gas} units</span>
+                                <span className="font-medium">
+                                  {reading.gas} units
+                                </span>
                                 {reading.gasConsumption && (
                                   <Badge variant="outline" className="ml-2">
                                     +{reading.gasConsumption}
@@ -557,9 +797,13 @@ export default function BillsPage() {
                           )}
                           {reading.water !== undefined && (
                             <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Water:</span>
+                              <span className="text-muted-foreground">
+                                Water:
+                              </span>
                               <div className="text-right">
-                                <span className="font-medium">{reading.water} units</span>
+                                <span className="font-medium">
+                                  {reading.water} units
+                                </span>
                                 {reading.waterConsumption && (
                                   <Badge variant="outline" className="ml-2">
                                     +{reading.waterConsumption}
@@ -599,10 +843,12 @@ export default function BillsPage() {
                     Configure automated bill generation schedules
                   </p>
                 </div>
-                <Button onClick={() => {
-                  setSelectedRule(undefined)
-                  setIsRuleDialogOpen(true)
-                }}>
+                <Button
+                  onClick={() => {
+                    setSelectedRule(undefined)
+                    setIsRuleDialogOpen(true)
+                  }}
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Create Rule
                 </Button>
@@ -611,8 +857,13 @@ export default function BillsPage() {
               {rules.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
-                    <p className="text-lg font-semibold text-muted-foreground">No automation rules found</p>
-                    <Button onClick={() => setIsRuleDialogOpen(true)} className="mt-4">
+                    <p className="text-lg font-semibold text-muted-foreground">
+                      No automation rules found
+                    </p>
+                    <Button
+                      onClick={() => setIsRuleDialogOpen(true)}
+                      className="mt-4"
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Create Rule
                     </Button>
@@ -620,19 +871,25 @@ export default function BillsPage() {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {rules.map((rule) => {
-                    const template = templates.find(t => t.id === rule.templateId)
+                  {rules.map(rule => {
+                    const template = templates.find(
+                      t => t.id === rule.templateId
+                    )
                     return (
                       <Card key={rule.id}>
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <CardTitle className="text-lg">{rule.name}</CardTitle>
+                              <CardTitle className="text-lg">
+                                {rule.name}
+                              </CardTitle>
                               <CardDescription className="mt-1">
                                 {rule.description || 'No description'}
                               </CardDescription>
                             </div>
-                            <Badge variant={rule.isActive ? 'default' : 'secondary'}>
+                            <Badge
+                              variant={rule.isActive ? 'default' : 'secondary'}
+                            >
                               {rule.isActive ? 'Active' : 'Inactive'}
                             </Badge>
                           </div>
@@ -640,28 +897,46 @@ export default function BillsPage() {
                         <CardContent className="space-y-4">
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Template:</span>
-                              <span className="font-medium">{template?.name || 'N/A'}</span>
+                              <span className="text-muted-foreground">
+                                Template:
+                              </span>
+                              <span className="font-medium">
+                                {template?.name || 'N/A'}
+                              </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Schedule:</span>
+                              <span className="text-muted-foreground">
+                                Schedule:
+                              </span>
                               <span className="font-medium capitalize">
                                 {rule.schedule.type}
-                                {rule.schedule.type === 'monthly' && rule.schedule.dayOfMonth && (
-                                  <span> • Day {rule.schedule.dayOfMonth}</span>
-                                )}
+                                {rule.schedule.type === 'monthly' &&
+                                  rule.schedule.dayOfMonth && (
+                                    <span>
+                                      {' '}
+                                      • Day {rule.schedule.dayOfMonth}
+                                    </span>
+                                  )}
                               </span>
                             </div>
                             {rule.nextRun && (
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Next Run:</span>
-                                <span className="font-medium">{rule.nextRun}</span>
+                                <span className="text-muted-foreground">
+                                  Next Run:
+                                </span>
+                                <span className="font-medium">
+                                  {rule.nextRun}
+                                </span>
                               </div>
                             )}
                             {rule.lastRun && (
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Last Run:</span>
-                                <span className="font-medium">{rule.lastRun}</span>
+                                <span className="text-muted-foreground">
+                                  Last Run:
+                                </span>
+                                <span className="font-medium">
+                                  {rule.lastRun}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -671,7 +946,9 @@ export default function BillsPage() {
                                 checked={rule.isActive}
                                 onCheckedChange={() => handleToggleRule(rule)}
                               />
-                              <span className="text-sm text-muted-foreground">Active</span>
+                              <span className="text-sm text-muted-foreground">
+                                Active
+                              </span>
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -709,15 +986,26 @@ export default function BillsPage() {
                 <Filter className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Filter by Status:</span>
               </div>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as BillStatus | 'all')}>
+              <Select
+                value={statusFilter}
+                onValueChange={value =>
+                  setStatusFilter(value as BillStatus | 'all')
+                }
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All ({statusCounts.all})</SelectItem>
-                  <SelectItem value="paid">Paid ({statusCounts.paid})</SelectItem>
-                  <SelectItem value="unpaid">Unpaid ({statusCounts.unpaid})</SelectItem>
-                  <SelectItem value="overdue">Overdue ({statusCounts.overdue})</SelectItem>
+                  <SelectItem value="paid">
+                    Paid ({statusCounts.paid})
+                  </SelectItem>
+                  <SelectItem value="unpaid">
+                    Unpaid ({statusCounts.unpaid})
+                  </SelectItem>
+                  <SelectItem value="overdue">
+                    Overdue ({statusCounts.overdue})
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -725,13 +1013,17 @@ export default function BillsPage() {
             {filteredBills.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
-                  <p className="text-lg font-semibold text-muted-foreground">No bills found</p>
-                  <p className="mt-2 text-sm text-muted-foreground">You have no bills yet</p>
+                  <p className="text-lg font-semibold text-muted-foreground">
+                    No bills found
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    You have no bills yet
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredBills.map((bill) => (
+                {filteredBills.map(bill => (
                   <BillCard
                     key={bill.id}
                     bill={bill}
@@ -755,7 +1047,7 @@ export default function BillsPage() {
             />
             <BillTemplateDialog
               open={isTemplateDialogOpen}
-              onOpenChange={(open) => {
+              onOpenChange={open => {
                 setIsTemplateDialogOpen(open)
                 if (!open) setSelectedTemplate(undefined)
               }}
@@ -764,7 +1056,7 @@ export default function BillsPage() {
             />
             <MeterReadingDialog
               open={isMeterReadingDialogOpen}
-              onOpenChange={(open) => {
+              onOpenChange={open => {
                 setIsMeterReadingDialogOpen(open)
                 if (!open) setSelectedReading(undefined)
               }}
@@ -773,29 +1065,34 @@ export default function BillsPage() {
             />
             <BillGenerationRuleDialog
               open={isRuleDialogOpen}
-              onOpenChange={(open) => {
+              onOpenChange={open => {
                 setIsRuleDialogOpen(open)
                 if (!open) setSelectedRule(undefined)
               }}
               onSubmit={handleRuleSubmit}
               rule={selectedRule}
             />
-            {selectedBillForPayment && (
-              <SchedulePaymentDialog
-                payment={null}
-                billId={selectedBillForPayment.id}
-                open={isSchedulePaymentDialogOpen}
-                onOpenChange={(open) => {
-                  setIsSchedulePaymentDialogOpen(open)
-                  if (!open) setSelectedBillForPayment(null)
-                }}
-                onSubmit={handleSchedulePaymentSubmit}
-              />
-            )}
+            <BulkBillDialog
+              open={isBulkBillDialogOpen}
+              onOpenChange={setIsBulkBillDialogOpen}
+              onSubmit={handleBulkBillSubmit}
+            />
           </>
+        )}
+
+        {selectedBillForPayment && (
+          <SchedulePaymentDialog
+            payment={null}
+            billId={selectedBillForPayment.id}
+            open={isSchedulePaymentDialogOpen}
+            onOpenChange={open => {
+              setIsSchedulePaymentDialogOpen(open)
+              if (!open) setSelectedBillForPayment(null)
+            }}
+            onSubmit={handleSchedulePaymentSubmit}
+          />
         )}
       </div>
     </Layout>
   )
 }
-

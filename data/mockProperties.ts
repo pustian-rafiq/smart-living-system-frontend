@@ -25,7 +25,8 @@ export const mockProperties: Property[] = [
     videos: [
       'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     ],
-    videoThumbnail: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+    videoThumbnail:
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
     facilities: ['WiFi', 'AC', 'Generator', 'Security', 'Parking'],
     nearbyFacilities: ['Bus Stop', 'University', 'Hospital'],
     buildingAge: 5,
@@ -36,7 +37,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-01-20',
-    description: 'Clean and spacious mess with modern amenities. Perfect for students and working professionals.',
+    description:
+      'Clean and spacious mess with modern amenities. Perfect for students and working professionals.',
     ownerName: 'Abdul Karim',
     ownerPhone: '+8801712345678',
     createdAt: '2024-01-15',
@@ -62,7 +64,8 @@ export const mockProperties: Property[] = [
     videos: [
       'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     ],
-    videoThumbnail: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
+    videoThumbnail:
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
     facilities: ['WiFi', 'AC', 'Lift', 'Security', 'Parking', 'Balcony'],
     nearbyFacilities: ['Metro Station', 'Shopping Mall', 'School'],
     buildingAge: 8,
@@ -73,7 +76,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-01-25',
-    description: '2 BHK apartment in prime location. Well-maintained building with all modern facilities.',
+    description:
+      '2 BHK apartment in prime location. Well-maintained building with all modern facilities.',
     ownerName: 'Fatima Begum',
     ownerPhone: '+8801712345679',
     createdAt: '2024-01-20',
@@ -87,7 +91,7 @@ export const mockProperties: Property[] = [
     address: 'House 23, Road 27',
     city: 'Dhaka',
     latitude: 23.7465,
-    longitude: 90.3760,
+    longitude: 90.376,
     available: true,
     gender: 'male',
     seatType: 'single',
@@ -107,7 +111,8 @@ export const mockProperties: Property[] = [
     security: true,
     verified: false,
     verificationStatus: 'pending',
-    description: 'Affordable mess for students. Close to universities and public transport.',
+    description:
+      'Affordable mess for students. Close to universities and public transport.',
     ownerName: 'Rashid Ahmed',
     ownerPhone: '+8801712345680',
     createdAt: '2024-01-18',
@@ -121,7 +126,7 @@ export const mockProperties: Property[] = [
     address: 'House 12, Road 8, Block A',
     city: 'Dhaka',
     latitude: 23.7639,
-    longitude: 90.3600,
+    longitude: 90.36,
     available: true,
     gender: 'female',
     seatType: 'shared',
@@ -140,7 +145,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-01-25',
-    description: 'Safe and secure ladies hostel with 24/7 security. All modern amenities available.',
+    description:
+      'Safe and secure ladies hostel with 24/7 security. All modern amenities available.',
     ownerName: 'Nazma Khatun',
     ownerPhone: '+8801712345681',
     createdAt: '2024-01-22',
@@ -165,8 +171,17 @@ export const mockProperties: Property[] = [
     videos: [
       'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     ],
-    videoThumbnail: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
-    facilities: ['WiFi', 'AC', 'Lift', 'Security', 'Parking', 'Gym', 'Swimming Pool'],
+    videoThumbnail:
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
+    facilities: [
+      'WiFi',
+      'AC',
+      'Lift',
+      'Security',
+      'Parking',
+      'Gym',
+      'Swimming Pool',
+    ],
     nearbyFacilities: ['Metro Station', 'Hospital', 'University'],
     buildingAge: 2,
     floorLevel: 8,
@@ -176,7 +191,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-01-12',
-    description: 'Luxury 3 BHK apartment in high-rise building. Premium location with all amenities.',
+    description:
+      'Luxury 3 BHK apartment in high-rise building. Premium location with all amenities.',
     ownerName: 'Kamal Hossain',
     ownerPhone: '+8801712345682',
     createdAt: '2024-01-10',
@@ -195,9 +211,7 @@ export const mockProperties: Property[] = [
     gender: 'mixed',
     seatType: 'shared',
     mealIncluded: false,
-    images: [
-      'https://images.unsplash.com/photo-1556912172-45b7abe8b7c8?w=800',
-    ],
+    images: ['https://images.unsplash.com/photo-1556912172-45b7abe8b7c8?w=800'],
     facilities: ['WiFi', 'Security'],
     nearbyFacilities: ['Bus Stop'],
     buildingAge: 15,
@@ -207,7 +221,8 @@ export const mockProperties: Property[] = [
     security: true,
     verified: false,
     verificationStatus: 'unverified',
-    description: 'Budget-friendly mess for students. Basic amenities available.',
+    description:
+      'Budget-friendly mess for students. Basic amenities available.',
     ownerName: 'Hasan Ali',
     ownerPhone: '+8801712345683',
     createdAt: '2024-01-25',
@@ -238,7 +253,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-01-15',
-    description: 'Spacious 2 BHK apartment perfect for families. Quiet neighborhood with good schools nearby.',
+    description:
+      'Spacious 2 BHK apartment perfect for families. Quiet neighborhood with good schools nearby.',
     ownerName: 'Rahman Mia',
     ownerPhone: '+8801712345684',
     createdAt: '2024-01-12',
@@ -263,7 +279,15 @@ export const mockProperties: Property[] = [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
       'https://images.unsplash.com/photo-1556912172-45b7abe8b7c8?w=800',
     ],
-    facilities: ['WiFi', 'AC', 'Generator', 'Security', 'Parking', 'Gym', 'Laundry'],
+    facilities: [
+      'WiFi',
+      'AC',
+      'Generator',
+      'Security',
+      'Parking',
+      'Gym',
+      'Laundry',
+    ],
     nearbyFacilities: ['Metro Station', 'Office Area', 'Restaurant'],
     buildingAge: 4,
     floorLevel: 2,
@@ -273,7 +297,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-01-30',
-    description: 'Premium mess for working professionals. All modern facilities with excellent service.',
+    description:
+      'Premium mess for working professionals. All modern facilities with excellent service.',
     ownerName: 'Iqbal Hossain',
     ownerPhone: '+8801712345685',
     createdAt: '2024-01-28',
@@ -304,7 +329,8 @@ export const mockProperties: Property[] = [
     security: true,
     verified: false,
     verificationStatus: 'pending',
-    description: 'Comfortable hostel for students. Clean rooms and friendly environment.',
+    description:
+      'Comfortable hostel for students. Clean rooms and friendly environment.',
     ownerName: 'Rafiqul Islam',
     ownerPhone: '+8801712345686',
     createdAt: '2024-02-01',
@@ -324,7 +350,16 @@ export const mockProperties: Property[] = [
     images: [
       'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
     ],
-    facilities: ['WiFi', 'AC', 'Lift', 'Security', 'Parking', 'Gym', 'Swimming Pool', 'Rooftop Garden'],
+    facilities: [
+      'WiFi',
+      'AC',
+      'Lift',
+      'Security',
+      'Parking',
+      'Gym',
+      'Swimming Pool',
+      'Rooftop Garden',
+    ],
     nearbyFacilities: ['Metro Station', 'Shopping Mall', 'Hospital', 'School'],
     buildingAge: 1,
     floorLevel: 12,
@@ -334,7 +369,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-02-08',
-    description: 'Premium 4 BHK apartment with stunning city views. All luxury amenities included.',
+    description:
+      'Premium 4 BHK apartment with stunning city views. All luxury amenities included.',
     ownerName: 'Shahid Khan',
     ownerPhone: '+8801712345687',
     createdAt: '2024-02-05',
@@ -355,9 +391,7 @@ export const mockProperties: Property[] = [
     mealIncluded: true,
     mealPlan: 'breakfast',
     mealCost: 1000,
-    images: [
-      'https://images.unsplash.com/photo-1556912172-45b7abe8b7c8?w=800',
-    ],
+    images: ['https://images.unsplash.com/photo-1556912172-45b7abe8b7c8?w=800'],
     facilities: ['WiFi', 'AC', 'Security', 'Common Kitchen'],
     nearbyFacilities: ['Office Area', 'Bus Stop', 'Market'],
     buildingAge: 7,
@@ -367,7 +401,8 @@ export const mockProperties: Property[] = [
     security: true,
     verified: false,
     verificationStatus: 'pending',
-    description: 'Safe and comfortable hostel for working women. Close to business district.',
+    description:
+      'Safe and comfortable hostel for working women. Close to business district.',
     ownerName: 'Salma Begum',
     ownerPhone: '+8801712345688',
     createdAt: '2024-02-08',
@@ -396,7 +431,8 @@ export const mockProperties: Property[] = [
     security: true,
     verified: false,
     verificationStatus: 'unverified',
-    description: 'Affordable 1 BHK apartment. Perfect for small families or working professionals.',
+    description:
+      'Affordable 1 BHK apartment. Perfect for small families or working professionals.',
     ownerName: 'Mizanur Rahman',
     ownerPhone: '+8801712345689',
     createdAt: '2024-02-10',
@@ -410,7 +446,7 @@ export const mockProperties: Property[] = [
     address: 'House 50, Road 15',
     city: 'Dhaka',
     latitude: 23.7465,
-    longitude: 90.3760,
+    longitude: 90.376,
     available: true,
     gender: 'male',
     seatType: 'single',
@@ -420,7 +456,16 @@ export const mockProperties: Property[] = [
     images: [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
     ],
-    facilities: ['WiFi', 'AC', 'Generator', 'Security', 'Parking', 'Gym', 'Laundry', 'Study Room'],
+    facilities: [
+      'WiFi',
+      'AC',
+      'Generator',
+      'Security',
+      'Parking',
+      'Gym',
+      'Laundry',
+      'Study Room',
+    ],
     nearbyFacilities: ['University', 'Hospital', 'Metro Station'],
     buildingAge: 3,
     floorLevel: 3,
@@ -430,7 +475,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-02-15',
-    description: 'Premium mess with all facilities. Best for serious students and professionals.',
+    description:
+      'Premium mess with all facilities. Best for serious students and professionals.',
     ownerName: 'Tariqul Islam',
     ownerPhone: '+8801712345690',
     createdAt: '2024-02-12',
@@ -460,7 +506,8 @@ export const mockProperties: Property[] = [
     verified: true,
     verificationStatus: 'verified',
     verifiedAt: '2024-02-18',
-    description: 'Spacious 3 BHK apartment in prime Banani location. Modern building with all amenities.',
+    description:
+      'Spacious 3 BHK apartment in prime Banani location. Modern building with all amenities.',
     ownerName: 'Nazrul Islam',
     ownerPhone: '+8801712345691',
     createdAt: '2024-02-15',
@@ -491,7 +538,8 @@ export const mockProperties: Property[] = [
     security: true,
     verified: false,
     verificationStatus: 'unverified',
-    description: 'Student-friendly hostel near universities. Affordable and convenient location.',
+    description:
+      'Student-friendly hostel near universities. Affordable and convenient location.',
     ownerName: 'Karim Uddin',
     ownerPhone: '+8801712345692',
     createdAt: '2024-02-18',
@@ -505,7 +553,9 @@ export function getCities(): string[] {
 
 // Helper function to get areas by city
 export function getAreasByCity(city: string): string[] {
-  return Array.from(new Set(mockProperties.filter(p => p.city === city).map(p => p.area))).sort()
+  return Array.from(
+    new Set(mockProperties.filter(p => p.city === city).map(p => p.area))
+  ).sort()
 }
 
 // Helper function to get all nearby facilities

@@ -21,10 +21,20 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { format } from 'date-fns'
 import { CalendarIcon, Upload, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -113,7 +123,10 @@ export function DocumentUploadDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             {/* Document Type */}
             <FormField
               control={form.control}
@@ -121,7 +134,10 @@ export function DocumentUploadDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Document Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select document type" />
@@ -130,7 +146,9 @@ export function DocumentUploadDialog({
                     <SelectContent>
                       <SelectItem value="nid">NID (National ID)</SelectItem>
                       <SelectItem value="passport">Passport</SelectItem>
-                      <SelectItem value="driving_license">Driving License</SelectItem>
+                      <SelectItem value="driving_license">
+                        Driving License
+                      </SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
@@ -185,7 +203,7 @@ export function DocumentUploadDialog({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
+                        disabled={date => date < new Date()}
                         initialFocus
                       />
                     </PopoverContent>

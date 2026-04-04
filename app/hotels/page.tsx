@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { Filter, X } from 'lucide-react'
@@ -34,11 +40,15 @@ export default function HotelsPage() {
     let filtered = [...mockHotels]
 
     if (filters.city) {
-      filtered = filtered.filter(h => h.city.toLowerCase().includes(filters.city!.toLowerCase()))
+      filtered = filtered.filter(h =>
+        h.city.toLowerCase().includes(filters.city!.toLowerCase())
+      )
     }
 
     if (filters.area) {
-      filtered = filtered.filter(h => h.area.toLowerCase().includes(filters.area!.toLowerCase()))
+      filtered = filtered.filter(h =>
+        h.area.toLowerCase().includes(filters.area!.toLowerCase())
+      )
     }
 
     if (filters.hotelType && filters.hotelType !== 'all') {
@@ -82,16 +92,33 @@ export default function HotelsPage() {
     setRatingRange([0, 5])
   }
 
-  const cities = ['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Cox\'s Bazar']
-  const areas = ['Gulshan', 'Dhanmondi', 'Banani', 'Uttara', 'Mirpur', 'Mohammadpur']
-  const amenities = ['WiFi', 'AC', 'Parking', 'Restaurant', 'Gym', 'Swimming Pool', 'Spa']
+  const cities = ['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', "Cox's Bazar"]
+  const areas = [
+    'Gulshan',
+    'Dhanmondi',
+    'Banani',
+    'Uttara',
+    'Mirpur',
+    'Mohammadpur',
+  ]
+  const amenities = [
+    'WiFi',
+    'AC',
+    'Parking',
+    'Restaurant',
+    'Gym',
+    'Swimming Pool',
+    'Spa',
+  ]
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Find Hotels & Guest Houses</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            Find Hotels & Guest Houses
+          </h1>
           <p className="text-muted-foreground">
             Discover the perfect accommodation for your stay
           </p>
@@ -99,7 +126,9 @@ export default function HotelsPage() {
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Filters Sidebar */}
-          <div className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          <div
+            className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}
+          >
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-4">
@@ -120,8 +149,11 @@ export default function HotelsPage() {
                     <Label>City</Label>
                     <Select
                       value={filters.city || 'all'}
-                      onValueChange={(value) =>
-                        setFilters({ ...filters, city: value === 'all' ? undefined : value })
+                      onValueChange={value =>
+                        setFilters({
+                          ...filters,
+                          city: value === 'all' ? undefined : value,
+                        })
                       }
                     >
                       <SelectTrigger>
@@ -143,8 +175,11 @@ export default function HotelsPage() {
                     <Label>Area</Label>
                     <Select
                       value={filters.area || 'all'}
-                      onValueChange={(value) =>
-                        setFilters({ ...filters, area: value === 'all' ? undefined : value })
+                      onValueChange={value =>
+                        setFilters({
+                          ...filters,
+                          area: value === 'all' ? undefined : value,
+                        })
                       }
                     >
                       <SelectTrigger>
@@ -166,7 +201,7 @@ export default function HotelsPage() {
                     <Label>Hotel Type</Label>
                     <Select
                       value={filters.hotelType || 'all'}
-                      onValueChange={(value) =>
+                      onValueChange={value =>
                         setFilters({ ...filters, hotelType: value as any })
                       }
                     >
@@ -187,7 +222,7 @@ export default function HotelsPage() {
                     <Label>Minimum Rating: {ratingRange[0]}+</Label>
                     <Slider
                       value={ratingRange}
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         setRatingRange(value)
                         setFilters({ ...filters, minRating: value[0] })
                       }}
@@ -200,12 +235,18 @@ export default function HotelsPage() {
 
                   {/* Price Range */}
                   <div>
-                    <Label>Price Range: ৳{priceRange[0]} - ৳{priceRange[1]}</Label>
+                    <Label>
+                      Price Range: ৳{priceRange[0]} - ৳{priceRange[1]}
+                    </Label>
                     <Slider
                       value={priceRange}
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         setPriceRange(value)
-                        setFilters({ ...filters, minPrice: value[0], maxPrice: value[1] })
+                        setFilters({
+                          ...filters,
+                          minPrice: value[0],
+                          maxPrice: value[1],
+                        })
                       }}
                       min={0}
                       max={20000}
@@ -219,10 +260,15 @@ export default function HotelsPage() {
                     <Label>Amenities</Label>
                     <div className="space-y-2 mt-2">
                       {amenities.map(amenity => (
-                        <div key={amenity} className="flex items-center space-x-2">
+                        <div
+                          key={amenity}
+                          className="flex items-center space-x-2"
+                        >
                           <Switch
-                            checked={filters.amenities?.includes(amenity) || false}
-                            onCheckedChange={(checked) => {
+                            checked={
+                              filters.amenities?.includes(amenity) || false
+                            }
+                            onCheckedChange={checked => {
                               const current = filters.amenities || []
                               setFilters({
                                 ...filters,
@@ -232,14 +278,20 @@ export default function HotelsPage() {
                               })
                             }}
                           />
-                          <Label className="text-sm font-normal">{amenity}</Label>
+                          <Label className="text-sm font-normal">
+                            {amenity}
+                          </Label>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Reset Button */}
-                  <Button variant="outline" className="w-full" onClick={handleResetFilters}>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleResetFilters}
+                  >
                     Reset Filters
                   </Button>
                 </div>
@@ -252,7 +304,8 @@ export default function HotelsPage() {
             {/* Mobile Filter Button */}
             <div className="mb-4 flex items-center justify-between lg:hidden">
               <p className="text-sm text-muted-foreground">
-                {filteredHotels.length} hotel{filteredHotels.length !== 1 ? 's' : ''} found
+                {filteredHotels.length} hotel
+                {filteredHotels.length !== 1 ? 's' : ''} found
               </p>
               <Button variant="outline" onClick={() => setShowFilters(true)}>
                 <Filter className="mr-2 h-4 w-4" />
@@ -263,7 +316,8 @@ export default function HotelsPage() {
             {/* Desktop Results Header */}
             <div className="mb-4 hidden lg:block">
               <p className="text-sm text-muted-foreground">
-                {filteredHotels.length} hotel{filteredHotels.length !== 1 ? 's' : ''} found
+                {filteredHotels.length} hotel
+                {filteredHotels.length !== 1 ? 's' : ''} found
               </p>
             </div>
 
@@ -277,7 +331,11 @@ export default function HotelsPage() {
                   <p className="mt-2 text-sm text-muted-foreground">
                     Try adjusting your filters
                   </p>
-                  <Button variant="outline" onClick={handleResetFilters} className="mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={handleResetFilters}
+                    className="mt-4"
+                  >
                     Reset Filters
                   </Button>
                 </CardContent>

@@ -74,7 +74,9 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
         title: 'Generate Rent',
         subtitle: 'Create monthly rent slips',
         href: '/bills?mode=generate',
-        icon: <Icon path="M8 7h8M8 11h8M8 15h6M7 3h10a2 2 0 012 2v16l-4-2-4 2-4-2-4 2V5a2 2 0 012-2z" />,
+        icon: (
+          <Icon path="M8 7h8M8 11h8M8 15h6M7 3h10a2 2 0 012 2v16l-4-2-4 2-4-2-4 2V5a2 2 0 012-2z" />
+        ),
         photoToneClass:
           'bg-gradient-to-r from-sky-200/70 via-indigo-200/60 to-violet-200/70 dark:from-sky-900/30 dark:via-indigo-900/20 dark:to-violet-900/30',
       },
@@ -82,7 +84,9 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
         title: 'Manage Notices',
         subtitle: 'Create and manage notices',
         href: '/notices',
-        icon: <Icon path="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />,
+        icon: (
+          <Icon path="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        ),
         photoToneClass:
           'bg-gradient-to-r from-orange-200/70 via-amber-200/60 to-yellow-200/70 dark:from-orange-900/30 dark:via-amber-900/20 dark:to-yellow-900/30',
       },
@@ -111,7 +115,9 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
           <StatCard
             label="Due rents"
             value={`৳ ${stats.totalDue.toLocaleString()}`}
-            icon={<Icon path="M12 1v22M17 5H9.5a3.5 3.5 0 000 7H14a3.5 3.5 0 010 7H6" />}
+            icon={
+              <Icon path="M12 1v22M17 5H9.5a3.5 3.5 0 000 7H14a3.5 3.5 0 010 7H6" />
+            }
           />
         </div>
       </div>

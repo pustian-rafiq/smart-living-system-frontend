@@ -1,6 +1,18 @@
-export type PaymentMethod = 'bKash' | 'Nagad' | 'Rocket' | 'Bank Transfer' | 'Cash' | 'Card'
+export type PaymentMethod =
+  | 'bKash'
+  | 'Nagad'
+  | 'Rocket'
+  | 'Bank Transfer'
+  | 'Cash'
+  | 'Card'
 
-export type PaymentStatus = 'scheduled' | 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
+export type PaymentStatus =
+  | 'scheduled'
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
 
 export interface ScheduledPayment {
   id: string

@@ -22,10 +22,22 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Download } from 'lucide-react'
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, formatISO } from 'date-fns'
+import {
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  formatISO,
+} from 'date-fns'
 
 const attendanceReportSchema = z.object({
   reportType: z.enum(['daily', 'weekly', 'monthly', 'custom']),
@@ -56,7 +68,9 @@ export function AttendanceReportDialog({
   useEffect(() => {
     if (open) {
       const today = new Date()
-      const monthStart = formatISO(startOfMonth(today), { representation: 'date' })
+      const monthStart = formatISO(startOfMonth(today), {
+        representation: 'date',
+      })
       const monthEnd = formatISO(endOfMonth(today), { representation: 'date' })
 
       form.reset({
@@ -92,8 +106,12 @@ export function AttendanceReportDialog({
         break
       case 'custom':
         // Keep current dates or set to today
-        startDate = form.getValues('startDate') || formatISO(today, { representation: 'date' })
-        endDate = form.getValues('endDate') || formatISO(today, { representation: 'date' })
+        startDate =
+          form.getValues('startDate') ||
+          formatISO(today, { representation: 'date' })
+        endDate =
+          form.getValues('endDate') ||
+          formatISO(today, { representation: 'date' })
         break
     }
 
@@ -119,7 +137,10 @@ export function AttendanceReportDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <div className="space-y-4">
               {/* Report Type */}
               <FormField
@@ -131,7 +152,7 @@ export function AttendanceReportDialog({
                     <FormControl>
                       <RadioGroup
                         value={field.value}
-                        onValueChange={(value) => {
+                        onValueChange={value => {
                           field.onChange(value)
                           handleReportTypeChange(value)
                         }}
@@ -139,19 +160,27 @@ export function AttendanceReportDialog({
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="daily" id="daily" />
-                          <label htmlFor="daily" className="cursor-pointer">Daily</label>
+                          <label htmlFor="daily" className="cursor-pointer">
+                            Daily
+                          </label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="weekly" id="weekly" />
-                          <label htmlFor="weekly" className="cursor-pointer">Weekly</label>
+                          <label htmlFor="weekly" className="cursor-pointer">
+                            Weekly
+                          </label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="monthly" id="monthly" />
-                          <label htmlFor="monthly" className="cursor-pointer">Monthly</label>
+                          <label htmlFor="monthly" className="cursor-pointer">
+                            Monthly
+                          </label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="custom" id="custom" />
-                          <label htmlFor="custom" className="cursor-pointer">Custom</label>
+                          <label htmlFor="custom" className="cursor-pointer">
+                            Custom
+                          </label>
                         </div>
                       </RadioGroup>
                     </FormControl>
@@ -200,7 +229,11 @@ export function AttendanceReportDialog({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">

@@ -20,7 +20,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type { Mess, Seat } from '@/types/mess'
 import { mockSeats } from '@/data/mockMess'
 
@@ -123,7 +129,11 @@ export function AssignStudentDialog({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="john@example.com" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="john@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -165,14 +175,17 @@ export function AssignStudentDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Select Seat *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select an available seat" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {availableSeats.map((seat) => (
+                      {availableSeats.map(seat => (
                         <SelectItem key={seat} value={seat}>
                           {seat}
                         </SelectItem>

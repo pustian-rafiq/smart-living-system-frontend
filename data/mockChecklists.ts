@@ -68,14 +68,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: 'cat5',
     name: 'Balcony/Veranda',
-    items: [
-      'Railings',
-      'Flooring',
-      'Walls',
-      'Lighting',
-      'Doors',
-      'Windows',
-    ],
+    items: ['Railings', 'Flooring', 'Walls', 'Lighting', 'Doors', 'Windows'],
   },
   {
     id: 'cat6',
@@ -274,14 +267,21 @@ export const mockChecklists: Checklist[] = [
 export function getChecklistsByUserId(userId: string): Checklist[] {
   return mockChecklists
     .filter(checklist => checklist.userId === userId)
-    .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+    )
 }
 
 export function getChecklistById(checklistId: string): Checklist | undefined {
   return mockChecklists.find(checklist => checklist.id === checklistId)
 }
 
-export function getMoveInChecklist(userId: string, propertyId: string, flatId?: string): Checklist | undefined {
+export function getMoveInChecklist(
+  userId: string,
+  propertyId: string,
+  flatId?: string
+): Checklist | undefined {
   return mockChecklists.find(
     checklist =>
       checklist.userId === userId &&
@@ -291,7 +291,11 @@ export function getMoveInChecklist(userId: string, propertyId: string, flatId?: 
   )
 }
 
-export function getMoveOutChecklist(userId: string, propertyId: string, flatId?: string): Checklist | undefined {
+export function getMoveOutChecklist(
+  userId: string,
+  propertyId: string,
+  flatId?: string
+): Checklist | undefined {
   return mockChecklists.find(
     checklist =>
       checklist.userId === userId &&

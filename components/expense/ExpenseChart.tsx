@@ -21,7 +21,11 @@ interface ExpenseChartProps {
   title?: string
 }
 
-export function ExpenseChart({ trends, type = 'line', title = 'Expense Trends' }: ExpenseChartProps) {
+export function ExpenseChart({
+  trends,
+  type = 'line',
+  title = 'Expense Trends',
+}: ExpenseChartProps) {
   const data = trends.map(trend => ({
     period: trend.period,
     amount: trend.amount,
@@ -40,7 +44,10 @@ export function ExpenseChart({ trends, type = 'line', title = 'Expense Trends' }
               <XAxis dataKey="period" />
               <YAxis />
               <Tooltip
-                formatter={(value: number) => [`৳${value.toLocaleString()}`, 'Amount']}
+                formatter={(value: number | undefined) => [
+                  `৳${(value ?? 0).toLocaleString()}`,
+                  'Amount',
+                ]}
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--background))',
@@ -62,7 +69,10 @@ export function ExpenseChart({ trends, type = 'line', title = 'Expense Trends' }
               <XAxis dataKey="period" />
               <YAxis />
               <Tooltip
-                formatter={(value: number) => [`৳${value.toLocaleString()}`, 'Amount']}
+                formatter={(value: number | undefined) => [
+                  `৳${(value ?? 0).toLocaleString()}`,
+                  'Amount',
+                ]}
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--background))',

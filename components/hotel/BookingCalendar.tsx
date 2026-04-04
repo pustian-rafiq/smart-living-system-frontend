@@ -5,7 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isBefore, isAfter, startOfDay } from 'date-fns'
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  isBefore,
+  isAfter,
+  startOfDay,
+} from 'date-fns'
 import type { Booking } from '@/types/hotel'
 
 interface BookingCalendarProps {
@@ -19,15 +31,15 @@ interface BookingCalendarProps {
   roomId?: string
 }
 
-export function BookingCalendar({ 
-  bookings, 
+export function BookingCalendar({
+  bookings,
   selectedDate,
   onDateSelect,
   checkIn,
   checkOut,
   onCheckInSelect,
   onCheckOutSelect,
-  roomId 
+  roomId,
 }: BookingCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
@@ -47,9 +59,13 @@ export function BookingCalendar({
       const checkInDate = startOfDay(new Date(booking.checkIn))
       const checkOutDate = startOfDay(new Date(booking.checkOut))
       const currentDate = startOfDay(date)
-      
-      return (isAfter(currentDate, checkInDate) || isSameDay(currentDate, checkInDate)) &&
-             (isBefore(currentDate, checkOutDate) || isSameDay(currentDate, checkOutDate))
+
+      return (
+        (isAfter(currentDate, checkInDate) ||
+          isSameDay(currentDate, checkInDate)) &&
+        (isBefore(currentDate, checkOutDate) ||
+          isSameDay(currentDate, checkOutDate))
+      )
     })
   }
 
@@ -59,14 +75,18 @@ export function BookingCalendar({
     const dateStart = startOfDay(date)
     const checkInStart = startOfDay(checkIn)
     const checkOutStart = startOfDay(checkOut)
-    
-    return (isAfter(dateStart, checkInStart) || isSameDay(dateStart, checkInStart)) &&
-           (isBefore(dateStart, checkOutStart) || isSameDay(dateStart, checkOutStart))
+
+    return (
+      (isAfter(dateStart, checkInStart) ||
+        isSameDay(dateStart, checkInStart)) &&
+      (isBefore(dateStart, checkOutStart) ||
+        isSameDay(dateStart, checkOutStart))
+    )
   }
 
   const handleDateClick = (date: Date) => {
     if (isDateBooked(date)) return
-    
+
     if (!checkIn || (checkIn && checkOut)) {
       // Start new selection
       onCheckInSelect?.(date)
@@ -79,7 +99,7 @@ export function BookingCalendar({
         onCheckOutSelect?.(date)
       }
     }
-    
+
     onDateSelect?.(date)
   }
 
@@ -118,7 +138,10 @@ export function BookingCalendar({
         {/* Week day headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map(day => (
-            <div key={day} className="text-center text-sm font-semibold text-muted-foreground py-2">
+            <div
+              key={day}
+              className="text-center text-sm font-semibold text-muted-foreground py-2"
+            >
               {day}
             </div>
           ))}

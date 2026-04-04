@@ -19,21 +19,33 @@ interface AuditLogDetailDialogProps {
 }
 
 const actionColors: Record<string, string> = {
-  create: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
-  update: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  delete: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
-  approve: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400',
-  reject: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
-  verify: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
-  unverify: 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
-  payment: 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-400',
-  rollback: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+  create:
+    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+  update:
+    'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+  delete:
+    'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
+  approve:
+    'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400',
+  reject:
+    'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
+  verify:
+    'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
+  unverify:
+    'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
+  payment:
+    'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-400',
+  rollback:
+    'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
 }
 
 const roleColors: Record<string, string> = {
-  admin: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
-  owner: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  renter: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+  admin:
+    'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
+  owner:
+    'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+  renter:
+    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
 }
 
 export function AuditLogDetailDialog({
@@ -51,7 +63,10 @@ export function AuditLogDetailDialog({
             Audit Log Details
             <Badge
               variant="outline"
-              className={actionColors[log.action] || 'bg-gray-50 text-gray-700 border-gray-200'}
+              className={
+                actionColors[log.action] ||
+                'bg-gray-50 text-gray-700 border-gray-200'
+              }
             >
               {log.action.toUpperCase()}
             </Badge>
@@ -72,26 +87,42 @@ export function AuditLogDetailDialog({
                   <p className="text-sm font-mono">{log.id}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Entity Type</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Entity Type
+                  </p>
                   <Badge variant="outline">{log.entityType}</Badge>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Entity ID</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Entity ID
+                  </p>
                   <p className="text-sm font-mono">{log.entityId}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Entity Name</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Entity Name
+                  </p>
                   <p className="text-sm font-medium">{log.entityName}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Timestamp</p>
-                  <p className="text-sm">{format(new Date(log.timestamp), 'PPpp')}</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Timestamp
+                  </p>
+                  <p className="text-sm">
+                    {format(new Date(log.timestamp), 'PPpp')}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Can Rollback</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Can Rollback
+                  </p>
                   <Badge
                     variant="outline"
-                    className={log.canRollback ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-700 border-gray-200'}
+                    className={
+                      log.canRollback
+                        ? 'bg-green-50 text-green-700 border-green-200'
+                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                    }
                   >
                     {log.canRollback ? 'Yes' : 'No'}
                   </Badge>
@@ -104,7 +135,9 @@ export function AuditLogDetailDialog({
               <h3 className="font-semibold mb-3 text-sm">User Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">User Name</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    User Name
+                  </p>
                   <p className="text-sm font-medium">{log.userName}</p>
                 </div>
                 <div>
@@ -112,7 +145,9 @@ export function AuditLogDetailDialog({
                   <p className="text-sm font-mono">{log.userId}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">User Role</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    User Role
+                  </p>
                   <Badge
                     variant="outline"
                     className={roleColors[log.userRole] || ''}
@@ -122,7 +157,9 @@ export function AuditLogDetailDialog({
                 </div>
                 {log.ipAddress && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">IP Address</p>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      IP Address
+                    </p>
                     <p className="text-sm font-mono">{log.ipAddress}</p>
                   </div>
                 )}
@@ -132,7 +169,9 @@ export function AuditLogDetailDialog({
             {/* Changes */}
             {log.changes && log.changes.length > 0 && (
               <div>
-                <h3 className="font-semibold mb-3 text-sm">Changes ({log.changes.length})</h3>
+                <h3 className="font-semibold mb-3 text-sm">
+                  Changes ({log.changes.length})
+                </h3>
                 <div className="space-y-3">
                   {log.changes.map((change, idx) => (
                     <div
@@ -144,26 +183,32 @@ export function AuditLogDetailDialog({
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Old Value</p>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Old Value
+                          </p>
                           <div className="rounded bg-red-50 dark:bg-red-900/20 p-2 text-xs">
                             <p className="break-words">
-                              {change.oldValue === null || change.oldValue === undefined
+                              {change.oldValue === null ||
+                              change.oldValue === undefined
                                 ? 'N/A'
                                 : typeof change.oldValue === 'object'
-                                ? JSON.stringify(change.oldValue, null, 2)
-                                : String(change.oldValue)}
+                                  ? JSON.stringify(change.oldValue, null, 2)
+                                  : String(change.oldValue)}
                             </p>
                           </div>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">New Value</p>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            New Value
+                          </p>
                           <div className="rounded bg-green-50 dark:bg-green-900/20 p-2 text-xs">
                             <p className="break-words">
-                              {change.newValue === null || change.newValue === undefined
+                              {change.newValue === null ||
+                              change.newValue === undefined
                                 ? 'N/A'
                                 : typeof change.newValue === 'object'
-                                ? JSON.stringify(change.newValue, null, 2)
-                                : String(change.newValue)}
+                                  ? JSON.stringify(change.newValue, null, 2)
+                                  : String(change.newValue)}
                             </p>
                           </div>
                         </div>

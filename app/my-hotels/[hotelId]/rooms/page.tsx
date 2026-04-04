@@ -28,7 +28,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
 const roomSchema = z.object({
@@ -112,8 +118,14 @@ export default function RoomManagementPage() {
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-lg font-semibold text-muted-foreground">Hotel not found</p>
-              <Button variant="outline" onClick={() => router.push('/my-hotels')} className="mt-4">
+              <p className="text-lg font-semibold text-muted-foreground">
+                Hotel not found
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/my-hotels')}
+                className="mt-4"
+              >
                 Back to Hotels
               </Button>
             </CardContent>
@@ -129,7 +141,11 @@ export default function RoomManagementPage() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <Button variant="ghost" onClick={() => router.back()} className="mb-2">
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="mb-2"
+            >
               ← Back
             </Button>
             <h1 className="text-2xl font-bold">Room Management</h1>
@@ -198,11 +214,16 @@ export default function RoomManagementPage() {
                 {editingRoom ? 'Edit Room' : 'Add New Room'}
               </DialogTitle>
               <DialogDescription>
-                {editingRoom ? 'Update room information' : 'Add a new room to your hotel'}
+                {editingRoom
+                  ? 'Update room information'
+                  : 'Add a new room to your hotel'}
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(handleSubmit)}
+                className="space-y-4"
+              >
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -223,7 +244,10 @@ export default function RoomManagementPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Room Type *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select type" />
@@ -254,7 +278,9 @@ export default function RoomManagementPage() {
                             type="number"
                             min="0"
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            onChange={e =>
+                              field.onChange(parseInt(e.target.value) || 0)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -273,7 +299,9 @@ export default function RoomManagementPage() {
                             min="1"
                             max="10"
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            onChange={e =>
+                              field.onChange(parseInt(e.target.value) || 1)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -291,7 +319,9 @@ export default function RoomManagementPage() {
                             type="number"
                             min="0"
                             {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            onChange={e =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -319,7 +349,11 @@ export default function RoomManagementPage() {
                 />
 
                 <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
                     Cancel
                   </Button>
                   <Button type="submit">

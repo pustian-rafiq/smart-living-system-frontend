@@ -23,11 +23,24 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type { MessExpense } from '@/types/messExpense'
 
 const expenseSchema = z.object({
-  category: z.enum(['food', 'utilities', 'maintenance', 'staff', 'supplies', 'other']),
+  category: z.enum([
+    'food',
+    'utilities',
+    'maintenance',
+    'staff',
+    'supplies',
+    'other',
+  ]),
   description: z.string().min(1, 'Description is required'),
   amount: z.number().min(0, 'Amount must be positive'),
   date: z.string().min(1, 'Date is required'),
@@ -98,13 +111,14 @@ export function ExpenseDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{expense ? 'Edit Expense' : 'Add Expense'}</DialogTitle>
-          <DialogDescription>
-            Record an expense for your mess
-          </DialogDescription>
+          <DialogDescription>Record an expense for your mess</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <div className="space-y-4">
               {/* Category */}
               <FormField
@@ -141,7 +155,10 @@ export function ExpenseDialog({
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Rice purchase (50kg)" {...field} />
+                      <Input
+                        placeholder="e.g., Rice purchase (50kg)"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -160,7 +177,9 @@ export function ExpenseDialog({
                         <Input
                           type="number"
                           {...field}
-                          onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={e =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -190,7 +209,10 @@ export function ExpenseDialog({
                   <FormItem>
                     <FormLabel>Vendor (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Local Grocery Store" {...field} />
+                      <Input
+                        placeholder="e.g., Local Grocery Store"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -218,10 +240,16 @@ export function ExpenseDialog({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit">{expense ? 'Update' : 'Add'} Expense</Button>
+              <Button type="submit">
+                {expense ? 'Update' : 'Add'} Expense
+              </Button>
             </DialogFooter>
           </form>
         </Form>

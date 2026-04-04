@@ -14,9 +14,13 @@ interface MessOverviewCardProps {
   onAssignStudent: (mess: Mess) => void
 }
 
-export function MessOverviewCard({ mess, onAssignStudent }: MessOverviewCardProps) {
+export function MessOverviewCard({
+  mess,
+  onAssignStudent,
+}: MessOverviewCardProps) {
   const [imageError, setImageError] = useState(false)
-  const occupancyRate = ((mess.totalSeats - mess.availableSeats) / mess.totalSeats) * 100
+  const occupancyRate =
+    ((mess.totalSeats - mess.availableSeats) / mess.totalSeats) * 100
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg">
@@ -38,7 +42,11 @@ export function MessOverviewCard({ mess, onAssignStudent }: MessOverviewCardProp
         )}
         <div className="absolute right-2 top-2">
           <Badge variant="outline" className="bg-background/90 backdrop-blur">
-            {mess.gender === 'male' ? 'Male' : mess.gender === 'female' ? 'Female' : 'Mixed'}
+            {mess.gender === 'male'
+              ? 'Male'
+              : mess.gender === 'female'
+                ? 'Female'
+                : 'Mixed'}
           </Badge>
         </div>
       </div>

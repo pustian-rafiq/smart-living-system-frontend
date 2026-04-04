@@ -17,7 +17,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { getFloorsByBuilding, addFloor, updateFloor, deleteFloor } from '@/data/mockFloors'
+import {
+  getFloorsByBuilding,
+  addFloor,
+  updateFloor,
+  deleteFloor,
+} from '@/data/mockFloors'
 import { mockBuildings } from '@/data/mockBuildings'
 import type { Floor, FloorFormData } from '@/types/floor'
 import { Plus, Building2 } from 'lucide-react'
@@ -155,13 +160,19 @@ export default function FloorsPage() {
           onSubmit={handleSubmit}
         />
 
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Floor?</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete {deleteFloorData?.name || `Floor ${deleteFloorData?.floorNumber}`}?
-                This action cannot be undone. All flats on this floor will need to be reassigned.
+                Are you sure you want to delete{' '}
+                {deleteFloorData?.name ||
+                  `Floor ${deleteFloorData?.floorNumber}`}
+                ? This action cannot be undone. All flats on this floor will
+                need to be reassigned.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

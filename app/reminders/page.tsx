@@ -1,10 +1,16 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReminderCard } from '@/components/reminder/ReminderCard'
 import { ReminderSettingsDialog } from '@/components/reminder/ReminderSettingsDialog'
@@ -16,14 +22,23 @@ import {
 } from '@/data/mockReminders'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
-import { Bell, Settings, History, CheckCircle2, Clock, XCircle } from 'lucide-react'
+import {
+  Bell,
+  Settings,
+  History,
+  CheckCircle2,
+  Clock,
+  XCircle,
+} from 'lucide-react'
 import type { ReminderSettings } from '@/types/reminder'
 
 export default function RemindersPage() {
   const router = useRouter()
   const role = getStoredRole()
 
-  const [settings, setSettings] = useState<ReminderSettings>(getReminderSettings('r1'))
+  const [settings, setSettings] = useState<ReminderSettings>(
+    getReminderSettings('r1')
+  )
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
@@ -44,8 +59,13 @@ export default function RemindersPage() {
     setSettings(newSettings)
   }
 
+  useEffect(() => {
+    if (role !== 'renter') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
+
   if (role !== 'renter') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -164,7 +184,9 @@ export default function RemindersPage() {
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
-            {history.reminders.filter(r => r.status === 'sent' || r.status === 'failed').length > 0 ? (
+            {history.reminders.filter(
+              r => r.status === 'sent' || r.status === 'failed'
+            ).length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {history.reminders
                   .filter(r => r.status === 'sent' || r.status === 'failed')

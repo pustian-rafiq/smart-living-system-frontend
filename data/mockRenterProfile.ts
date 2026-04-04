@@ -1,4 +1,10 @@
-import type { RenterProfile, Document, JobInfo, FamilyMember, EmergencyContact } from '@/types/renterProfile'
+import type {
+  RenterProfile,
+  Document,
+  JobInfo,
+  FamilyMember,
+  EmergencyContact,
+} from '@/types/renterProfile'
 
 export const mockRenterProfile: RenterProfile = {
   userId: 'user1',
@@ -7,7 +13,8 @@ export const mockRenterProfile: RenterProfile = {
       id: 'doc1',
       type: 'nid',
       documentNumber: '1234567890123',
-      fileUrl: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
+      fileUrl:
+        'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
       fileName: 'nid_front.jpg',
       fileSize: 245678,
       uploadedAt: '2024-01-15T10:00:00Z',
@@ -19,7 +26,8 @@ export const mockRenterProfile: RenterProfile = {
       id: 'doc2',
       type: 'nid',
       documentNumber: '1234567890123',
-      fileUrl: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
+      fileUrl:
+        'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
       fileName: 'nid_back.jpg',
       fileSize: 234567,
       uploadedAt: '2024-01-15T10:05:00Z',
@@ -44,7 +52,8 @@ export const mockRenterProfile: RenterProfile = {
       relation: 'spouse',
       age: 28,
       gender: 'female',
-      photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      photoUrl:
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
       nid: '9876543210987',
       phone: '+8801712345678',
       isEmergencyContact: true,
@@ -56,7 +65,8 @@ export const mockRenterProfile: RenterProfile = {
       relation: 'child',
       age: 5,
       gender: 'male',
-      photoUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400',
+      photoUrl:
+        'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400',
       isEmergencyContact: false,
       createdAt: '2024-01-20T09:05:00Z',
     },
@@ -92,7 +102,10 @@ export function getRenterProfile(userId: string): RenterProfile | null {
   return null
 }
 
-export function updateRenterProfile(userId: string, updates: Partial<RenterProfile>): void {
+export function updateRenterProfile(
+  userId: string,
+  updates: Partial<RenterProfile>
+): void {
   if (mockRenterProfile.userId === userId) {
     Object.assign(mockRenterProfile, updates, {
       updatedAt: new Date().toISOString(),

@@ -18,9 +18,26 @@ const sampleMealItems: MealItem[] = [
   { id: 'item6', name: 'Egg Curry', description: 'Boiled egg curry' },
   { id: 'item7', name: 'Roti', description: 'Fresh flatbread' },
   { id: 'item8', name: 'Paratha', description: 'Fried flatbread' },
-  { id: 'item9', name: 'Khichuri', description: 'Rice and lentil dish', isSpecial: true },
-  { id: 'item10', name: 'Biriyani', description: 'Spiced rice with meat', isSpecial: true, price: 150 },
-  { id: 'item11', name: 'Fried Rice', description: 'Chinese-style fried rice', isSpecial: true, price: 120 },
+  {
+    id: 'item9',
+    name: 'Khichuri',
+    description: 'Rice and lentil dish',
+    isSpecial: true,
+  },
+  {
+    id: 'item10',
+    name: 'Biriyani',
+    description: 'Spiced rice with meat',
+    isSpecial: true,
+    price: 150,
+  },
+  {
+    id: 'item11',
+    name: 'Fried Rice',
+    description: 'Chinese-style fried rice',
+    isSpecial: true,
+    price: 120,
+  },
   { id: 'item12', name: 'Tea', description: 'Hot tea' },
   { id: 'item13', name: 'Bread', description: 'Fresh bread' },
   { id: 'item14', name: 'Egg', description: 'Boiled egg' },
@@ -40,13 +57,21 @@ export const mockDailyMenus: DailyMenu[] = [
     lunch: [
       { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
       { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-      { id: 'item3', name: 'Chicken Curry', description: 'Spicy chicken curry' },
+      {
+        id: 'item3',
+        name: 'Chicken Curry',
+        description: 'Spicy chicken curry',
+      },
       { id: 'item5', name: 'Vegetable Curry', description: 'Mixed vegetables' },
     ],
     dinner: [
       { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
       { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-      { id: 'item4', name: 'Fish Curry', description: 'Traditional fish curry' },
+      {
+        id: 'item4',
+        name: 'Fish Curry',
+        description: 'Traditional fish curry',
+      },
       { id: 'item5', name: 'Vegetable Curry', description: 'Mixed vegetables' },
     ],
     createdBy: 'owner1',
@@ -63,8 +88,18 @@ export const mockDailyMenus: DailyMenu[] = [
       { id: 'item12', name: 'Tea', description: 'Hot tea' },
     ],
     lunch: [
-      { id: 'item10', name: 'Biriyani', description: 'Spiced rice with meat', isSpecial: true, price: 150 },
-      { id: 'item3', name: 'Chicken Curry', description: 'Spicy chicken curry' },
+      {
+        id: 'item10',
+        name: 'Biriyani',
+        description: 'Spiced rice with meat',
+        isSpecial: true,
+        price: 150,
+      },
+      {
+        id: 'item3',
+        name: 'Chicken Curry',
+        description: 'Spicy chicken curry',
+      },
     ],
     dinner: [
       { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
@@ -99,12 +134,20 @@ export const mockWeeklySchedules: WeeklySchedule[] = [
         lunch: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item3', name: 'Chicken Curry', description: 'Spicy chicken curry' },
+          {
+            id: 'item3',
+            name: 'Chicken Curry',
+            description: 'Spicy chicken curry',
+          },
         ],
         dinner: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item4', name: 'Fish Curry', description: 'Traditional fish curry' },
+          {
+            id: 'item4',
+            name: 'Fish Curry',
+            description: 'Traditional fish curry',
+          },
         ],
       },
       tuesday: {
@@ -121,7 +164,11 @@ export const mockWeeklySchedules: WeeklySchedule[] = [
         dinner: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item3', name: 'Chicken Curry', description: 'Spicy chicken curry' },
+          {
+            id: 'item3',
+            name: 'Chicken Curry',
+            description: 'Spicy chicken curry',
+          },
         ],
       },
       wednesday: {
@@ -131,12 +178,22 @@ export const mockWeeklySchedules: WeeklySchedule[] = [
           { id: 'item12', name: 'Tea', description: 'Hot tea' },
         ],
         lunch: [
-          { id: 'item10', name: 'Biriyani', description: 'Spiced rice with meat', isSpecial: true, price: 150 },
+          {
+            id: 'item10',
+            name: 'Biriyani',
+            description: 'Spiced rice with meat',
+            isSpecial: true,
+            price: 150,
+          },
         ],
         dinner: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item5', name: 'Vegetable Curry', description: 'Mixed vegetables' },
+          {
+            id: 'item5',
+            name: 'Vegetable Curry',
+            description: 'Mixed vegetables',
+          },
         ],
       },
       thursday: {
@@ -148,12 +205,20 @@ export const mockWeeklySchedules: WeeklySchedule[] = [
         lunch: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item3', name: 'Chicken Curry', description: 'Spicy chicken curry' },
+          {
+            id: 'item3',
+            name: 'Chicken Curry',
+            description: 'Spicy chicken curry',
+          },
         ],
         dinner: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item4', name: 'Fish Curry', description: 'Traditional fish curry' },
+          {
+            id: 'item4',
+            name: 'Fish Curry',
+            description: 'Traditional fish curry',
+          },
         ],
       },
       friday: {
@@ -163,7 +228,13 @@ export const mockWeeklySchedules: WeeklySchedule[] = [
           { id: 'item12', name: 'Tea', description: 'Hot tea' },
         ],
         lunch: [
-          { id: 'item11', name: 'Fried Rice', description: 'Chinese-style fried rice', isSpecial: true, price: 120 },
+          {
+            id: 'item11',
+            name: 'Fried Rice',
+            description: 'Chinese-style fried rice',
+            isSpecial: true,
+            price: 120,
+          },
         ],
         dinner: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
@@ -180,12 +251,20 @@ export const mockWeeklySchedules: WeeklySchedule[] = [
         lunch: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item3', name: 'Chicken Curry', description: 'Spicy chicken curry' },
+          {
+            id: 'item3',
+            name: 'Chicken Curry',
+            description: 'Spicy chicken curry',
+          },
         ],
         dinner: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item5', name: 'Vegetable Curry', description: 'Mixed vegetables' },
+          {
+            id: 'item5',
+            name: 'Vegetable Curry',
+            description: 'Mixed vegetables',
+          },
         ],
       },
       sunday: {
@@ -195,12 +274,21 @@ export const mockWeeklySchedules: WeeklySchedule[] = [
           { id: 'item12', name: 'Tea', description: 'Hot tea' },
         ],
         lunch: [
-          { id: 'item9', name: 'Khichuri', description: 'Rice and lentil dish', isSpecial: true },
+          {
+            id: 'item9',
+            name: 'Khichuri',
+            description: 'Rice and lentil dish',
+            isSpecial: true,
+          },
         ],
         dinner: [
           { id: 'item1', name: 'Rice', description: 'Steamed basmati rice' },
           { id: 'item2', name: 'Dal', description: 'Lentil curry' },
-          { id: 'item4', name: 'Fish Curry', description: 'Traditional fish curry' },
+          {
+            id: 'item4',
+            name: 'Fish Curry',
+            description: 'Traditional fish curry',
+          },
         ],
       },
     },
@@ -265,11 +353,19 @@ export const mockMealPreferences: MealPreference[] = [
 ]
 
 // Helper functions
-export function getDailyMenuByDate(messId: string, date: string): DailyMenu | undefined {
-  return mockDailyMenus.find(menu => menu.messId === messId && menu.date === date)
+export function getDailyMenuByDate(
+  messId: string,
+  date: string
+): DailyMenu | undefined {
+  return mockDailyMenus.find(
+    menu => menu.messId === messId && menu.date === date
+  )
 }
 
-export function getDailyMenusByMess(messId: string, limit?: number): DailyMenu[] {
+export function getDailyMenusByMess(
+  messId: string,
+  limit?: number
+): DailyMenu[] {
   const menus = mockDailyMenus
     .filter(menu => menu.messId === messId)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -277,19 +373,30 @@ export function getDailyMenusByMess(messId: string, limit?: number): DailyMenu[]
   return limit ? menus.slice(0, limit) : menus
 }
 
-export function getWeeklyScheduleByMess(messId: string): WeeklySchedule | undefined {
-  return mockWeeklySchedules.find(schedule => schedule.messId === messId && schedule.isActive)
+export function getWeeklyScheduleByMess(
+  messId: string
+): WeeklySchedule | undefined {
+  return mockWeeklySchedules.find(
+    schedule => schedule.messId === messId && schedule.isActive
+  )
 }
 
 export function getMealTimingByMess(messId: string): MealTiming | undefined {
   return mockMealTimings.find(timing => timing.messId === messId)
 }
 
-export function getMealPreferenceByUser(userId: string, messId: string): MealPreference | undefined {
-  return mockMealPreferences.find(pref => pref.userId === userId && pref.messId === messId)
+export function getMealPreferenceByUser(
+  userId: string,
+  messId: string
+): MealPreference | undefined {
+  return mockMealPreferences.find(
+    pref => pref.userId === userId && pref.messId === messId
+  )
 }
 
-export function addDailyMenu(menu: Omit<DailyMenu, 'id' | 'createdAt' | 'updatedAt'>): DailyMenu {
+export function addDailyMenu(
+  menu: Omit<DailyMenu, 'id' | 'createdAt' | 'updatedAt'>
+): DailyMenu {
   const newMenu: DailyMenu = {
     ...menu,
     id: `menu${mockDailyMenus.length + 1}`,
@@ -335,7 +442,10 @@ export function addWeeklySchedule(
   return newSchedule
 }
 
-export function updateMealTiming(messId: string, timing: Partial<MealTiming>): MealTiming | undefined {
+export function updateMealTiming(
+  messId: string,
+  timing: Partial<MealTiming>
+): MealTiming | undefined {
   const index = mockMealTimings.findIndex(t => t.messId === messId)
   if (index === -1) {
     const newTiming: MealTiming = {

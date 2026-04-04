@@ -3,7 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Briefcase, GraduationCap, CheckCircle2, XCircle, Clock, Edit } from 'lucide-react'
+import {
+  Briefcase,
+  GraduationCap,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Edit,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import type { JobInfo } from '@/types/renterProfile'
 
@@ -26,9 +33,7 @@ export function JobInfoCard({ jobInfo, onEdit }: JobInfoCardProps) {
           <p className="text-sm text-muted-foreground mb-4">
             No job or institute information added yet.
           </p>
-          <Button onClick={onEdit}>
-            Add Information
-          </Button>
+          <Button onClick={onEdit}>Add Information</Button>
         </CardContent>
       </Card>
     )
@@ -121,9 +126,14 @@ export function JobInfoCard({ jobInfo, onEdit }: JobInfoCardProps) {
               )}
               {jobInfo.employmentStartDate && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Employment Start Date</p>
+                  <p className="text-sm text-muted-foreground">
+                    Employment Start Date
+                  </p>
                   <p className="font-medium">
-                    {format(new Date(jobInfo.employmentStartDate), 'MMM dd, yyyy')}
+                    {format(
+                      new Date(jobInfo.employmentStartDate),
+                      'MMM dd, yyyy'
+                    )}
                   </p>
                 </div>
               )}
@@ -134,7 +144,9 @@ export function JobInfoCard({ jobInfo, onEdit }: JobInfoCardProps) {
             <>
               {jobInfo.instituteName && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Institute Name</p>
+                  <p className="text-sm text-muted-foreground">
+                    Institute Name
+                  </p>
                   <p className="font-medium">{jobInfo.instituteName}</p>
                 </div>
               )}
@@ -169,12 +181,17 @@ export function JobInfoCard({ jobInfo, onEdit }: JobInfoCardProps) {
             </div>
           )}
 
-          {jobInfo.verificationStatus === 'rejected' && jobInfo.rejectionReason && (
-            <div>
-              <p className="text-sm text-muted-foreground">Rejection Reason</p>
-              <p className="font-medium text-red-600">{jobInfo.rejectionReason}</p>
-            </div>
-          )}
+          {jobInfo.verificationStatus === 'rejected' &&
+            jobInfo.rejectionReason && (
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Rejection Reason
+                </p>
+                <p className="font-medium text-red-600">
+                  {jobInfo.rejectionReason}
+                </p>
+              </div>
+            )}
         </div>
       </CardContent>
     </Card>

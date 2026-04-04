@@ -16,7 +16,14 @@ export interface BulkNoticeData {
   title: string
   content: string
   priority: 'high' | 'medium' | 'low'
-  category: 'general' | 'payment' | 'maintenance' | 'event' | 'announcement' | 'rule' | 'other'
+  category:
+    | 'general'
+    | 'payment'
+    | 'maintenance'
+    | 'event'
+    | 'announcement'
+    | 'rule'
+    | 'other'
   expiryDate?: string
   pdfUrl?: string
   imageUrls?: string[]

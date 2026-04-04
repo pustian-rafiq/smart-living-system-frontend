@@ -2,12 +2,16 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
-import Image from 'next/image'
 import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog'
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+} from 'lucide-react'
+import Image from 'next/image'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 interface ImageGalleryProps {
   images: string[]
@@ -15,7 +19,11 @@ interface ImageGalleryProps {
   startIndex?: number
 }
 
-export function ImageGallery({ images, propertyName, startIndex = 0 }: ImageGalleryProps) {
+export function ImageGallery({
+  images,
+  propertyName,
+  startIndex = 0,
+}: ImageGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(startIndex)
   const [isZoomed, setIsZoomed] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -33,13 +41,13 @@ export function ImageGallery({ images, propertyName, startIndex = 0 }: ImageGall
   }, [startIndex])
 
   const handlePrevious = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+    setCurrentIndex(prev => (prev === 0 ? images.length - 1 : prev - 1))
     setImageError(false)
     resetZoom()
   }
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+    setCurrentIndex(prev => (prev === images.length - 1 ? 0 : prev + 1))
     setImageError(false)
     resetZoom()
   }
@@ -141,7 +149,9 @@ export function ImageGallery({ images, propertyName, startIndex = 0 }: ImageGall
             className={`relative h-full w-full transition-transform duration-300 origin-center ${
               isZoomed ? 'cursor-move' : 'cursor-zoom-in'
             }`}
-            style={{ transform: `scale(${zoomLevel.current}) translate(${position.x}px, ${position.y}px)` }}
+            style={{
+              transform: `scale(${zoomLevel.current}) translate(${position.x}px, ${position.y}px)`,
+            }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}

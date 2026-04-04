@@ -17,7 +17,11 @@ interface PropertyCardProps {
   onCall: (phone: string) => void
 }
 
-export function PropertyCard({ property, onViewDetails, onCall }: PropertyCardProps) {
+export function PropertyCard({
+  property,
+  onViewDetails,
+  onCall,
+}: PropertyCardProps) {
   const [imageError, setImageError] = useState(false)
   const router = useRouter()
 
@@ -53,12 +57,22 @@ export function PropertyCard({ property, onViewDetails, onCall }: PropertyCardPr
             {property.available ? 'Available' : 'Occupied'}
           </Badge>
           {property.gender && (
-            <Badge variant="outline" className="bg-background/95 backdrop-blur-sm text-xs font-medium shadow-sm">
-              {property.gender === 'male' ? 'Male' : property.gender === 'female' ? 'Female' : 'Mixed'}
+            <Badge
+              variant="outline"
+              className="bg-background/95 backdrop-blur-sm text-xs font-medium shadow-sm"
+            >
+              {property.gender === 'male'
+                ? 'Male'
+                : property.gender === 'female'
+                  ? 'Female'
+                  : 'Mixed'}
             </Badge>
           )}
           {property.videos && property.videos.length > 0 && (
-            <Badge variant="secondary" className="bg-background/95 backdrop-blur-sm text-xs font-medium shadow-sm">
+            <Badge
+              variant="secondary"
+              className="bg-background/95 backdrop-blur-sm text-xs font-medium shadow-sm"
+            >
               <Video className="mr-1 h-3 w-3" />
               Video
             </Badge>
@@ -109,14 +123,20 @@ export function PropertyCard({ property, onViewDetails, onCall }: PropertyCardPr
         {/* Location */}
         <div className="mb-3 flex items-start gap-2 text-sm text-muted-foreground">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-          <span className="line-clamp-1">{property.area}, {property.city}</span>
+          <span className="line-clamp-1">
+            {property.area}, {property.city}
+          </span>
         </div>
 
         {/* Facilities (first 3) */}
         {property.facilities.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-1.5">
             {property.facilities.slice(0, 3).map((facility, idx) => (
-              <Badge key={idx} variant="outline" className="text-xs font-normal">
+              <Badge
+                key={idx}
+                variant="outline"
+                className="text-xs font-normal"
+              >
                 {facility}
               </Badge>
             ))}

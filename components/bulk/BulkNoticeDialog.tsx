@@ -24,11 +24,21 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
@@ -47,7 +57,15 @@ const bulkNoticeSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
   priority: z.enum(['high', 'medium', 'low']),
-  category: z.enum(['general', 'payment', 'maintenance', 'event', 'announcement', 'rule', 'other']),
+  category: z.enum([
+    'general',
+    'payment',
+    'maintenance',
+    'event',
+    'announcement',
+    'rule',
+    'other',
+  ]),
   expiryDate: z.string().optional(),
 })
 
@@ -57,7 +75,11 @@ interface BulkNoticeDialogProps {
   onSubmit: (data: BulkNoticeData) => void
 }
 
-export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDialogProps) {
+export function BulkNoticeDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+}: BulkNoticeDialogProps) {
   const [selectedBuilding, setSelectedBuilding] = useState<string>('')
   const [selectedFloors, setSelectedFloors] = useState<string[]>([])
   const [selectedFlats, setSelectedFlats] = useState<string[]>([])
@@ -107,7 +129,8 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
   }
 
   const selectedCount = useMemo(() => {
-    if (selectedMess) return mockMess.find(m => m.id === selectedMess)?.totalSeats || 0
+    if (selectedMess)
+      return mockMess.find(m => m.id === selectedMess)?.totalSeats || 0
     if (selectedFlats.length > 0) return selectedFlats.length
     if (selectedFloors.length > 0) {
       return floors
@@ -116,7 +139,14 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
     }
     if (selectedBuilding) return availableFlats.length
     return 0
-  }, [selectedMess, selectedFlats, selectedFloors, selectedBuilding, floors, availableFlats])
+  }, [
+    selectedMess,
+    selectedFlats,
+    selectedFloors,
+    selectedBuilding,
+    floors,
+    availableFlats,
+  ])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,13 +162,16 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Recipient Selection */}
                 <div className="space-y-4">
                   <FormLabel>Recipients</FormLabel>
-                  
+
                   {/* Building Selection */}
                   <FormField
                     control={form.control}
@@ -215,16 +248,24 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
                       <FormLabel>Select Floors (Optional)</FormLabel>
                       <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
                         {floors.map(floor => (
-                          <div key={floor.id} className="flex items-center space-x-2">
+                          <div
+                            key={floor.id}
+                            className="flex items-center space-x-2"
+                          >
                             <Checkbox
                               id={`floor-${floor.id}`}
                               checked={selectedFloors.includes(floor.id)}
                               onCheckedChange={checked => {
                                 if (checked) {
-                                  setSelectedFloors([...selectedFloors, floor.id])
+                                  setSelectedFloors([
+                                    ...selectedFloors,
+                                    floor.id,
+                                  ])
                                   setSelectedFlats([])
                                 } else {
-                                  setSelectedFloors(selectedFloors.filter(id => id !== floor.id))
+                                  setSelectedFloors(
+                                    selectedFloors.filter(id => id !== floor.id)
+                                  )
                                 }
                               }}
                             />
@@ -246,7 +287,10 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
                       <FormLabel>Select Flats (Optional)</FormLabel>
                       <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
                         {availableFlats.map(flat => (
-                          <div key={flat.id} className="flex items-center space-x-2">
+                          <div
+                            key={flat.id}
+                            className="flex items-center space-x-2"
+                          >
                             <Checkbox
                               id={`flat-${flat.id}`}
                               checked={selectedFlats.includes(flat.id)}
@@ -255,7 +299,9 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
                                   setSelectedFlats([...selectedFlats, flat.id])
                                   setSelectedFloors([])
                                 } else {
-                                  setSelectedFlats(selectedFlats.filter(id => id !== flat.id))
+                                  setSelectedFlats(
+                                    selectedFlats.filter(id => id !== flat.id)
+                                  )
                                 }
                               }}
                             />
@@ -313,7 +359,10 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Priority</FormLabel>
-                          <Select value={field.value} onValueChange={field.onChange}>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue />
@@ -336,7 +385,10 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select value={field.value} onValueChange={field.onChange}>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue />
@@ -345,9 +397,13 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
                             <SelectContent>
                               <SelectItem value="general">General</SelectItem>
                               <SelectItem value="payment">Payment</SelectItem>
-                              <SelectItem value="maintenance">Maintenance</SelectItem>
+                              <SelectItem value="maintenance">
+                                Maintenance
+                              </SelectItem>
                               <SelectItem value="event">Event</SelectItem>
-                              <SelectItem value="announcement">Announcement</SelectItem>
+                              <SelectItem value="announcement">
+                                Announcement
+                              </SelectItem>
                               <SelectItem value="rule">Rule</SelectItem>
                               <SelectItem value="other">Other</SelectItem>
                             </SelectContent>
@@ -372,7 +428,9 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
                                 className="w-full justify-start text-left font-normal"
                               >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {expiryDate ? format(expiryDate, 'PPP') : 'Select date'}
+                                {expiryDate
+                                  ? format(expiryDate, 'PPP')
+                                  : 'Select date'}
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
@@ -403,7 +461,8 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
                   <div>
                     <p className="text-sm font-medium">Recipients</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {selectedCount} recipient{selectedCount !== 1 ? 's' : ''} will receive this notice
+                      {selectedCount} recipient{selectedCount !== 1 ? 's' : ''}{' '}
+                      will receive this notice
                     </p>
                   </div>
                   <Badge variant="outline" className="text-lg px-3 py-1">
@@ -414,7 +473,11 @@ export function BulkNoticeDialog({ open, onOpenChange, onSubmit }: BulkNoticeDia
             )}
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={selectedCount === 0}>

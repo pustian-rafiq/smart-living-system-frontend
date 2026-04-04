@@ -34,13 +34,17 @@ export function RollbackDialog({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             Rollback Audit Log?
-            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+            <Badge
+              variant="outline"
+              className="bg-yellow-50 text-yellow-700 border-yellow-200"
+            >
               {log.action.toUpperCase()}
             </Badge>
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-3">
             <p>
-              Are you sure you want to rollback this action? This will reverse the changes made to:
+              Are you sure you want to rollback this action? This will reverse
+              the changes made to:
             </p>
             <div className="rounded-lg border p-3 bg-muted/30">
               <p className="font-medium text-sm mb-1">{log.entityName}</p>
@@ -50,7 +54,9 @@ export function RollbackDialog({
             </div>
             {log.changes && log.changes.length > 0 && (
               <div>
-                <p className="text-xs font-medium mb-2">Changes that will be reversed:</p>
+                <p className="text-xs font-medium mb-2">
+                  Changes that will be reversed:
+                </p>
                 <div className="space-y-1">
                   {log.changes.slice(0, 3).map((change, idx) => (
                     <div key={idx} className="text-xs">
@@ -73,7 +79,8 @@ export function RollbackDialog({
               </div>
             )}
             <p className="text-xs text-muted-foreground mt-3">
-              This action cannot be undone. A new audit log entry will be created for this rollback.
+              This action cannot be undone. A new audit log entry will be
+              created for this rollback.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>

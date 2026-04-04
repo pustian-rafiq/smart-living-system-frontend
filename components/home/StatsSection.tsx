@@ -41,13 +41,19 @@ export function StatsSection() {
               className="group border-2 transition-all duration-300 hover:border-primary hover:shadow-lg"
             >
               <CardContent className="p-6 text-center">
-                <div className={`mb-4 inline-flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-white transition-transform duration-300 group-hover:scale-110`}>
+                <div
+                  className={`mb-4 inline-flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-white transition-transform duration-300 group-hover:scale-110`}
+                >
                   {stat.icon}
                 </div>
-                <div className={`mb-2 text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent sm:text-4xl`}>
+                <div
+                  className={`mb-2 text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent sm:text-4xl`}
+                >
                   {stat.value}
                 </div>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {stat.label}
+                </p>
               </CardContent>
             </Card>
           ))}

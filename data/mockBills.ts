@@ -55,7 +55,12 @@ export const mockBills: Bill[] = [
     status: 'unpaid',
     items: [
       { id: 'item3', description: 'Monthly Rent', amount: 12000, type: 'rent' },
-      { id: 'item4', description: 'Utility Bill', amount: 500, type: 'utility' },
+      {
+        id: 'item4',
+        description: 'Utility Bill',
+        amount: 500,
+        type: 'utility',
+      },
     ],
     createdAt: '2024-03-01',
   },
@@ -129,7 +134,12 @@ export const mockBills: Bill[] = [
     status: 'unpaid',
     items: [
       { id: 'item8', description: 'Monthly Rent', amount: 20000, type: 'rent' },
-      { id: 'item9', description: 'Maintenance', amount: 500, type: 'maintenance' },
+      {
+        id: 'item9',
+        description: 'Maintenance',
+        amount: 500,
+        type: 'maintenance',
+      },
     ],
     createdAt: '2024-03-01',
   },

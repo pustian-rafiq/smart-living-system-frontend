@@ -90,7 +90,10 @@ export function FloorDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="floorNumber"
@@ -101,7 +104,9 @@ export function FloorDialog({
                     <Input
                       type="number"
                       {...field}
-                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={e =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
                   <FormMessage />

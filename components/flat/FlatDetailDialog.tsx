@@ -46,15 +46,18 @@ interface FlatDetailDialogProps {
 const statusConfig = {
   available: {
     label: 'Available',
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    className:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
   },
   occupied: {
     label: 'Occupied',
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+    className:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
   },
   maintenance: {
     label: 'Maintenance',
-    className: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+    className:
+      'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
   },
 }
 
@@ -136,7 +139,10 @@ export function FlatDetailDialog({
         <div className="space-y-6">
           {/* Status and Rent */}
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <Badge variant="outline" className={cn('text-sm', status.className)}>
+            <Badge
+              variant="outline"
+              className={cn('text-sm', status.className)}
+            >
               {status.label}
             </Badge>
             <div>
@@ -226,7 +232,9 @@ export function FlatDetailDialog({
                       <p className="font-medium">
                         {new Date(flat.renter.joinedDate).toLocaleDateString()}
                       </p>
-                      <p className="text-sm text-muted-foreground">Joined Date</p>
+                      <p className="text-sm text-muted-foreground">
+                        Joined Date
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -278,7 +286,7 @@ export function FlatDetailDialog({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {flatPayments.map((payment) => {
+                      {flatPayments.map(payment => {
                         const statusInfo = paymentStatusConfig[payment.status]
                         const StatusIcon = statusInfo.icon
                         return (
@@ -294,13 +302,18 @@ export function FlatDetailDialog({
                             </TableCell>
                             <TableCell>
                               {payment.paidDate
-                                ? new Date(payment.paidDate).toLocaleDateString()
+                                ? new Date(
+                                    payment.paidDate
+                                  ).toLocaleDateString()
                                 : '-'}
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <StatusIcon
-                                  className={cn('h-4 w-4', statusInfo.className)}
+                                  className={cn(
+                                    'h-4 w-4',
+                                    statusInfo.className
+                                  )}
                                 />
                                 <span>{statusInfo.label}</span>
                               </div>

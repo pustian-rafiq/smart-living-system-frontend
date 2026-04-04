@@ -11,7 +11,7 @@ export const Header = () => {
         <div className="flex justify-between items-center h-14">
           <div className="flex items-center space-x-4">
             <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Smart Living Ecosystem
+              Smart Living System
             </h1>
             <span className="hidden sm:inline-block text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Bangladesh

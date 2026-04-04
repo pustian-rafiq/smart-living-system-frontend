@@ -22,9 +22,21 @@ export default function AdminAnalyticsPage() {
           <AnalyticsChart
             title="User Distribution"
             data={[
-              { label: 'Renters', value: mockAnalytics.usersByRole.renters, color: 'blue' },
-              { label: 'Owners', value: mockAnalytics.usersByRole.owners, color: 'green' },
-              { label: 'Admins', value: mockAnalytics.usersByRole.admins, color: 'purple' },
+              {
+                label: 'Renters',
+                value: mockAnalytics.usersByRole.renters,
+                color: 'blue',
+              },
+              {
+                label: 'Owners',
+                value: mockAnalytics.usersByRole.owners,
+                color: 'green',
+              },
+              {
+                label: 'Admins',
+                value: mockAnalytics.usersByRole.admins,
+                color: 'purple',
+              },
             ]}
             total={mockAnalytics.totalUsers}
           />
@@ -33,9 +45,21 @@ export default function AdminAnalyticsPage() {
           <AnalyticsChart
             title="Property Distribution"
             data={[
-              { label: 'Mess', value: mockAnalytics.propertiesByType.mess, color: 'blue' },
-              { label: 'Apartment', value: mockAnalytics.propertiesByType.apartment, color: 'green' },
-              { label: 'Hotel', value: mockAnalytics.propertiesByType.hotel, color: 'purple' },
+              {
+                label: 'Mess',
+                value: mockAnalytics.propertiesByType.mess,
+                color: 'blue',
+              },
+              {
+                label: 'Apartment',
+                value: mockAnalytics.propertiesByType.apartment,
+                color: 'green',
+              },
+              {
+                label: 'Hotel',
+                value: mockAnalytics.propertiesByType.hotel,
+                color: 'purple',
+              },
             ]}
             total={mockAnalytics.totalProperties}
           />

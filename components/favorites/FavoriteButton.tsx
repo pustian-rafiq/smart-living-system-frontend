@@ -73,9 +73,7 @@ export function FavoriteButton({
         className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`}
       />
       {size !== 'icon' && (
-        <span className="ml-2">
-          {isFavorite ? 'Saved' : 'Save'}
-        </span>
+        <span className="ml-2">{isFavorite ? 'Saved' : 'Save'}</span>
       )}
     </Button>
   )

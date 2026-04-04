@@ -2,7 +2,11 @@ export type PropertyType = 'mess' | 'apartment' | 'hostel' | 'hotel'
 export type Gender = 'male' | 'female' | 'mixed' | null
 export type SeatType = 'single' | 'shared' | null
 export type MealPlan = 'breakfast' | 'lunch' | 'dinner' | 'all' | null
-export type FurnishingStatus = 'furnished' | 'unfurnished' | 'semi-furnished' | null
+export type FurnishingStatus =
+  | 'furnished'
+  | 'unfurnished'
+  | 'semi-furnished'
+  | null
 export type VerificationStatus = 'verified' | 'pending' | 'unverified'
 
 export interface Property {

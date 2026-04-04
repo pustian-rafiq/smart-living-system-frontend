@@ -22,17 +22,21 @@ export default function MessOverviewPage() {
 
   const handleAssign = (data: any) => {
     // TODO: Implement actual assignment logic
-    alert(`Student ${data.name} assigned to seat ${data.seatNumber} in ${selectedMess?.name}`)
-    
+    alert(
+      `Student ${data.name} assigned to seat ${data.seatNumber} in ${selectedMess?.name}`
+    )
+
     // Update available seats
     if (selectedMess) {
-      setMesses(messes.map(m => 
-        m.id === selectedMess.id 
-          ? { ...m, availableSeats: m.availableSeats - 1 }
-          : m
-      ))
+      setMesses(
+        messes.map(m =>
+          m.id === selectedMess.id
+            ? { ...m, availableSeats: m.availableSeats - 1 }
+            : m
+        )
+      )
     }
-    
+
     setIsAssignDialogOpen(false)
     setSelectedMess(null)
   }
@@ -59,7 +63,10 @@ export default function MessOverviewPage() {
                     Manage Meals - {mess.name}
                   </Button>
                 </Link>
-                <Link key={`attendance-${mess.id}`} href={`/mess/${mess.id}/attendance`}>
+                <Link
+                  key={`attendance-${mess.id}`}
+                  href={`/mess/${mess.id}/attendance`}
+                >
                   <Button variant="outline">
                     <Calendar className="mr-2 h-4 w-4" />
                     Attendance - {mess.name}
@@ -88,7 +95,7 @@ export default function MessOverviewPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {messes.map((mess) => (
+            {messes.map(mess => (
               <MessOverviewCard
                 key={mess.id}
                 mess={mess}

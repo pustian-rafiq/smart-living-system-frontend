@@ -4,8 +4,9 @@ import { LanguageProvider } from '@/components/language/LanguageProvider'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
-  title: 'Smart Living Ecosystem - Bangladesh',
-  description: 'Smart Living Ecosystem - Connecting renters and property owners in Bangladesh',
+  title: 'Smart Living System - Bangladesh',
+  description:
+    'Smart Living System - Connecting renters and property owners in Bangladesh',
 }
 
 export default function RootLayout({
@@ -17,9 +18,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <LanguageProvider>
-            {children}
-          </LanguageProvider>
+          <LanguageProvider>{children}</LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

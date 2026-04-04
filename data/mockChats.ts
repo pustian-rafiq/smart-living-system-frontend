@@ -5,14 +5,16 @@ export const mockChatUsers: ChatUser[] = [
     id: 'user1',
     name: 'Rahim Uddin',
     phone: '+8801711111111',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+    avatar:
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
     isOnline: true,
   },
   {
     id: 'owner1',
     name: 'Abdul Karim',
     phone: '+8801712345678',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
+    avatar:
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
     isOnline: false,
     lastSeen: '2024-02-20T10:30:00Z',
   },
@@ -20,14 +22,16 @@ export const mockChatUsers: ChatUser[] = [
     id: 'owner2',
     name: 'Fatima Begum',
     phone: '+8801712345679',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+    avatar:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
     isOnline: true,
   },
   {
     id: 'user2',
     name: 'Karim Ahmed',
     phone: '+8801722222222',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
+    avatar:
+      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
     isOnline: true,
   },
 ]
@@ -39,9 +43,12 @@ export const mockChats: Chat[] = [
     participant2Id: 'owner1',
     participant1Name: 'Rahim Uddin',
     participant2Name: 'Abdul Karim',
-    participant1Avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-    participant2Avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-    lastMessage: 'Yes, the property is still available. When would you like to visit?',
+    participant1Avatar:
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+    participant2Avatar:
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
+    lastMessage:
+      'Yes, the property is still available. When would you like to visit?',
     lastMessageTime: '2024-02-20T14:30:00Z',
     unreadCount: 2,
     propertyId: '1',
@@ -55,8 +62,10 @@ export const mockChats: Chat[] = [
     participant2Id: 'owner2',
     participant1Name: 'Rahim Uddin',
     participant2Name: 'Fatima Begum',
-    participant1Avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-    participant2Avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+    participant1Avatar:
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+    participant2Avatar:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
     lastMessage: 'Thank you for your interest!',
     lastMessageTime: '2024-02-19T16:20:00Z',
     unreadCount: 0,
@@ -85,7 +94,8 @@ export const mockMessages: ChatMessage[] = [
     senderId: 'owner1',
     receiverId: 'user1',
     type: 'text',
-    content: 'Yes, the property is still available. When would you like to visit?',
+    content:
+      'Yes, the property is still available. When would you like to visit?',
     status: 'read',
     timestamp: '2024-02-20T14:30:00Z',
     readAt: '2024-02-20T14:35:00Z',
@@ -138,8 +148,10 @@ export const mockMessages: ChatMessage[] = [
     senderId: 'owner1',
     receiverId: 'user1',
     type: 'image',
-    content: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-    thumbnail: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200',
+    content:
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
+    thumbnail:
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200',
     status: 'sent',
     timestamp: '2024-02-20T16:00:00Z',
   },
@@ -155,7 +167,10 @@ export function getChatsByUserId(userId: string): Chat[] {
 export function getMessagesByChatId(chatId: string): ChatMessage[] {
   return mockMessages
     .filter(msg => msg.chatId === chatId)
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+    .sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    )
 }
 
 export function getChatById(chatId: string): Chat | undefined {
@@ -177,8 +192,11 @@ export function getUnreadCount(userId: string): number {
       // Check if last message was sent by the other participant
       const lastMessage = mockMessages
         .filter(m => m.chatId === chat.id)
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
-      
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )[0]
+
       if (lastMessage && lastMessage.receiverId === userId) {
         return total + chat.unreadCount
       }

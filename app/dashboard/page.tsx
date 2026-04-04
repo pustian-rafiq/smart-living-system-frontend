@@ -40,7 +40,10 @@ function Icon({
 
 function VerificationBadge() {
   return (
-    <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+    <Badge
+      variant="outline"
+      className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+    >
       <Check className="h-3.5 w-3.5 mr-1" />
       Verified
     </Badge>
@@ -76,7 +79,8 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('')
 
   // Get current user ID (in real app, get from auth context)
-  const currentUserId = role === 'renter' ? 'r1' : role === 'owner' ? 'owner1' : 'admin1'
+  const currentUserId =
+    role === 'renter' ? 'r1' : role === 'owner' ? 'owner1' : 'admin1'
   const currentRenter = mockRenters.find(r => r.id === currentUserId)
 
   useEffect(() => {
@@ -132,12 +136,19 @@ export default function DashboardPage() {
                   <Avatar className="h-14 w-14 md:h-16 md:w-16 border-2 border-primary/20">
                     <AvatarImage src={undefined} alt={name} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xl md:text-2xl font-bold">
-                      {name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {name
+                        .split(' ')
+                        .map(n => n[0])
+                        .join('')
+                        .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
                   <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 border border-border flex items-center justify-center md:h-16 md:w-16">
-                    <Icon path="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" className="h-6 w-6 md:h-7 md:w-7" />
+                    <Icon
+                      path="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"
+                      className="h-6 w-6 md:h-7 md:w-7"
+                    />
                   </div>
                 )}
                 <div className="min-w-0">
@@ -159,7 +170,12 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
-                <Button asChild variant="outline" size="sm" className="md:size-default">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="md:size-default"
+                >
                   <Link href="/profile">
                     <User className="mr-2 h-4 w-4" />
                     Profile
@@ -169,13 +185,19 @@ export default function DashboardPage() {
                   <div className="hidden md:flex gap-2">
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/search">
-                        <Icon path="M11 19a8 8 0 100-16 8 8 0 000 16zm10 2l-4.35-4.35" className="h-4 w-4 mr-2" />
+                        <Icon
+                          path="M11 19a8 8 0 100-16 8 8 0 000 16zm10 2l-4.35-4.35"
+                          className="h-4 w-4 mr-2"
+                        />
                         Search
                       </Link>
                     </Button>
                     <Button asChild variant="ghost" size="sm">
                       <Link href="/bills">
-                        <Icon path="M9 14l2 2 4-4M7 3h10a2 2 0 012 2v16l-4-2-4 2-4-2-4 2V5a2 2 0 012-2z" className="h-4 w-4 mr-2" />
+                        <Icon
+                          path="M9 14l2 2 4-4M7 3h10a2 2 0 012 2v16l-4-2-4 2-4-2-4 2V5a2 2 0 012-2z"
+                          className="h-4 w-4 mr-2"
+                        />
                         Bills
                       </Link>
                     </Button>
@@ -202,13 +224,9 @@ export default function DashboardPage() {
             />
           )}
 
-          {role === 'owner' && (
-            <OwnerDashboard ownerId={currentUserId} />
-          )}
+          {role === 'owner' && <OwnerDashboard ownerId={currentUserId} />}
 
-          {role === 'admin' && (
-            <AdminDashboard adminId={currentUserId} />
-          )}
+          {role === 'admin' && <AdminDashboard adminId={currentUserId} />}
         </div>
       </div>
     </Layout>

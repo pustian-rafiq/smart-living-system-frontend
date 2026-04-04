@@ -85,7 +85,9 @@ export function HotelCard({ hotel, onViewDetails }: HotelCardProps) {
         {/* Location */}
         <div className="mb-4 flex items-start gap-2 text-sm text-muted-foreground">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-          <span className="line-clamp-1">{hotel.area}, {hotel.city}</span>
+          <span className="line-clamp-1">
+            {hotel.area}, {hotel.city}
+          </span>
         </div>
 
         {/* Amenities (first 3) */}
@@ -107,7 +109,9 @@ export function HotelCard({ hotel, onViewDetails }: HotelCardProps) {
         {/* Availability */}
         <div className="mb-4 text-sm">
           <span className="text-muted-foreground">Available Rooms: </span>
-          <span className="font-semibold">{hotel.availableRooms} / {hotel.totalRooms}</span>
+          <span className="font-semibold">
+            {hotel.availableRooms} / {hotel.totalRooms}
+          </span>
         </div>
 
         {/* Actions */}
@@ -120,10 +124,7 @@ export function HotelCard({ hotel, onViewDetails }: HotelCardProps) {
           >
             <Link href={`/hotels/${hotel.id}`}>View Details</Link>
           </Button>
-          <Button
-            className="flex-1"
-            asChild
-          >
+          <Button className="flex-1" asChild>
             <Link href={`/hotels/${hotel.id}/book`}>Book Now</Link>
           </Button>
         </div>

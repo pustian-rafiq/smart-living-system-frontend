@@ -102,7 +102,10 @@ export function ReminderSettingsDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-6">
                 {/* Rent Reminders */}
@@ -120,7 +123,10 @@ export function ReminderSettingsDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -137,16 +143,25 @@ export function ReminderSettingsDialog({
                             <FormLabel>Days Before</FormLabel>
                             <div className="grid grid-cols-3 gap-2">
                               {reminderDays.map(day => (
-                                <div key={day} className="flex items-center space-x-2">
+                                <div
+                                  key={day}
+                                  className="flex items-center space-x-2"
+                                >
                                   <Checkbox
                                     id={`rent-day-${day}`}
                                     checked={field.value?.includes(day)}
                                     onCheckedChange={checked => {
                                       const current = field.value || []
                                       if (checked) {
-                                        field.onChange([...current, day].sort((a, b) => b - a))
+                                        field.onChange(
+                                          [...current, day].sort(
+                                            (a, b) => b - a
+                                          )
+                                        )
                                       } else {
-                                        field.onChange(current.filter(d => d !== day))
+                                        field.onChange(
+                                          current.filter(d => d !== day)
+                                        )
                                       }
                                     }}
                                   />
@@ -172,16 +187,28 @@ export function ReminderSettingsDialog({
                             <FormLabel>Channels</FormLabel>
                             <div className="space-y-2">
                               {channels.map(channel => (
-                                <div key={channel.value} className="flex items-center space-x-2">
+                                <div
+                                  key={channel.value}
+                                  className="flex items-center space-x-2"
+                                >
                                   <Checkbox
                                     id={`rent-channel-${channel.value}`}
-                                    checked={field.value?.includes(channel.value)}
+                                    checked={field.value?.includes(
+                                      channel.value
+                                    )}
                                     onCheckedChange={checked => {
                                       const current = field.value || []
                                       if (checked) {
-                                        field.onChange([...current, channel.value])
+                                        field.onChange([
+                                          ...current,
+                                          channel.value,
+                                        ])
                                       } else {
-                                        field.onChange(current.filter(c => c !== channel.value))
+                                        field.onChange(
+                                          current.filter(
+                                            c => c !== channel.value
+                                          )
+                                        )
                                       }
                                     }}
                                   />
@@ -234,7 +261,10 @@ export function ReminderSettingsDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -251,16 +281,25 @@ export function ReminderSettingsDialog({
                             <FormLabel>Days Before</FormLabel>
                             <div className="grid grid-cols-3 gap-2">
                               {reminderDays.map(day => (
-                                <div key={day} className="flex items-center space-x-2">
+                                <div
+                                  key={day}
+                                  className="flex items-center space-x-2"
+                                >
                                   <Checkbox
                                     id={`bill-day-${day}`}
                                     checked={field.value?.includes(day)}
                                     onCheckedChange={checked => {
                                       const current = field.value || []
                                       if (checked) {
-                                        field.onChange([...current, day].sort((a, b) => b - a))
+                                        field.onChange(
+                                          [...current, day].sort(
+                                            (a, b) => b - a
+                                          )
+                                        )
                                       } else {
-                                        field.onChange(current.filter(d => d !== day))
+                                        field.onChange(
+                                          current.filter(d => d !== day)
+                                        )
                                       }
                                     }}
                                   />
@@ -286,16 +325,28 @@ export function ReminderSettingsDialog({
                             <FormLabel>Channels</FormLabel>
                             <div className="space-y-2">
                               {channels.map(channel => (
-                                <div key={channel.value} className="flex items-center space-x-2">
+                                <div
+                                  key={channel.value}
+                                  className="flex items-center space-x-2"
+                                >
                                   <Checkbox
                                     id={`bill-channel-${channel.value}`}
-                                    checked={field.value?.includes(channel.value)}
+                                    checked={field.value?.includes(
+                                      channel.value
+                                    )}
                                     onCheckedChange={checked => {
                                       const current = field.value || []
                                       if (checked) {
-                                        field.onChange([...current, channel.value])
+                                        field.onChange([
+                                          ...current,
+                                          channel.value,
+                                        ])
                                       } else {
-                                        field.onChange(current.filter(c => c !== channel.value))
+                                        field.onChange(
+                                          current.filter(
+                                            c => c !== channel.value
+                                          )
+                                        )
                                       }
                                     }}
                                   />
@@ -348,7 +399,10 @@ export function ReminderSettingsDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -365,16 +419,28 @@ export function ReminderSettingsDialog({
                             <FormLabel>Channels</FormLabel>
                             <div className="space-y-2">
                               {channels.map(channel => (
-                                <div key={channel.value} className="flex items-center space-x-2">
+                                <div
+                                  key={channel.value}
+                                  className="flex items-center space-x-2"
+                                >
                                   <Checkbox
                                     id={`maintenance-channel-${channel.value}`}
-                                    checked={field.value?.includes(channel.value)}
+                                    checked={field.value?.includes(
+                                      channel.value
+                                    )}
                                     onCheckedChange={checked => {
                                       const current = field.value || []
                                       if (checked) {
-                                        field.onChange([...current, channel.value])
+                                        field.onChange([
+                                          ...current,
+                                          channel.value,
+                                        ])
                                       } else {
-                                        field.onChange(current.filter(c => c !== channel.value))
+                                        field.onChange(
+                                          current.filter(
+                                            c => c !== channel.value
+                                          )
+                                        )
                                       }
                                     }}
                                   />
@@ -410,7 +476,10 @@ export function ReminderSettingsDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -427,16 +496,28 @@ export function ReminderSettingsDialog({
                             <FormLabel>Default Channels</FormLabel>
                             <div className="space-y-2">
                               {channels.map(channel => (
-                                <div key={channel.value} className="flex items-center space-x-2">
+                                <div
+                                  key={channel.value}
+                                  className="flex items-center space-x-2"
+                                >
                                   <Checkbox
                                     id={`custom-channel-${channel.value}`}
-                                    checked={field.value?.includes(channel.value)}
+                                    checked={field.value?.includes(
+                                      channel.value
+                                    )}
                                     onCheckedChange={checked => {
                                       const current = field.value || []
                                       if (checked) {
-                                        field.onChange([...current, channel.value])
+                                        field.onChange([
+                                          ...current,
+                                          channel.value,
+                                        ])
                                       } else {
-                                        field.onChange(current.filter(c => c !== channel.value))
+                                        field.onChange(
+                                          current.filter(
+                                            c => c !== channel.value
+                                          )
+                                        )
                                       }
                                     }}
                                   />
@@ -460,7 +541,11 @@ export function ReminderSettingsDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">Save Settings</Button>

@@ -77,14 +77,21 @@ export const mockRenewals: AgreementRenewal[] = [
 export function getAgreementsByUserId(userId: string): RentalAgreement[] {
   return mockAgreements
     .filter(agreement => agreement.userId === userId)
-    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    )
 }
 
-export function getAgreementById(agreementId: string): RentalAgreement | undefined {
+export function getAgreementById(
+  agreementId: string
+): RentalAgreement | undefined {
   return mockAgreements.find(agreement => agreement.id === agreementId)
 }
 
-export function getActiveAgreement(userId: string): RentalAgreement | undefined {
+export function getActiveAgreement(
+  userId: string
+): RentalAgreement | undefined {
   return mockAgreements.find(
     agreement =>
       agreement.userId === userId &&
@@ -93,13 +100,20 @@ export function getActiveAgreement(userId: string): RentalAgreement | undefined 
   )
 }
 
-export function getRenewalsByAgreementId(agreementId: string): AgreementRenewal[] {
+export function getRenewalsByAgreementId(
+  agreementId: string
+): AgreementRenewal[] {
   return mockRenewals
     .filter(renewal => renewal.agreementId === agreementId)
-    .sort((a, b) => new Date(b.renewedAt).getTime() - new Date(a.renewedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.renewedAt).getTime() - new Date(a.renewedAt).getTime()
+    )
 }
 
-export function addAgreement(agreement: Omit<RentalAgreement, 'id'>): RentalAgreement {
+export function addAgreement(
+  agreement: Omit<RentalAgreement, 'id'>
+): RentalAgreement {
   const newAgreement: RentalAgreement = {
     ...agreement,
     id: `agr${mockAgreements.length + 1}`,
@@ -122,7 +136,9 @@ export function updateAgreement(
   return mockAgreements[index]
 }
 
-export function addRenewal(renewal: Omit<AgreementRenewal, 'id'>): AgreementRenewal {
+export function addRenewal(
+  renewal: Omit<AgreementRenewal, 'id'>
+): AgreementRenewal {
   const newRenewal: AgreementRenewal = {
     ...renewal,
     id: `ren${mockRenewals.length + 1}`,

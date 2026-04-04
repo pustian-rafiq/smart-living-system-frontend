@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -26,7 +26,7 @@ import {
 import { mockBuildings, mockFlats } from '@/data/mockBuildings'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
-import { FileText, Upload, Plus, Checklist, AlertCircle } from 'lucide-react'
+import { FileText, Upload, Plus, ListChecks, AlertCircle } from 'lucide-react'
 import type { RentalAgreement } from '@/types/agreement'
 import type { Checklist as ChecklistType } from '@/types/checklist'
 import { format, differenceInDays } from 'date-fns'
@@ -37,34 +37,59 @@ export default function DocumentsPage() {
 
   const [agreements, setAgreements] = useState(getAgreementsByUserId('r1'))
   const [checklists, setChecklists] = useState(getChecklistsByUserId('r1'))
-  const [selectedAgreement, setSelectedAgreement] = useState<RentalAgreement | null>(null)
-  const [selectedChecklist, setSelectedChecklist] = useState<ChecklistType | null>(null)
+  const [selectedAgreement, setSelectedAgreement] =
+    useState<RentalAgreement | null>(null)
+  const [selectedChecklist, setSelectedChecklist] =
+    useState<ChecklistType | null>(null)
   const [isAgreementViewOpen, setIsAgreementViewOpen] = useState(false)
   const [isAgreementUploadOpen, setIsAgreementUploadOpen] = useState(false)
   const [isChecklistDialogOpen, setIsChecklistDialogOpen] = useState(false)
   const [isChecklistViewOpen, setIsChecklistViewOpen] = useState(false)
-  const [editingAgreement, setEditingAgreement] = useState<RentalAgreement | null>(null)
+  const [editingAgreement, setEditingAgreement] =
+    useState<RentalAgreement | null>(null)
 
   const activeAgreement = useMemo(() => getActiveAgreement('r1'), [])
   const moveInChecklist = useMemo(
-    () => getMoveInChecklist('r1', activeAgreement?.propertyId || '', activeAgreement?.flatId),
+    () =>
+      getMoveInChecklist(
+        'r1',
+        activeAgreement?.propertyId || '',
+        activeAgreement?.flatId
+      ),
     [activeAgreement]
   )
   const moveOutChecklist = useMemo(
-    () => getMoveOutChecklist('r1', activeAgreement?.propertyId || '', activeAgreement?.flatId),
+    () =>
+      getMoveOutChecklist(
+        'r1',
+        activeAgreement?.propertyId || '',
+        activeAgreement?.flatId
+      ),
     [activeAgreement]
   )
 
   // Check for expiring agreements
   const expiringAgreements = useMemo(() => {
     return agreements.filter(agreement => {
-      const daysUntilExpiry = differenceInDays(new Date(agreement.expiryDate), new Date())
-      return daysUntilExpiry <= 30 && daysUntilExpiry > 0 && agreement.status === 'active'
+      const daysUntilExpiry = differenceInDays(
+        new Date(agreement.expiryDate),
+        new Date()
+      )
+      return (
+        daysUntilExpiry <= 30 &&
+        daysUntilExpiry > 0 &&
+        agreement.status === 'active'
+      )
     })
   }, [agreements])
 
+  useEffect(() => {
+    if (role !== 'renter') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
+
   if (role !== 'renter') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -95,7 +120,9 @@ export default function DocumentsPage() {
         userId: 'r1',
         propertyId: data.propertyId,
         flatId: data.flatId,
-        propertyName: mockBuildings.find(b => b.id === data.propertyId)?.name || 'Unknown Property',
+        propertyName:
+          mockBuildings.find(b => b.id === data.propertyId)?.name ||
+          'Unknown Property',
         flatNumber: data.flatNumber,
         agreementType: data.agreementType,
         startDate: data.startDate,
@@ -168,7 +195,8 @@ export default function DocumentsPage() {
                 <AlertCircle className="h-5 w-5 text-yellow-600" />
                 <div>
                   <p className="font-medium text-yellow-800 dark:text-yellow-200">
-                    {expiringAgreements.length} agreement{expiringAgreements.length !== 1 ? 's' : ''} expiring soon
+                    {expiringAgreements.length} agreement
+                    {expiringAgreements.length !== 1 ? 's' : ''} expiring soon
                   </p>
                   <p className="text-sm text-yellow-700 dark:text-yellow-300">
                     Review and renew your agreements before they expire
@@ -188,7 +216,7 @@ export default function DocumentsPage() {
                 Agreements
               </TabsTrigger>
               <TabsTrigger value="checklists">
-                <Checklist className="h-4 w-4 mr-2" />
+                <ListChecks className="h-4 w-4 mr-2" />
                 Checklists
               </TabsTrigger>
             </TabsList>
@@ -217,7 +245,9 @@ export default function DocumentsPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No agreements found</p>
+                  <p className="text-muted-foreground mb-4">
+                    No agreements found
+                  </p>
                   <Button onClick={() => setIsAgreementUploadOpen(true)}>
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Agreement
@@ -238,7 +268,9 @@ export default function DocumentsPage() {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">{activeAgreement.propertyName}</p>
+                      <p className="font-medium">
+                        {activeAgreement.propertyName}
+                      </p>
                       {activeAgreement.flatNumber && (
                         <p className="text-sm text-muted-foreground">
                           Flat {activeAgreement.flatNumber}
@@ -278,16 +310,24 @@ export default function DocumentsPage() {
             {checklists.length > 0 ? (
               <div className="space-y-4">
                 {checklists.map(checklist => (
-                  <Card key={checklist.id} className="cursor-pointer hover:shadow-md">
+                  <Card
+                    key={checklist.id}
+                    className="cursor-pointer hover:shadow-md"
+                  >
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle className="flex items-center gap-2">
-                            <Checklist className="h-5 w-5" />
-                            {checklist.type === 'move_in' ? 'Move-in' : 'Move-out'} Checklist
+                            <ListChecks className="h-5 w-5" />
+                            {checklist.type === 'move_in'
+                              ? 'Move-in'
+                              : 'Move-out'}{' '}
+                            Checklist
                           </CardTitle>
                           <p className="text-sm text-muted-foreground mt-1">
-                            {checklist.propertyName} {checklist.flatNumber && `- Flat ${checklist.flatNumber}`}
+                            {checklist.propertyName}{' '}
+                            {checklist.flatNumber &&
+                              `- Flat ${checklist.flatNumber}`}
                           </p>
                         </div>
                         <Button
@@ -306,30 +346,46 @@ export default function DocumentsPage() {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div>
                           <p className="text-xs text-muted-foreground">Items</p>
-                          <p className="text-lg font-bold">{checklist.items.length}</p>
+                          <p className="text-lg font-bold">
+                            {checklist.items.length}
+                          </p>
                         </div>
                         {checklist.totalEstimatedValue && (
                           <div>
-                            <p className="text-xs text-muted-foreground">Total Value</p>
-                            <p className="text-lg font-bold">৳{checklist.totalEstimatedValue.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Total Value
+                            </p>
+                            <p className="text-lg font-bold">
+                              ৳{checklist.totalEstimatedValue.toLocaleString()}
+                            </p>
                           </div>
                         )}
                         {checklist.totalRepairCost && (
                           <div>
-                            <p className="text-xs text-muted-foreground">Repair Cost</p>
+                            <p className="text-xs text-muted-foreground">
+                              Repair Cost
+                            </p>
                             <p className="text-lg font-bold text-red-600">
                               ৳{checklist.totalRepairCost.toLocaleString()}
                             </p>
                           </div>
                         )}
                         <div>
-                          <p className="text-xs text-muted-foreground">Status</p>
-                          <p className="text-lg font-bold capitalize">{checklist.status}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Status
+                          </p>
+                          <p className="text-lg font-bold capitalize">
+                            {checklist.status}
+                          </p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {checklist.items.slice(0, 6).map(item => (
-                          <ChecklistItemCard key={item.id} item={item} showActions={false} />
+                          <ChecklistItemCard
+                            key={item.id}
+                            item={item}
+                            showActions={false}
+                          />
                         ))}
                       </div>
                       {checklist.items.length > 6 && (
@@ -344,8 +400,10 @@ export default function DocumentsPage() {
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Checklist className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No checklists found</p>
+                  <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground mb-4">
+                    No checklists found
+                  </p>
                   {activeAgreement && (
                     <Button onClick={() => setIsChecklistDialogOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
@@ -368,7 +426,7 @@ export default function DocumentsPage() {
         <AgreementUploadDialog
           agreement={editingAgreement}
           open={isAgreementUploadOpen}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setIsAgreementUploadOpen(open)
             if (!open) setEditingAgreement(null)
           }}

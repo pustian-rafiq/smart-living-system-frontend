@@ -1,4 +1,10 @@
-export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused' | 'meal_attended' | 'meal_absent'
+export type AttendanceStatus =
+  | 'present'
+  | 'absent'
+  | 'late'
+  | 'excused'
+  | 'meal_attended'
+  | 'meal_absent'
 
 export type AttendanceType = 'general' | 'meal' | 'both'
 

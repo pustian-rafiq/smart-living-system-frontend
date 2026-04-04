@@ -12,7 +12,7 @@ export default function MyPropertiesPage() {
   const [buildings, setBuildings] = useState(mockBuildings)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 
-  const handleAddBuilding = (newBuilding: typeof mockBuildings[0]) => {
+  const handleAddBuilding = (newBuilding: (typeof mockBuildings)[0]) => {
     setBuildings([...buildings, newBuilding])
     setIsAddDialogOpen(false)
   }
@@ -50,7 +50,7 @@ export default function MyPropertiesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {buildings.map((building) => (
+            {buildings.map(building => (
               <BuildingCard key={building.id} building={building} />
             ))}
           </div>

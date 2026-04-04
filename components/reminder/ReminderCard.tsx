@@ -2,7 +2,15 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Bell, CheckCircle2, Clock, XCircle, MessageSquare, Mail, Smartphone } from 'lucide-react'
+import {
+  Bell,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  MessageSquare,
+  Mail,
+  Smartphone,
+} from 'lucide-react'
 import type { Reminder } from '@/types/reminder'
 import { format } from 'date-fns'
 
@@ -18,9 +26,12 @@ const channelIcons = {
 
 const statusColors = {
   sent: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
-  pending: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
-  failed: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
-  cancelled: 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
+  pending:
+    'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+  failed:
+    'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
+  cancelled:
+    'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
 }
 
 const typeLabels = {
@@ -55,7 +66,8 @@ export function ReminderCard({ reminder }: ReminderCardProps) {
                   className={`text-xs ${statusColors[reminder.status]}`}
                 >
                   <StatusIcon className="h-3 w-3 mr-1" />
-                  {reminder.status.charAt(0).toUpperCase() + reminder.status.slice(1)}
+                  {reminder.status.charAt(0).toUpperCase() +
+                    reminder.status.slice(1)}
                 </Badge>
               </div>
               <h3 className="font-semibold text-sm md:text-base truncate">
@@ -72,7 +84,10 @@ export function ReminderCard({ reminder }: ReminderCardProps) {
               <Clock className="h-3 w-3" />
               {reminder.sentDate
                 ? format(new Date(reminder.sentDate), 'MMM dd, yyyy HH:mm')
-                : format(new Date(reminder.scheduledDate), 'MMM dd, yyyy HH:mm')}
+                : format(
+                    new Date(reminder.scheduledDate),
+                    'MMM dd, yyyy HH:mm'
+                  )}
             </div>
             <div className="flex items-center gap-1 ml-auto">
               {reminder.channels.map(channel => {

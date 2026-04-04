@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Search, Building2, Shield, CheckCircle } from 'lucide-react'
+import {
+  ArrowRight,
+  Search,
+  Building2,
+  Shield,
+  CheckCircle,
+} from 'lucide-react'
 import { isLoggedIn } from '@/utils/auth'
 
 export function HeroSection() {
@@ -27,7 +33,9 @@ export function HeroSection() {
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-2 text-sm backdrop-blur-sm">
             <Shield className="h-4 w-4 text-primary" />
-            <span className="font-medium">Bangladesh's First Unified Smart Living Platform</span>
+            <span className="font-medium">
+              Bangladesh's First Unified Smart Living Platform
+            </span>
           </div>
 
           {/* Main Heading */}
@@ -41,8 +49,8 @@ export function HeroSection() {
 
           {/* Subheading */}
           <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            Connect with verified mess, hostel, hotel & apartment owners. Manage rent, bills, and
-            bookings all in one modern platform.
+            Connect with verified mess, hostel, hotel & apartment owners. Manage
+            rent, bills, and bookings all in one modern platform.
           </p>
 
           {/* CTA Buttons */}

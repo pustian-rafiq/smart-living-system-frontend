@@ -5,9 +5,19 @@ import { useParams, useRouter } from 'next/navigation'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { BookingCalendar } from '@/components/hotel/BookingCalendar'
-import { mockHotels, getRoomsByHotelId, getBookingsByHotelId } from '@/data/mockHotels'
+import {
+  mockHotels,
+  getRoomsByHotelId,
+  getBookingsByHotelId,
+} from '@/data/mockHotels'
 
 export default function BookingCalendarPage() {
   const params = useParams()
@@ -20,9 +30,10 @@ export default function BookingCalendarPage() {
 
   const [selectedRoomId, setSelectedRoomId] = useState<string>('all')
 
-  const filteredBookings = selectedRoomId === 'all' 
-    ? bookings 
-    : bookings.filter(b => b.roomId === selectedRoomId)
+  const filteredBookings =
+    selectedRoomId === 'all'
+      ? bookings
+      : bookings.filter(b => b.roomId === selectedRoomId)
 
   if (!hotel) {
     return (
@@ -30,8 +41,14 @@ export default function BookingCalendarPage() {
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-lg font-semibold text-muted-foreground">Hotel not found</p>
-              <Button variant="outline" onClick={() => router.push('/my-hotels')} className="mt-4">
+              <p className="text-lg font-semibold text-muted-foreground">
+                Hotel not found
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/my-hotels')}
+                className="mt-4"
+              >
                 Back to Hotels
               </Button>
             </CardContent>
@@ -46,7 +63,11 @@ export default function BookingCalendarPage() {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => router.back()} className="mb-2">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="mb-2"
+          >
             ← Back
           </Button>
           <h1 className="text-2xl font-bold mb-2">Booking Calendar</h1>
@@ -96,7 +117,9 @@ export default function BookingCalendarPage() {
           <CardContent>
             <div className="space-y-2">
               {filteredBookings
-                .filter(b => b.status !== 'cancelled' && b.status !== 'completed')
+                .filter(
+                  b => b.status !== 'cancelled' && b.status !== 'completed'
+                )
                 .slice(0, 5)
                 .map(booking => (
                   <div
@@ -111,13 +134,21 @@ export default function BookingCalendarPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">৳{booking.totalAmount.toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{booking.status}</p>
+                      <p className="font-semibold">
+                        ৳{booking.totalAmount.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground capitalize">
+                        {booking.status}
+                      </p>
                     </div>
                   </div>
                 ))}
-              {filteredBookings.filter(b => b.status !== 'cancelled' && b.status !== 'completed').length === 0 && (
-                <p className="text-center text-muted-foreground py-4">No upcoming bookings</p>
+              {filteredBookings.filter(
+                b => b.status !== 'cancelled' && b.status !== 'completed'
+              ).length === 0 && (
+                <p className="text-center text-muted-foreground py-4">
+                  No upcoming bookings
+                </p>
               )}
             </div>
           </CardContent>

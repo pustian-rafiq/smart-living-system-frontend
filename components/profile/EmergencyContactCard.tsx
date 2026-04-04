@@ -12,7 +12,11 @@ interface EmergencyContactCardProps {
   onDelete: (id: string) => void
 }
 
-export function EmergencyContactCard({ contact, onEdit, onDelete }: EmergencyContactCardProps) {
+export function EmergencyContactCard({
+  contact,
+  onEdit,
+  onDelete,
+}: EmergencyContactCardProps) {
   return (
     <Card>
       <CardContent className="p-4">

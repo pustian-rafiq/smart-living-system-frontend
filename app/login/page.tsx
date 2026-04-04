@@ -7,7 +7,13 @@ import { useTheme } from '@/components/theme/ThemeProvider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default function Login() {
   const router = useRouter()
@@ -20,7 +26,7 @@ export default function Login() {
   const formatPhoneNumber = (value: string) => {
     // Remove all non-digits
     const digits = value.replace(/\D/g, '')
-    
+
     // If starts with 880, keep it
     if (digits.startsWith('880')) {
       return digits.slice(0, 13) // Max 13 digits (880 + 10 digits)
@@ -50,7 +56,7 @@ export default function Login() {
     }
 
     setLoading(true)
-    
+
     // Simulate API call
     setTimeout(() => {
       setLoading(false)
@@ -65,16 +71,12 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-[480px]">
-          {/* Language Toggle */}
-          <div className="flex justify-end mb-4">
-            <Button
-              onClick={toggleLang}
-              variant="outline"
-              size="sm"
-            >
-              {language === 'bn' ? 'English' : 'বাংলা'}
-            </Button>
-          </div>
+        {/* Language Toggle */}
+        <div className="flex justify-end mb-4">
+          <Button onClick={toggleLang} variant="outline" size="sm">
+            {language === 'bn' ? 'English' : 'বাংলা'}
+          </Button>
+        </div>
 
         {/* Login Card */}
         <Card className="w-full">
@@ -108,9 +110,7 @@ export default function Login() {
                     required
                   />
                 </div>
-                {error && (
-                  <p className="text-sm text-destructive">{error}</p>
-                )}
+                {error && <p className="text-sm text-destructive">{error}</p>}
               </div>
 
               {/* Send OTP Button */}
@@ -126,17 +126,11 @@ export default function Login() {
               {/* Terms & Conditions */}
               <p className="text-xs sm:text-sm text-center text-muted-foreground">
                 {t.login.terms}{' '}
-                <a
-                  href="/terms"
-                  className="text-primary hover:underline"
-                >
+                <a href="/terms" className="text-primary hover:underline">
                   {t.login.termsLink}
                 </a>{' '}
                 {t.login.and}{' '}
-                <a
-                  href="/privacy"
-                  className="text-primary hover:underline"
-                >
+                <a href="/privacy" className="text-primary hover:underline">
                   {t.login.privacyLink}
                 </a>
               </p>
@@ -146,7 +140,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2024 Smart Living Ecosystem
+          © 2024 Smart Living System
         </p>
       </div>
     </div>

@@ -18,7 +18,9 @@ export function CurrentRental({ flat, building }: CurrentRentalProps) {
         <CardContent className="pt-6 text-center">
           <Home className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
           <p className="text-sm font-medium mb-1">No Active Rental</p>
-          <p className="text-xs text-muted-foreground mb-4">Start searching for your perfect home</p>
+          <p className="text-xs text-muted-foreground mb-4">
+            Start searching for your perfect home
+          </p>
           <Button asChild size="sm">
             <Link href="/search">Find Property</Link>
           </Button>
@@ -46,7 +48,9 @@ export function CurrentRental({ flat, building }: CurrentRentalProps) {
         <div className="flex items-center justify-between pt-2 border-t">
           <div>
             <p className="text-xs text-muted-foreground">Monthly Rent</p>
-            <p className="text-xl font-bold text-primary">৳{flat.rent.toLocaleString()}</p>
+            <p className="text-xl font-bold text-primary">
+              ৳{flat.rent.toLocaleString()}
+            </p>
           </div>
           <Button asChild variant="outline" size="sm">
             <Link href="/bills">

@@ -13,7 +13,11 @@ interface ReportCardProps {
   onDownload?: (report: ExpenseReport | TaxDocument) => void
 }
 
-export function ReportCard({ report, taxDocument, onDownload }: ReportCardProps) {
+export function ReportCard({
+  report,
+  taxDocument,
+  onDownload,
+}: ReportCardProps) {
   const data = report || taxDocument
   if (!data) return null
 
@@ -27,15 +31,24 @@ export function ReportCard({ report, taxDocument, onDownload }: ReportCardProps)
             <CardTitle className="flex items-center gap-2 text-base md:text-lg">
               <FileText className="h-5 w-5 text-primary" />
               {isTaxDocument
-                ? taxDocument.documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
-                : report?.reportType.charAt(0).toUpperCase() + report?.reportType.slice(1) + ' Report'}
+                ? taxDocument.documentType
+                    .replace('_', ' ')
+                    .replace(/\b\w/g, l => l.toUpperCase())
+                : report?.reportType.charAt(0).toUpperCase() +
+                  report?.reportType.slice(1) +
+                  ' Report'}
             </CardTitle>
             {isTaxDocument && (
-              <p className="text-sm text-muted-foreground mt-1">Tax Year: {taxDocument.taxYear}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Tax Year: {taxDocument.taxYear}
+              </p>
             )}
           </div>
           {isTaxDocument && taxDocument.verified && (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <Badge
+              variant="outline"
+              className="bg-green-50 text-green-700 border-green-200"
+            >
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Verified
             </Badge>
@@ -67,7 +80,9 @@ export function ReportCard({ report, taxDocument, onDownload }: ReportCardProps)
               <p className="text-2xl font-bold text-primary">
                 ৳{report.data.totalExpenses.toLocaleString()}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">Total Expenses</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Total Expenses
+              </p>
             </div>
           )
         )}
@@ -78,9 +93,14 @@ export function ReportCard({ report, taxDocument, onDownload }: ReportCardProps)
             <p className="text-sm font-medium">Breakdown:</p>
             <div className="space-y-1">
               {taxDocument.breakdown.slice(0, 3).map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between text-sm">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between text-sm"
+                >
                   <span className="text-muted-foreground">{item.category}</span>
-                  <span className="font-medium">৳{item.amount.toLocaleString()}</span>
+                  <span className="font-medium">
+                    ৳{item.amount.toLocaleString()}
+                  </span>
                 </div>
               ))}
               {taxDocument.breakdown.length > 3 && (
@@ -92,26 +112,36 @@ export function ReportCard({ report, taxDocument, onDownload }: ReportCardProps)
           </div>
         )}
 
-        {!isTaxDocument && report && report.data.categoryBreakdown.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Top Categories:</p>
-            <div className="space-y-1">
-              {report.data.categoryBreakdown.slice(0, 3).map((cat, idx) => (
-                <div key={idx} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{cat.categoryName}</span>
-                  <span className="font-medium">৳{cat.amount.toLocaleString()}</span>
-                </div>
-              ))}
+        {!isTaxDocument &&
+          report &&
+          report.data.categoryBreakdown.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Top Categories:</p>
+              <div className="space-y-1">
+                {report.data.categoryBreakdown.slice(0, 3).map((cat, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <span className="text-muted-foreground">
+                      {cat.categoryName}
+                    </span>
+                    <span className="font-medium">
+                      ৳{cat.amount.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* File Info */}
         <div className="rounded-lg border p-3 bg-muted/30">
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
-                {data.fileName || `${isTaxDocument ? 'tax' : 'expense'}-report.${data.format}`}
+                {data.fileName ||
+                  `${isTaxDocument ? 'tax' : 'expense'}-report.${data.format}`}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Generated {format(new Date(data.generatedAt), 'MMM dd, yyyy')}

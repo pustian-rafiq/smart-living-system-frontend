@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,7 +26,16 @@ import {
 } from '@/data/mockSMS'
 import { mockMess } from '@/data/mockMess'
 import { getStoredRole } from '@/utils/auth'
-import { Plus, Send, FileText, Users, Trash2, Edit, MessageSquare, DollarSign } from 'lucide-react'
+import {
+  Plus,
+  Send,
+  FileText,
+  Users,
+  Trash2,
+  Edit,
+  MessageSquare,
+  DollarSign,
+} from 'lucide-react'
 import type { SMSTemplate, SMSGroup, SMSMessage } from '@/types/sms'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 
@@ -43,11 +52,18 @@ export default function SMSManagementPage() {
   const [isBulkSMSDialogOpen, setIsBulkSMSDialogOpen] = useState(false)
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false)
-  const [editingTemplate, setEditingTemplate] = useState<SMSTemplate | null>(null)
+  const [editingTemplate, setEditingTemplate] = useState<SMSTemplate | null>(
+    null
+  )
   const [editingGroup, setEditingGroup] = useState<SMSGroup | null>(null)
 
+  useEffect(() => {
+    if (role !== 'owner') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
+
   if (role !== 'owner') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -161,7 +177,9 @@ export default function SMSManagementPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">৳{history.totalCost.toFixed(2)}</p>
+              <p className="text-2xl font-bold">
+                ৳{history.totalCost.toFixed(2)}
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -216,10 +234,12 @@ export default function SMSManagementPage() {
                   Create reusable templates for common messages
                 </p>
               </div>
-              <Button onClick={() => {
-                setEditingTemplate(null)
-                setIsTemplateDialogOpen(true)
-              }}>
+              <Button
+                onClick={() => {
+                  setEditingTemplate(null)
+                  setIsTemplateDialogOpen(true)
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Template
               </Button>
@@ -228,11 +248,16 @@ export default function SMSManagementPage() {
             {templates.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {templates.map(template => (
-                  <Card key={template.id} className="transition-all hover:shadow-md">
+                  <Card
+                    key={template.id}
+                    className="transition-all hover:shadow-md"
+                  >
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-base">{template.name}</CardTitle>
+                          <CardTitle className="text-base">
+                            {template.name}
+                          </CardTitle>
                           {template.category && (
                             <Badge variant="outline" className="mt-2">
                               {template.category}
@@ -267,7 +292,11 @@ export default function SMSManagementPage() {
                       {template.variables && template.variables.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-1">
                           {template.variables.map(variable => (
-                            <Badge key={variable} variant="outline" className="text-xs">
+                            <Badge
+                              key={variable}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {'{' + variable + '}'}
                             </Badge>
                           ))}
@@ -281,7 +310,9 @@ export default function SMSManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No templates created yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    No templates created yet
+                  </p>
                   <Button onClick={() => setIsTemplateDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Template
@@ -300,10 +331,12 @@ export default function SMSManagementPage() {
                   Organize students into groups for targeted messaging
                 </p>
               </div>
-              <Button onClick={() => {
-                setEditingGroup(null)
-                setIsGroupDialogOpen(true)
-              }}>
+              <Button
+                onClick={() => {
+                  setEditingGroup(null)
+                  setIsGroupDialogOpen(true)
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Group
               </Button>
@@ -312,11 +345,16 @@ export default function SMSManagementPage() {
             {groups.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {groups.map(group => (
-                  <Card key={group.id} className="transition-all hover:shadow-md">
+                  <Card
+                    key={group.id}
+                    className="transition-all hover:shadow-md"
+                  >
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-base">{group.name}</CardTitle>
+                          <CardTitle className="text-base">
+                            {group.name}
+                          </CardTitle>
                           {group.description && (
                             <p className="text-sm text-muted-foreground mt-1">
                               {group.description}
@@ -348,7 +386,8 @@ export default function SMSManagementPage() {
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          {group.memberIds.length} member{group.memberIds.length !== 1 ? 's' : ''}
+                          {group.memberIds.length} member
+                          {group.memberIds.length !== 1 ? 's' : ''}
                         </span>
                       </div>
                     </CardContent>
@@ -359,7 +398,9 @@ export default function SMSManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No groups created yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    No groups created yet
+                  </p>
                   <Button onClick={() => setIsGroupDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Group
@@ -381,7 +422,7 @@ export default function SMSManagementPage() {
           template={editingTemplate}
           messId={messId}
           open={isTemplateDialogOpen}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setIsTemplateDialogOpen(open)
             if (!open) setEditingTemplate(null)
           }}
@@ -391,7 +432,7 @@ export default function SMSManagementPage() {
           group={editingGroup}
           messId={messId}
           open={isGroupDialogOpen}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setIsGroupDialogOpen(open)
             if (!open) setEditingGroup(null)
           }}

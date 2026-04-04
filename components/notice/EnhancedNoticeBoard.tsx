@@ -40,29 +40,59 @@ interface EnhancedNoticeBoardProps {
 const priorityConfig = {
   high: {
     icon: AlertCircle,
-    className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+    className:
+      'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
     label: 'High',
   },
   medium: {
     icon: AlertTriangle,
-    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
+    className:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
     label: 'Medium',
   },
   low: {
     icon: Info,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+    className:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
     label: 'Low',
   },
 }
 
 const categoryConfig = {
-  general: { label: 'General', className: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400' },
-  payment: { label: 'Payment', className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' },
-  maintenance: { label: 'Maintenance', className: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400' },
-  event: { label: 'Event', className: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400' },
-  announcement: { label: 'Announcement', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' },
-  rule: { label: 'Rule', className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' },
-  other: { label: 'Other', className: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400' },
+  general: {
+    label: 'General',
+    className:
+      'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+  },
+  payment: {
+    label: 'Payment',
+    className:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+  },
+  maintenance: {
+    label: 'Maintenance',
+    className:
+      'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+  },
+  event: {
+    label: 'Event',
+    className:
+      'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+  },
+  announcement: {
+    label: 'Announcement',
+    className:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+  },
+  rule: {
+    label: 'Rule',
+    className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+  },
+  other: {
+    label: 'Other',
+    className:
+      'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+  },
 }
 
 export function EnhancedNoticeBoard({
@@ -75,7 +105,7 @@ export function EnhancedNoticeBoard({
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null)
 
   // Filter out expired notices
-  const activeNotices = notices.filter((notice) => {
+  const activeNotices = notices.filter(notice => {
     if (!notice.expiryDate) return true
     return new Date(notice.expiryDate) >= new Date()
   })
@@ -122,10 +152,12 @@ export function EnhancedNoticeBoard({
           ) : (
             <ScrollArea className="h-[500px] pr-4">
               <div className="space-y-4">
-                {sortedNotices.map((notice) => {
+                {sortedNotices.map(notice => {
                   const priority = priorityConfig[notice.priority]
                   const PriorityIcon = priority.icon
-                  const category = notice.category ? categoryConfig[notice.category] : null
+                  const category = notice.category
+                    ? categoryConfig[notice.category]
+                    : null
                   const acknowledged = isAcknowledged(notice)
 
                   return (
@@ -154,7 +186,13 @@ export function EnhancedNoticeBoard({
                             {notice.expiryDate && (
                               <>
                                 <span>•</span>
-                                <span>Expires: {format(new Date(notice.expiryDate), 'MMM dd, yyyy')}</span>
+                                <span>
+                                  Expires:{' '}
+                                  {format(
+                                    new Date(notice.expiryDate),
+                                    'MMM dd, yyyy'
+                                  )}
+                                </span>
                               </>
                             )}
                           </div>
@@ -168,7 +206,10 @@ export function EnhancedNoticeBoard({
                             {priority.label}
                           </Badge>
                           {category && (
-                            <Badge variant="outline" className={cn('text-xs', category.className)}>
+                            <Badge
+                              variant="outline"
+                              className={cn('text-xs', category.className)}
+                            >
                               <Tag className="mr-1 h-3 w-3" />
                               {category.label}
                             </Badge>
@@ -181,14 +222,17 @@ export function EnhancedNoticeBoard({
                       </p>
 
                       {/* Attachments */}
-                      {(notice.pdfUrl || (notice.imageUrls && notice.imageUrls.length > 0)) && (
+                      {(notice.pdfUrl ||
+                        (notice.imageUrls && notice.imageUrls.length > 0)) && (
                         <div className="mt-3 space-y-2">
                           {notice.pdfUrl && (
                             <Button
                               variant="outline"
                               size="sm"
                               className="w-full sm:w-auto"
-                              onClick={() => setSelectedPdf(notice.pdfUrl || null)}
+                              onClick={() =>
+                                setSelectedPdf(notice.pdfUrl || null)
+                              }
                             >
                               <FileText className="mr-2 h-4 w-4" />
                               View PDF
@@ -231,11 +275,16 @@ export function EnhancedNoticeBoard({
                       )}
 
                       {/* Acknowledgment Count */}
-                      {notice.acknowledgments && notice.acknowledgments.length > 0 && (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          {notice.acknowledgments.length} {notice.acknowledgments.length === 1 ? 'person has' : 'people have'} acknowledged this notice
-                        </div>
-                      )}
+                      {notice.acknowledgments &&
+                        notice.acknowledgments.length > 0 && (
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            {notice.acknowledgments.length}{' '}
+                            {notice.acknowledgments.length === 1
+                              ? 'person has'
+                              : 'people have'}{' '}
+                            acknowledged this notice
+                          </div>
+                        )}
                     </div>
                   )
                 })}
@@ -246,7 +295,10 @@ export function EnhancedNoticeBoard({
       </Card>
 
       {/* Image Viewer Dialog */}
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+      <Dialog
+        open={!!selectedImage}
+        onOpenChange={() => setSelectedImage(null)}
+      >
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Image Preview</DialogTitle>

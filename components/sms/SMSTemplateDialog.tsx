@@ -24,7 +24,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
 import type { SMSTemplate } from '@/types/sms'
@@ -32,7 +38,9 @@ import type { SMSTemplate } from '@/types/sms'
 const smsTemplateSchema = z.object({
   name: z.string().min(1, 'Template name is required'),
   content: z.string().min(1, 'Template content is required'),
-  category: z.enum(['payment', 'attendance', 'notice', 'reminder', 'general']).optional(),
+  category: z
+    .enum(['payment', 'attendance', 'notice', 'reminder', 'general'])
+    .optional(),
 })
 
 interface SMSTemplateDialogProps {
@@ -101,15 +109,19 @@ export function SMSTemplateDialog({
 
   const insertVariable = (variable: string) => {
     const currentContent = form.getValues('content')
-    const cursorPosition = (document.activeElement as HTMLTextAreaElement)?.selectionStart || currentContent.length
+    const cursorPosition =
+      (document.activeElement as HTMLTextAreaElement)?.selectionStart ||
+      currentContent.length
     const newContent =
-      currentContent.slice(0, cursorPosition) + variable + currentContent.slice(cursorPosition)
+      currentContent.slice(0, cursorPosition) +
+      variable +
+      currentContent.slice(cursorPosition)
     form.setValue('content', newContent)
   }
 
   const content = form.watch('content')
-  const detectedVariables = (content.match(/\{(\w+)\}/g) || []).map((v: string) =>
-    v.replace(/[{}]/g, '')
+  const detectedVariables = (content.match(/\{(\w+)\}/g) || []).map(
+    (v: string) => v.replace(/[{}]/g, '')
   )
   const uniqueVariables = [...new Set(detectedVariables)]
 
@@ -117,14 +129,19 @@ export function SMSTemplateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{template ? 'Edit SMS Template' : 'Create SMS Template'}</DialogTitle>
+          <DialogTitle>
+            {template ? 'Edit SMS Template' : 'Create SMS Template'}
+          </DialogTitle>
           <DialogDescription>
             Create reusable SMS templates with variables for personalization
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <div className="space-y-4">
               {/* Template Name */}
               <FormField
@@ -148,7 +165,10 @@ export function SMSTemplateDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select value={field.value || 'general'} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value || 'general'}
+                      onValueChange={field.onChange}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -182,7 +202,8 @@ export function SMSTemplateDialog({
                       />
                     </FormControl>
                     <FormDescription>
-                      Use variables like {'{name}'}, {'{date}'}, {'{amount}'} etc. Click below to insert.
+                      Use variables like {'{name}'}, {'{date}'}, {'{amount}'}{' '}
+                      etc. Click below to insert.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -210,7 +231,9 @@ export function SMSTemplateDialog({
               {/* Detected Variables */}
               {uniqueVariables.length > 0 && (
                 <div className="rounded-lg border p-3 bg-muted/30">
-                  <p className="text-sm font-medium mb-2">Detected Variables:</p>
+                  <p className="text-sm font-medium mb-2">
+                    Detected Variables:
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {uniqueVariables.map(variable => (
                       <Badge key={variable} variant="outline">
@@ -243,10 +266,16 @@ export function SMSTemplateDialog({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit">{template ? 'Update' : 'Create'} Template</Button>
+              <Button type="submit">
+                {template ? 'Update' : 'Create'} Template
+              </Button>
             </DialogFooter>
           </form>
         </Form>

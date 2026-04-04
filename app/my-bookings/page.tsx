@@ -4,7 +4,13 @@ import { useState, useMemo } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BookingCard } from '@/components/booking/BookingCard'
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation'
@@ -13,7 +19,9 @@ import type { Booking, BookingStatus } from '@/types/booking'
 import { Calendar, Filter } from 'lucide-react'
 
 export default function MyBookingsPage() {
-  const [selectedStatus, setSelectedStatus] = useState<BookingStatus | 'all'>('all')
+  const [selectedStatus, setSelectedStatus] = useState<BookingStatus | 'all'>(
+    'all'
+  )
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [showConfirmation, setShowConfirmation] = useState(false)
 
@@ -40,7 +48,10 @@ export default function MyBookingsPage() {
     b => b.status === 'approved' || b.status === 'pending'
   )
   const pastBookings = userBookings.filter(
-    b => b.status === 'completed' || b.status === 'cancelled' || b.status === 'rejected'
+    b =>
+      b.status === 'completed' ||
+      b.status === 'cancelled' ||
+      b.status === 'rejected'
   )
 
   return (
@@ -65,7 +76,12 @@ export default function MyBookingsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as BookingStatus | 'all')}>
+            <Select
+              value={selectedStatus}
+              onValueChange={value =>
+                setSelectedStatus(value as BookingStatus | 'all')
+              }
+            >
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -109,7 +125,7 @@ export default function MyBookingsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {upcomingBookings.map((booking) => (
+                {upcomingBookings.map(booking => (
                   <BookingCard
                     key={booking.id}
                     booking={booking}
@@ -136,7 +152,7 @@ export default function MyBookingsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {pastBookings.map((booking) => (
+                {pastBookings.map(booking => (
                   <BookingCard
                     key={booking.id}
                     booking={booking}

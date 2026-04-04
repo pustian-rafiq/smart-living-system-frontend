@@ -30,9 +30,10 @@ export function ChatList({
 
   const filteredChats = chats.filter(chat => {
     if (!searchQuery) return true
-    const otherParticipant = chat.participant1Id === currentUserId
-      ? chat.participant2Name
-      : chat.participant1Name
+    const otherParticipant =
+      chat.participant1Id === currentUserId
+        ? chat.participant2Name
+        : chat.participant1Name
     const propertyName = chat.propertyName || ''
     const searchLower = searchQuery.toLowerCase()
     return (
@@ -61,7 +62,7 @@ export function ChatList({
       const date = new Date(timestamp)
       const now = new Date()
       const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-      
+
       if (diffInHours < 24) {
         return formatDistanceToNow(date, { addSuffix: true })
       } else if (diffInHours < 48) {
@@ -94,7 +95,7 @@ export function ChatList({
           <Input
             placeholder="Search chats..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -116,7 +117,7 @@ export function ChatList({
           </div>
         ) : (
           <div className="divide-y">
-            {filteredChats.map((chat) => {
+            {filteredChats.map(chat => {
               const otherParticipant = getOtherParticipant(chat)
               const isSelected = chat.id === selectedChatId
 

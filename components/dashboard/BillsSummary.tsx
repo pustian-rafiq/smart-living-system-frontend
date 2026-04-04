@@ -24,7 +24,10 @@ export function BillsSummary({ bills, showViewAll = true }: BillsSummaryProps) {
     return b.status === 'unpaid' && dueDate < today
   })
   const paid = bills.filter(b => b.status === 'paid')
-  const totalDue = [...upcoming, ...overdue].reduce((sum, b) => sum + b.amount, 0)
+  const totalDue = [...upcoming, ...overdue].reduce(
+    (sum, b) => sum + b.amount,
+    0
+  )
   const totalPaid = paid.reduce((sum, b) => sum + b.amount, 0)
 
   return (
@@ -51,7 +54,9 @@ export function BillsSummary({ bills, showViewAll = true }: BillsSummaryProps) {
           </div>
           <div className="text-center sm:text-left">
             <p className="text-xs text-muted-foreground mb-1">Overdue</p>
-            <p className="text-lg font-bold text-red-600 dark:text-red-400">{overdue.length}</p>
+            <p className="text-lg font-bold text-red-600 dark:text-red-400">
+              {overdue.length}
+            </p>
             <p className="text-xs text-red-600 dark:text-red-400">
               ৳{overdue.reduce((s, b) => s + b.amount, 0).toLocaleString()}
             </p>
@@ -64,8 +69,12 @@ export function BillsSummary({ bills, showViewAll = true }: BillsSummaryProps) {
           </div>
           <div className="text-center sm:text-left">
             <p className="text-xs text-muted-foreground mb-1">Paid</p>
-            <p className="text-lg font-bold text-green-600 dark:text-green-400">{paid.length}</p>
-            <p className="text-xs text-muted-foreground">৳{totalPaid.toLocaleString()}</p>
+            <p className="text-lg font-bold text-green-600 dark:text-green-400">
+              {paid.length}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              ৳{totalPaid.toLocaleString()}
+            </p>
           </div>
         </div>
         {overdue.length > 0 && (
@@ -76,7 +85,12 @@ export function BillsSummary({ bills, showViewAll = true }: BillsSummaryProps) {
                 {overdue.length} overdue bill{overdue.length > 1 ? 's' : ''}
               </p>
             </div>
-            <Button asChild variant="outline" size="sm" className="mt-2 w-full border-red-300 text-red-700 hover:bg-red-100">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="mt-2 w-full border-red-300 text-red-700 hover:bg-red-100"
+            >
               <Link href="/bills?status=overdue">Pay Now</Link>
             </Button>
           </div>

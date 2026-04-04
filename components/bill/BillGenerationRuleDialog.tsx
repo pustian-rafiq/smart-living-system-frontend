@@ -22,7 +22,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -73,12 +79,12 @@ export function BillGenerationRuleDialog({
   onSubmit,
   rule,
 }: BillGenerationRuleDialogProps) {
-  const [selectedPropertyType, setSelectedPropertyType] = useState<'apartment' | 'mess' | 'all'>(
-    rule?.propertyType || 'all'
-  )
+  const [selectedPropertyType, setSelectedPropertyType] = useState<
+    'apartment' | 'mess' | 'all'
+  >(rule?.propertyType || 'all')
 
   const form = useForm<BillRuleFormData>({
-    resolver: zodResolver(billRuleSchema),
+    resolver: zodResolver(billRuleSchema) as never,
     defaultValues: rule
       ? {
           name: rule.name,
@@ -115,11 +121,12 @@ export function BillGenerationRuleDialog({
     }
   }
 
-  const properties = selectedPropertyType === 'all'
-    ? []
-    : selectedPropertyType === 'apartment'
-    ? mockBuildings
-    : mockMess
+  const properties =
+    selectedPropertyType === 'all'
+      ? []
+      : selectedPropertyType === 'apartment'
+        ? mockBuildings
+        : mockMess
 
   const availableTemplates = mockBillTemplates.filter(t => {
     if (propertyType && t.propertyType !== propertyType) return false
@@ -130,7 +137,9 @@ export function BillGenerationRuleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{rule ? 'Edit Generation Rule' : 'Create Generation Rule'}</DialogTitle>
+          <DialogTitle>
+            {rule ? 'Edit Generation Rule' : 'Create Generation Rule'}
+          </DialogTitle>
           <DialogDescription>
             {rule
               ? 'Update the automated bill generation rule'
@@ -139,7 +148,10 @@ export function BillGenerationRuleDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -148,7 +160,10 @@ export function BillGenerationRuleDialog({
                   <FormItem>
                     <FormLabel>Rule Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Monthly Auto Bill Generation" {...field} />
+                      <Input
+                        placeholder="e.g., Monthly Auto Bill Generation"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -161,14 +176,17 @@ export function BillGenerationRuleDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Bill Template</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select template" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {availableTemplates.map((template) => (
+                        {availableTemplates.map(template => (
                           <SelectItem key={template.id} value={template.id}>
                             {template.name}
                           </SelectItem>
@@ -207,10 +225,15 @@ export function BillGenerationRuleDialog({
                   <FormItem>
                     <FormLabel>Property Type (Optional)</FormLabel>
                     <Select
-                      onValueChange={(value) => {
-                        const val = value === 'all' ? undefined : (value as 'apartment' | 'mess')
+                      onValueChange={value => {
+                        const val =
+                          value === 'all'
+                            ? undefined
+                            : (value as 'apartment' | 'mess')
                         field.onChange(val)
-                        setSelectedPropertyType(value as 'apartment' | 'mess' | 'all')
+                        setSelectedPropertyType(
+                          value as 'apartment' | 'mess' | 'all'
+                        )
                         form.setValue('propertyId', undefined)
                       }}
                       defaultValue={field.value || 'all'}
@@ -242,7 +265,9 @@ export function BillGenerationRuleDialog({
                     <FormItem>
                       <FormLabel>Property (Optional)</FormLabel>
                       <Select
-                        onValueChange={(value) => field.onChange(value === 'all' ? undefined : value)}
+                        onValueChange={value =>
+                          field.onChange(value === 'all' ? undefined : value)
+                        }
                         defaultValue={field.value || 'all'}
                       >
                         <FormControl>
@@ -252,7 +277,7 @@ export function BillGenerationRuleDialog({
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="all">All Properties</SelectItem>
-                          {properties.map((prop) => (
+                          {properties.map(prop => (
                             <SelectItem key={prop.id} value={prop.id}>
                               {prop.name}
                             </SelectItem>
@@ -260,7 +285,8 @@ export function BillGenerationRuleDialog({
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Leave as "All Properties" to apply to all properties of this type
+                        Leave as "All Properties" to apply to all properties of
+                        this type
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -271,7 +297,9 @@ export function BillGenerationRuleDialog({
 
             {/* Schedule Configuration */}
             <div className="space-y-4 rounded-lg border p-4">
-              <Label className="text-base font-semibold">Schedule Configuration</Label>
+              <Label className="text-base font-semibold">
+                Schedule Configuration
+              </Label>
 
               <FormField
                 control={form.control}
@@ -279,7 +307,10 @@ export function BillGenerationRuleDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Schedule Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -313,7 +344,9 @@ export function BillGenerationRuleDialog({
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription>Day of month to generate bills</FormDescription>
+                        <FormDescription>
+                          Day of month to generate bills
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -351,7 +384,7 @@ export function BillGenerationRuleDialog({
                     <FormItem>
                       <FormLabel>Day of Week</FormLabel>
                       <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        onValueChange={value => field.onChange(parseInt(value))}
                         defaultValue={field.value?.toString()}
                       >
                         <FormControl>
@@ -360,8 +393,11 @@ export function BillGenerationRuleDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {daysOfWeek.map((day) => (
-                            <SelectItem key={day.value} value={day.value.toString()}>
+                          {daysOfWeek.map(day => (
+                            <SelectItem
+                              key={day.value}
+                              value={day.value.toString()}
+                            >
                               {day.label}
                             </SelectItem>
                           ))}
@@ -409,7 +445,10 @@ export function BillGenerationRuleDialog({
                     </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -426,7 +465,9 @@ export function BillGenerationRuleDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit">{rule ? 'Update Rule' : 'Create Rule'}</Button>
+              <Button type="submit">
+                {rule ? 'Update Rule' : 'Create Rule'}
+              </Button>
             </div>
           </form>
         </Form>

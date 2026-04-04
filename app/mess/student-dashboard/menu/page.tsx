@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -51,8 +51,13 @@ export default function StudentMenuPage() {
     [mess]
   )
 
+  useEffect(() => {
+    if (role !== 'renter') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
+
   if (role !== 'renter') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -80,7 +85,10 @@ export default function StudentMenuPage() {
             <h1 className="text-2xl font-bold mb-2">Meal Menu</h1>
             <p className="text-muted-foreground">{mess.name}</p>
           </div>
-          <Button variant="outline" onClick={() => setIsPreferenceDialogOpen(true)}>
+          <Button
+            variant="outline"
+            onClick={() => setIsPreferenceDialogOpen(true)}
+          >
             <Heart className="h-4 w-4 mr-2" />
             Preferences
           </Button>
@@ -102,7 +110,9 @@ export default function StudentMenuPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground">No menu available for today</p>
+                  <p className="text-muted-foreground">
+                    No menu available for today
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -111,12 +121,17 @@ export default function StudentMenuPage() {
           {/* Weekly Schedule */}
           <TabsContent value="week" className="space-y-4">
             {weeklySchedule ? (
-              <WeeklyMenuView schedule={weeklySchedule} mealTiming={mealTiming} />
+              <WeeklyMenuView
+                schedule={weeklySchedule}
+                mealTiming={mealTiming}
+              />
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground">No weekly schedule available</p>
+                  <p className="text-muted-foreground">
+                    No weekly schedule available
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -134,7 +149,9 @@ export default function StudentMenuPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground">No menu history available</p>
+                  <p className="text-muted-foreground">
+                    No menu history available
+                  </p>
                 </CardContent>
               </Card>
             )}

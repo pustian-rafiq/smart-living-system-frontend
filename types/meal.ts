@@ -1,6 +1,13 @@
 export type MealCategory = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 
-export type MealDay = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday'
+export type MealDay =
+  | 'sunday'
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
 
 export interface MealItem {
   id: string

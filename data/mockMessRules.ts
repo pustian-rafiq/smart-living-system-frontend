@@ -6,7 +6,8 @@ export const mockMessRules: MessRule[] = [
     id: 'rule1',
     messId: 'm1',
     title: 'Monthly Fee Payment',
-    description: 'Monthly fee must be paid by the 5th of every month. Late payment will incur a fine of ৳200.',
+    description:
+      'Monthly fee must be paid by the 5th of every month. Late payment will incur a fine of ৳200.',
     category: 'payment',
     severity: 'moderate',
     penalty: 'Fine: ৳200',
@@ -15,13 +16,16 @@ export const mockMessRules: MessRule[] = [
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-    effectiveDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    effectiveDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
   },
   {
     id: 'rule2',
     messId: 'm1',
     title: 'Meal Attendance',
-    description: 'Students must inform in advance if they will not attend a meal. Uninformed absence from meals may result in charges.',
+    description:
+      'Students must inform in advance if they will not attend a meal. Uninformed absence from meals may result in charges.',
     category: 'meal',
     severity: 'minor',
     penalty: 'Charge for meal',
@@ -30,13 +34,16 @@ export const mockMessRules: MessRule[] = [
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 80 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 80 * 24 * 60 * 60 * 1000).toISOString(),
-    effectiveDate: new Date(Date.now() - 80 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    effectiveDate: new Date(Date.now() - 80 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
   },
   {
     id: 'rule3',
     messId: 'm1',
     title: 'Quiet Hours',
-    description: 'Quiet hours are from 10:00 PM to 6:00 AM. Loud music, conversations, or activities are prohibited during this time.',
+    description:
+      'Quiet hours are from 10:00 PM to 6:00 AM. Loud music, conversations, or activities are prohibited during this time.',
     category: 'behavior',
     severity: 'moderate',
     penalty: 'Warning, then fine: ৳500',
@@ -45,13 +52,16 @@ export const mockMessRules: MessRule[] = [
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString(),
-    effectiveDate: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    effectiveDate: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
   },
   {
     id: 'rule4',
     messId: 'm1',
     title: 'No Smoking',
-    description: 'Smoking is strictly prohibited inside the mess premises. Violation will result in immediate termination.',
+    description:
+      'Smoking is strictly prohibited inside the mess premises. Violation will result in immediate termination.',
     category: 'behavior',
     severity: 'critical',
     penalty: 'Immediate termination',
@@ -60,13 +70,16 @@ export const mockMessRules: MessRule[] = [
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    effectiveDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    effectiveDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
   },
   {
     id: 'rule5',
     messId: 'm1',
     title: 'Guest Policy',
-    description: 'Guests are allowed only during meal times with prior permission. Maximum 2 guests per student per month.',
+    description:
+      'Guests are allowed only during meal times with prior permission. Maximum 2 guests per student per month.',
     category: 'general',
     severity: 'minor',
     penalty: 'Fine: ৳100 per unauthorized guest',
@@ -75,7 +88,9 @@ export const mockMessRules: MessRule[] = [
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString(),
-    effectiveDate: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    effectiveDate: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
   },
 ]
 
@@ -122,7 +137,9 @@ export const mockRuleViolations: RuleViolation[] = [
     studentId: mockStudents[1].id,
     studentName: mockStudents[1].name,
     messId: 'm1',
-    violationDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    violationDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     description: 'Monthly fee not paid by due date (5th of month)',
     severity: 'moderate',
     penalty: {
@@ -144,7 +161,9 @@ export const mockRuleViolations: RuleViolation[] = [
     studentId: mockStudents[2].id,
     studentName: mockStudents[2].name,
     messId: 'm1',
-    violationDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    violationDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     description: 'Loud music played after 11:00 PM',
     severity: 'moderate',
     penalty: {
@@ -165,7 +184,9 @@ export const mockRuleViolations: RuleViolation[] = [
     studentId: mockStudents[0].id,
     studentName: mockStudents[0].name,
     messId: 'm1',
-    violationDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    violationDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     description: 'Absent from lunch without prior notice',
     severity: 'minor',
     penalty: {
@@ -183,7 +204,10 @@ export const mockRuleViolations: RuleViolation[] = [
 export function getRulesByMess(messId: string): MessRule[] {
   return mockMessRules
     .filter(rule => rule.messId === messId && rule.status === 'active')
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
 }
 
 export function getRuleById(ruleId: string): MessRule | undefined {
@@ -193,18 +217,24 @@ export function getRuleById(ruleId: string): MessRule | undefined {
 export function getAcceptancesByStudent(studentId: string): RuleAcceptance[] {
   return mockRuleAcceptances
     .filter(acc => acc.studentId === studentId)
-    .sort((a, b) => new Date(b.acceptedAt).getTime() - new Date(a.acceptedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.acceptedAt).getTime() - new Date(a.acceptedAt).getTime()
+    )
 }
 
 export function getAcceptancesByRule(ruleId: string): RuleAcceptance[] {
   return mockRuleAcceptances.filter(acc => acc.ruleId === ruleId)
 }
 
-export function getViolationsByMess(messId: string, filters?: {
-  studentId?: string
-  status?: string
-  severity?: string
-}): RuleViolation[] {
+export function getViolationsByMess(
+  messId: string,
+  filters?: {
+    studentId?: string
+    status?: string
+    severity?: string
+  }
+): RuleViolation[] {
   let violations = mockRuleViolations.filter(v => v.messId === messId)
 
   if (filters?.studentId) {
@@ -217,16 +247,25 @@ export function getViolationsByMess(messId: string, filters?: {
     violations = violations.filter(v => v.severity === filters.severity)
   }
 
-  return violations.sort((a, b) => new Date(b.violationDate).getTime() - new Date(a.violationDate).getTime())
+  return violations.sort(
+    (a, b) =>
+      new Date(b.violationDate).getTime() - new Date(a.violationDate).getTime()
+  )
 }
 
 export function getViolationsByStudent(studentId: string): RuleViolation[] {
   return mockRuleViolations
     .filter(v => v.studentId === studentId)
-    .sort((a, b) => new Date(b.violationDate).getTime() - new Date(a.violationDate).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.violationDate).getTime() -
+        new Date(a.violationDate).getTime()
+    )
 }
 
-export function addRule(rule: Omit<MessRule, 'id' | 'createdAt' | 'updatedAt'>): MessRule {
+export function addRule(
+  rule: Omit<MessRule, 'id' | 'createdAt' | 'updatedAt'>
+): MessRule {
   const newRule: MessRule = {
     ...rule,
     id: `rule${mockMessRules.length + 1}`,
@@ -306,7 +345,10 @@ export function updateViolation(
   mockRuleViolations[index] = {
     ...mockRuleViolations[index],
     ...updates,
-    resolvedAt: updates.status === 'resolved' ? new Date().toISOString() : mockRuleViolations[index].resolvedAt,
+    resolvedAt:
+      updates.status === 'resolved'
+        ? new Date().toISOString()
+        : mockRuleViolations[index].resolvedAt,
   }
   return mockRuleViolations[index]
 }

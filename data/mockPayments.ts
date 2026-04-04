@@ -8,7 +8,9 @@ export const mockScheduledPayments: ScheduledPayment[] = [
     billId: 'bill1',
     billName: 'Monthly Bill - January 2024',
     amount: 15000,
-    scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 days from now
+    scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0], // 3 days from now
     scheduledTime: '10:00',
     paymentMethod: 'bKash',
     accountNumber: '01712345678',
@@ -27,7 +29,9 @@ export const mockScheduledPayments: ScheduledPayment[] = [
     billId: 'bill2',
     billName: 'Monthly Bill - February 2024',
     amount: 2500,
-    scheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+    scheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0], // 7 days from now
     scheduledTime: '14:00',
     paymentMethod: 'Nagad',
     accountNumber: '01712345678',
@@ -46,7 +50,9 @@ export const mockScheduledPayments: ScheduledPayment[] = [
     billId: 'bill3',
     billName: 'Monthly Bill - December 2023',
     amount: 15000,
-    scheduledDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days ago
+    scheduledDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0], // 5 days ago
     scheduledTime: '09:00',
     paymentMethod: 'bKash',
     accountNumber: '01712345678',
@@ -67,7 +73,9 @@ export const mockScheduledPayments: ScheduledPayment[] = [
     billId: 'bill4',
     billName: 'Monthly Bill - November 2023',
     amount: 1800,
-    scheduledDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    scheduledDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     scheduledTime: '11:00',
     paymentMethod: 'Rocket',
     accountNumber: '01712345678',
@@ -104,10 +112,13 @@ export const mockPaymentSchedules: PaymentSchedule[] = [
 ]
 
 // Helper functions
-export function getScheduledPaymentsByUserId(userId: string, filters?: {
-  status?: string
-  limit?: number
-}): ScheduledPayment[] {
+export function getScheduledPaymentsByUserId(
+  userId: string,
+  filters?: {
+    status?: string
+    limit?: number
+  }
+): ScheduledPayment[] {
   let payments = mockScheduledPayments.filter(p => p.userId === userId)
 
   if (filters?.status) {
@@ -115,7 +126,10 @@ export function getScheduledPaymentsByUserId(userId: string, filters?: {
   }
 
   // Sort by scheduled date (upcoming first)
-  payments.sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
+  payments.sort(
+    (a, b) =>
+      new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
+  )
 
   if (filters?.limit) {
     payments = payments.slice(0, filters.limit)
@@ -124,17 +138,24 @@ export function getScheduledPaymentsByUserId(userId: string, filters?: {
   return payments
 }
 
-export function getScheduledPaymentById(paymentId: string): ScheduledPayment | undefined {
+export function getScheduledPaymentById(
+  paymentId: string
+): ScheduledPayment | undefined {
   return mockScheduledPayments.find(p => p.id === paymentId)
 }
 
 export function getPaymentSchedulesByUserId(userId: string): PaymentSchedule[] {
   return mockPaymentSchedules
     .filter(schedule => schedule.userId === userId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
 }
 
-export function addScheduledPayment(payment: Omit<ScheduledPayment, 'id' | 'createdAt' | 'updatedAt'>): ScheduledPayment {
+export function addScheduledPayment(
+  payment: Omit<ScheduledPayment, 'id' | 'createdAt' | 'updatedAt'>
+): ScheduledPayment {
   const newPayment: ScheduledPayment = {
     ...payment,
     id: `sp${mockScheduledPayments.length + 1}`,
@@ -168,7 +189,9 @@ export function cancelScheduledPayment(paymentId: string): boolean {
   return true
 }
 
-export function addPaymentSchedule(schedule: Omit<PaymentSchedule, 'id' | 'createdAt' | 'updatedAt'>): PaymentSchedule {
+export function addPaymentSchedule(
+  schedule: Omit<PaymentSchedule, 'id' | 'createdAt' | 'updatedAt'>
+): PaymentSchedule {
   const newSchedule: PaymentSchedule = {
     ...schedule,
     id: `ps${mockPaymentSchedules.length + 1}`,

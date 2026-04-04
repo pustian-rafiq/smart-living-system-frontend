@@ -3,10 +3,27 @@
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Users, Building2, Calendar, DollarSign, AlertCircle, FileCheck, MessageSquare, TrendingUp, FileText } from 'lucide-react'
-import { mockAnalytics, mockVerificationRequests, mockDisputes } from '@/data/mockAdmin'
+import {
+  Users,
+  Building2,
+  Calendar,
+  DollarSign,
+  AlertCircle,
+  FileCheck,
+  MessageSquare,
+  TrendingUp,
+  FileText,
+} from 'lucide-react'
+import {
+  mockAnalytics,
+  mockVerificationRequests,
+  mockDisputes,
+} from '@/data/mockAdmin'
 import { mockComplaints } from '@/data/mockComplaints'
-import { getVerificationRequestsByStatus, getDisputesByStatus } from '@/data/mockAdmin'
+import {
+  getVerificationRequestsByStatus,
+  getDisputesByStatus,
+} from '@/data/mockAdmin'
 import Link from 'next/link'
 
 export default function AdminDashboardPage() {
@@ -108,7 +125,9 @@ export default function AdminDashboardPage() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {stat.title}
+                      </p>
                       <p className="text-2xl font-bold">{stat.value}</p>
                       <div className="mt-2 flex items-center gap-1 text-xs text-green-600">
                         <TrendingUp className="h-3 w-3" />
@@ -142,10 +161,16 @@ export default function AdminDashboardPage() {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium mb-1">{action.title}</p>
-                                <p className="text-2xl font-bold">{action.count}</p>
+                                <p className="text-sm font-medium mb-1">
+                                  {action.title}
+                                </p>
+                                <p className="text-2xl font-bold">
+                                  {action.count}
+                                </p>
                               </div>
-                              <div className={`rounded-full p-2 ${action.bgColor}`}>
+                              <div
+                                className={`rounded-full p-2 ${action.bgColor}`}
+                              >
                                 <Icon className={`h-5 w-5 ${action.color}`} />
                               </div>
                             </div>
@@ -285,19 +310,25 @@ export default function AdminDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockAnalytics.cityWiseStats.slice(0, 5).map((city, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{city.city}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {city.properties} properties, {city.bookings} bookings
+                  {mockAnalytics.cityWiseStats
+                    .slice(0, 5)
+                    .map((city, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
+                        <div>
+                          <p className="text-sm font-medium">{city.city}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {city.properties} properties, {city.bookings}{' '}
+                            bookings
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold">
+                          ৳{(city.revenue / 1000000).toFixed(1)}M
                         </p>
                       </div>
-                      <p className="text-sm font-semibold">
-                        ৳{(city.revenue / 1000000).toFixed(1)}M
-                      </p>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </CardContent>
             </Card>

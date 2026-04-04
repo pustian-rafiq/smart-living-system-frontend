@@ -22,7 +22,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -48,19 +54,23 @@ const generateBillSchema = z.object({
   tenantId: z.string().min(1, 'Tenant is required'),
   templateId: z.string().optional(),
   useTemplate: z.boolean().optional(),
-  items: z.array(
-    z.object({
-      description: z.string().min(1, 'Description is required'),
-      amount: z.coerce.number().min(0, 'Amount must be positive'),
-      type: z.enum(['rent', 'utility', 'maintenance', 'other']),
-      calculationType: z.enum(['fixed', 'meter-based', 'percentage']).optional(),
-      unitRate: z.coerce.number().optional(),
-      meterType: z.enum(['electricity', 'gas', 'water']).optional(),
-      previousReading: z.coerce.number().optional(),
-      currentReading: z.coerce.number().optional(),
-      consumption: z.coerce.number().optional(),
-    })
-  ).min(1, 'At least one item is required'),
+  items: z
+    .array(
+      z.object({
+        description: z.string().min(1, 'Description is required'),
+        amount: z.coerce.number().min(0, 'Amount must be positive'),
+        type: z.enum(['rent', 'utility', 'maintenance', 'other']),
+        calculationType: z
+          .enum(['fixed', 'meter-based', 'percentage'])
+          .optional(),
+        unitRate: z.coerce.number().optional(),
+        meterType: z.enum(['electricity', 'gas', 'water']).optional(),
+        previousReading: z.coerce.number().optional(),
+        currentReading: z.coerce.number().optional(),
+        consumption: z.coerce.number().optional(),
+      })
+    )
+    .min(1, 'At least one item is required'),
 })
 
 type GenerateBillFormData = z.infer<typeof generateBillSchema>
@@ -72,8 +82,18 @@ interface GenerateBillDialogProps {
 }
 
 const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ]
 
 const currentYear = new Date().getFullYear()
@@ -83,17 +103,25 @@ export function GenerateBillDialog({
   onOpenChange,
   onGenerate,
 }: GenerateBillDialogProps) {
-  const [selectedPropertyType, setSelectedPropertyType] = useState<'apartment' | 'mess'>('apartment')
+  const [selectedPropertyType, setSelectedPropertyType] = useState<
+    'apartment' | 'mess'
+  >('apartment')
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
   const [selectedFlatId, setSelectedFlatId] = useState<string>('')
-  const [selectedTemplate, setSelectedTemplate] = useState<BillTemplate | undefined>()
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    BillTemplate | undefined
+  >()
   const [meterReading, setMeterReading] = useState<MeterReading | undefined>()
-  const [previousReading, setPreviousReading] = useState<MeterReading | undefined>()
+  const [previousReading, setPreviousReading] = useState<
+    MeterReading | undefined
+  >()
   const [useTemplate, setUseTemplate] = useState(false)
-  const [generationMode, setGenerationMode] = useState<'manual' | 'template'>('manual')
+  const [generationMode, setGenerationMode] = useState<'manual' | 'template'>(
+    'manual'
+  )
 
   const form = useForm<GenerateBillFormData>({
-    resolver: zodResolver(generateBillSchema),
+    resolver: zodResolver(generateBillSchema) as never,
     defaultValues: {
       propertyId: '',
       propertyType: 'apartment',
@@ -134,10 +162,22 @@ export function GenerateBillDialog({
   // Fetch meter reading when property/flat/month changes
   useEffect(() => {
     if (propertyId && month && year) {
-      const reading = getMeterReading(propertyId, flatId, undefined, month, year)
+      const reading = getMeterReading(
+        propertyId,
+        flatId,
+        undefined,
+        month,
+        year
+      )
       setMeterReading(reading)
 
-      const prev = getPreviousMeterReading(propertyId, flatId, undefined, month, year)
+      const prev = getPreviousMeterReading(
+        propertyId,
+        flatId,
+        undefined,
+        month,
+        year
+      )
       setPreviousReading(prev)
     } else {
       setMeterReading(undefined)
@@ -163,7 +203,7 @@ export function GenerateBillDialog({
     const calculatedItems: any[] = []
 
     // First pass: Calculate fixed and meter-based items
-    template.items.forEach((item) => {
+    template.items.forEach(item => {
       let amount = 0
       let consumption: number | undefined
       let previousReading: number | undefined
@@ -171,7 +211,11 @@ export function GenerateBillDialog({
 
       if (item.calculationType === 'fixed') {
         amount = item.fixedAmount || 0
-      } else if (item.calculationType === 'meter-based' && item.meterType && meterReading) {
+      } else if (
+        item.calculationType === 'meter-based' &&
+        item.meterType &&
+        meterReading
+      ) {
         // Get consumption from meter reading
         if (item.meterType === 'electricity') {
           consumption = meterReading.electricityConsumption
@@ -217,21 +261,34 @@ export function GenerateBillDialog({
 
     // Second pass: Calculate percentage-based items
     calculatedItems.forEach((calculatedItem, index) => {
-      if (calculatedItem.calculationType === 'percentage' && calculatedItem._percentage && calculatedItem._baseItemId) {
+      if (
+        calculatedItem.calculationType === 'percentage' &&
+        calculatedItem._percentage &&
+        calculatedItem._baseItemId
+      ) {
         // Find base item in calculated items (by template item ID)
-        const baseTemplateItem = template.items.find(i => i.id === calculatedItem._baseItemId)
+        const baseTemplateItem = template.items.find(
+          i => i.id === calculatedItem._baseItemId
+        )
         if (baseTemplateItem) {
-          const baseItemIndex = template.items.findIndex(i => i.id === baseTemplateItem.id)
+          const baseItemIndex = template.items.findIndex(
+            i => i.id === baseTemplateItem.id
+          )
           const baseItem = calculatedItems[baseItemIndex]
           if (baseItem) {
-            calculatedItem.amount = Math.round((baseItem.amount * calculatedItem._percentage) / 100 * 100) / 100
+            calculatedItem.amount =
+              Math.round(
+                ((baseItem.amount * calculatedItem._percentage) / 100) * 100
+              ) / 100
           }
         }
       }
     })
 
     // Clean up internal fields
-    const cleanedItems = calculatedItems.map(({ _templateItemId, _baseItemId, _percentage, ...item }) => item)
+    const cleanedItems = calculatedItems.map(
+      ({ _templateItemId, _baseItemId, _percentage, ...item }) => item
+    )
 
     replace(cleanedItems)
   }
@@ -263,7 +320,8 @@ export function GenerateBillDialog({
     setGenerationMode('manual')
   }
 
-  const properties = selectedPropertyType === 'apartment' ? mockBuildings : mockMess
+  const properties =
+    selectedPropertyType === 'apartment' ? mockBuildings : mockMess
   const tenants = mockRenters
 
   const totalAmount = useMemo(() => {
@@ -286,9 +344,7 @@ export function GenerateBillDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Generate Bill</DialogTitle>
-          <DialogDescription>
-            Create a new bill for a tenant
-          </DialogDescription>
+          <DialogDescription>Create a new bill for a tenant</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -296,19 +352,26 @@ export function GenerateBillDialog({
             {/* Generation Mode Toggle */}
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <Label className="text-base font-semibold">Generation Mode</Label>
+                <Label className="text-base font-semibold">
+                  Generation Mode
+                </Label>
                 <p className="text-sm text-muted-foreground">
                   Use template for automatic calculation or create manually
                 </p>
               </div>
-              <Tabs value={generationMode} onValueChange={(v) => {
-                setGenerationMode(v as 'manual' | 'template')
-                form.setValue('useTemplate', v === 'template')
-                if (v === 'manual') {
-                  form.setValue('templateId', undefined)
-                  replace([{ description: 'Monthly Rent', amount: 0, type: 'rent' }])
-                }
-              }}>
+              <Tabs
+                value={generationMode}
+                onValueChange={v => {
+                  setGenerationMode(v as 'manual' | 'template')
+                  form.setValue('useTemplate', v === 'template')
+                  if (v === 'manual') {
+                    form.setValue('templateId', undefined)
+                    replace([
+                      { description: 'Monthly Rent', amount: 0, type: 'rent' },
+                    ])
+                  }
+                }}
+              >
                 <TabsList>
                   <TabsTrigger value="manual">Manual</TabsTrigger>
                   <TabsTrigger value="template">
@@ -327,7 +390,7 @@ export function GenerateBillDialog({
                   <FormItem>
                     <FormLabel>Property Type</FormLabel>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value)
                         setSelectedPropertyType(value as 'apartment' | 'mess')
                         form.setValue('propertyId', '')
@@ -359,7 +422,7 @@ export function GenerateBillDialog({
                   <FormItem>
                     <FormLabel>Property</FormLabel>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value)
                         setSelectedPropertyId(value)
                         form.setValue('flatId', undefined)
@@ -374,7 +437,7 @@ export function GenerateBillDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {properties.map((prop) => (
+                        {properties.map(prop => (
                           <SelectItem key={prop.id} value={prop.id}>
                             {prop.name}
                           </SelectItem>
@@ -388,39 +451,41 @@ export function GenerateBillDialog({
             </div>
 
             {/* Flat Selection (for apartments) */}
-            {selectedPropertyType === 'apartment' && availableFlats.length > 0 && (
-              <FormField
-                control={form.control}
-                name="flatId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Flat</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value)
-                        setSelectedFlatId(value)
-                        form.setValue('templateId', undefined)
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select flat" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableFlats.map((flat) => (
-                          <SelectItem key={flat.id} value={flat.id}>
-                            {flat.flatNumber} - {flat.renter?.name || 'Available'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            {selectedPropertyType === 'apartment' &&
+              availableFlats.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="flatId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Flat</FormLabel>
+                      <Select
+                        onValueChange={value => {
+                          field.onChange(value)
+                          setSelectedFlatId(value)
+                          form.setValue('templateId', undefined)
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select flat" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableFlats.map(flat => (
+                            <SelectItem key={flat.id} value={flat.id}>
+                              {flat.flatNumber} -{' '}
+                              {flat.renter?.name || 'Available'}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
             {/* Template Selection (when template mode is enabled) */}
             {generationMode === 'template' && availableTemplates.length > 0 && (
@@ -431,7 +496,7 @@ export function GenerateBillDialog({
                   <FormItem>
                     <FormLabel>Bill Template</FormLabel>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value)
                         form.setValue('useTemplate', true)
                       }}
@@ -443,7 +508,7 @@ export function GenerateBillDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {availableTemplates.map((template) => (
+                        {availableTemplates.map(template => (
                           <SelectItem key={template.id} value={template.id}>
                             {template.name}
                           </SelectItem>
@@ -451,7 +516,8 @@ export function GenerateBillDialog({
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Template will auto-calculate bill items using meter readings
+                      Template will auto-calculate bill items using meter
+                      readings
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -459,15 +525,18 @@ export function GenerateBillDialog({
               />
             )}
 
-            {generationMode === 'template' && availableTemplates.length === 0 && propertyId && (
-              <Card className="bg-muted/50">
-                <CardContent className="py-4">
-                  <p className="text-sm text-muted-foreground text-center">
-                    No active templates found for this property. Create a template first.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {generationMode === 'template' &&
+              availableTemplates.length === 0 &&
+              propertyId && (
+                <Card className="bg-muted/50">
+                  <CardContent className="py-4">
+                    <p className="text-sm text-muted-foreground text-center">
+                      No active templates found for this property. Create a
+                      template first.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
             <FormField
               control={form.control}
@@ -475,14 +544,17 @@ export function GenerateBillDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tenant</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select tenant" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {tenants.map((tenant) => (
+                      {tenants.map(tenant => (
                         <SelectItem key={tenant.id} value={tenant.id}>
                           {tenant.name} - {tenant.phone}
                         </SelectItem>
@@ -502,7 +574,7 @@ export function GenerateBillDialog({
                   <FormItem>
                     <FormLabel>Month</FormLabel>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value)
                         form.setValue('templateId', undefined)
                       }}
@@ -514,7 +586,7 @@ export function GenerateBillDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {months.map((month) => (
+                        {months.map(month => (
                           <SelectItem key={month} value={month}>
                             {month}
                           </SelectItem>
@@ -536,7 +608,7 @@ export function GenerateBillDialog({
                       <Input
                         type="number"
                         {...field}
-                        onChange={(e) => {
+                        onChange={e => {
                           field.onChange(e)
                           form.setValue('templateId', undefined)
                         }}
@@ -552,19 +624,25 @@ export function GenerateBillDialog({
             {meterReading && (
               <Card className="bg-muted/50">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Meter Readings for {month} {year}</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Meter Readings for {month} {year}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   {meterReading.electricity !== undefined && (
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Electricity:</span>
+                      <span className="text-muted-foreground">
+                        Electricity:
+                      </span>
                       <div className="flex items-center gap-2">
                         {previousReading?.electricity && (
                           <span className="text-xs text-muted-foreground">
                             {previousReading.electricity} →
                           </span>
                         )}
-                        <span className="font-medium">{meterReading.electricity} units</span>
+                        <span className="font-medium">
+                          {meterReading.electricity} units
+                        </span>
                         {meterReading.electricityConsumption !== undefined && (
                           <Badge variant="outline">
                             +{meterReading.electricityConsumption} units
@@ -582,7 +660,9 @@ export function GenerateBillDialog({
                             {previousReading.gas} →
                           </span>
                         )}
-                        <span className="font-medium">{meterReading.gas} units</span>
+                        <span className="font-medium">
+                          {meterReading.gas} units
+                        </span>
                         {meterReading.gasConsumption !== undefined && (
                           <Badge variant="outline">
                             +{meterReading.gasConsumption} units
@@ -600,7 +680,9 @@ export function GenerateBillDialog({
                             {previousReading.water} →
                           </span>
                         )}
-                        <span className="font-medium">{meterReading.water} units</span>
+                        <span className="font-medium">
+                          {meterReading.water} units
+                        </span>
                         {meterReading.waterConsumption !== undefined && (
                           <Badge variant="outline">
                             +{meterReading.waterConsumption} units
@@ -613,38 +695,50 @@ export function GenerateBillDialog({
               </Card>
             )}
 
-            {!meterReading && propertyId && month && year && generationMode === 'template' && (
-              <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
-                <CardContent className="py-4">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <Calculator className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            {!meterReading &&
+              propertyId &&
+              month &&
+              year &&
+              generationMode === 'template' && (
+                <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+                  <CardContent className="py-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <Calculator className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                          Meter Reading Required
+                        </p>
+                        <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                          No meter reading found for {month} {year}. Add meter
+                          reading first to calculate utility costs
+                          automatically.
+                        </p>
+                        <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                          Fixed amounts will still be calculated, but
+                          meter-based items will show ৳0.
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
-                        Meter Reading Required
-                      </p>
-                      <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                        No meter reading found for {month} {year}. Add meter reading first to calculate utility costs automatically.
-                      </p>
-                      <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                        Fixed amounts will still be calculated, but meter-based items will show ৳0.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              )}
 
-            {!meterReading && propertyId && month && year && generationMode === 'manual' && (
-              <Card className="border-dashed">
-                <CardContent className="py-4">
-                  <p className="text-sm text-muted-foreground text-center">
-                    No meter reading found for {month} {year}. You can still create bills manually.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {!meterReading &&
+              propertyId &&
+              month &&
+              year &&
+              generationMode === 'manual' && (
+                <Card className="border-dashed">
+                  <CardContent className="py-4">
+                    <p className="text-sm text-muted-foreground text-center">
+                      No meter reading found for {month} {year}. You can still
+                      create bills manually.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Bill Items */}
             <div className="space-y-3">
@@ -655,7 +749,9 @@ export function GenerateBillDialog({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => append({ description: '', amount: 0, type: 'rent' })}
+                    onClick={() =>
+                      append({ description: '', amount: 0, type: 'rent' })
+                    }
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Item
@@ -678,7 +774,10 @@ export function GenerateBillDialog({
                 const currentReading = item?.currentReading
 
                 return (
-                  <div key={field.id} className="space-y-2 rounded-lg border p-3">
+                  <div
+                    key={field.id}
+                    className="space-y-2 rounded-lg border p-3"
+                  >
                     <div className="grid grid-cols-12 gap-2">
                       <FormField
                         control={form.control}
@@ -714,7 +813,9 @@ export function GenerateBillDialog({
                               <SelectContent>
                                 <SelectItem value="rent">Rent</SelectItem>
                                 <SelectItem value="utility">Utility</SelectItem>
-                                <SelectItem value="maintenance">Maintenance</SelectItem>
+                                <SelectItem value="maintenance">
+                                  Maintenance
+                                </SelectItem>
                                 <SelectItem value="other">Other</SelectItem>
                               </SelectContent>
                             </Select>
@@ -754,25 +855,32 @@ export function GenerateBillDialog({
                     </div>
 
                     {/* Calculation Details (for meter-based items) */}
-                    {calculationType === 'meter-based' && consumption !== undefined && unitRate && (
-                      <div className="mt-2 rounded bg-muted/50 p-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Calculation:</span>
-                          <div className="flex items-center gap-1">
-                            {previousReading !== undefined && currentReading !== undefined && (
-                              <span>
-                                {previousReading} → {currentReading} = {consumption} units
-                              </span>
-                            )}
-                            {unitRate && (
-                              <span className="ml-1">
-                                × ৳{unitRate} = ৳{item.amount?.toLocaleString()}
-                              </span>
-                            )}
+                    {calculationType === 'meter-based' &&
+                      consumption !== undefined &&
+                      unitRate && (
+                        <div className="mt-2 rounded bg-muted/50 p-2 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">
+                              Calculation:
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {previousReading !== undefined &&
+                                currentReading !== undefined && (
+                                  <span>
+                                    {previousReading} → {currentReading} ={' '}
+                                    {consumption} units
+                                  </span>
+                                )}
+                              {unitRate && (
+                                <span className="ml-1">
+                                  × ৳{unitRate} = ৳
+                                  {item.amount?.toLocaleString()}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Percentage Calculation Details */}
                     {calculationType === 'percentage' && (
@@ -791,9 +899,15 @@ export function GenerateBillDialog({
                 <Card className="bg-primary/5 border-primary/20">
                   <CardContent className="py-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-base font-semibold">Total Amount:</span>
+                      <span className="text-base font-semibold">
+                        Total Amount:
+                      </span>
                       <span className="text-2xl font-bold text-primary">
-                        ৳{totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ৳
+                        {totalAmount.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                   </CardContent>

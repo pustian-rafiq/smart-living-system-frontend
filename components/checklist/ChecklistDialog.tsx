@@ -23,7 +23,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Camera, Plus, X } from 'lucide-react'
@@ -139,7 +145,9 @@ export function ChecklistDialog({
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
-            {checklist ? 'Edit Checklist' : `Create ${form.watch('type') === 'move_in' ? 'Move-in' : 'Move-out'} Checklist`}
+            {checklist
+              ? 'Edit Checklist'
+              : `Create ${form.watch('type') === 'move_in' ? 'Move-in' : 'Move-out'} Checklist`}
           </DialogTitle>
           <DialogDescription>
             {propertyName} {flatNumber && `- Flat ${flatNumber}`}
@@ -147,7 +155,10 @@ export function ChecklistDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Checklist Type */}
@@ -157,7 +168,10 @@ export function ChecklistDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Checklist Type</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -177,7 +191,10 @@ export function ChecklistDialog({
                 <div className="space-y-2 rounded-lg border p-4">
                   <FormLabel>Add Items</FormLabel>
                   <div className="flex gap-2">
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <Select
+                      value={selectedCategory}
+                      onValueChange={setSelectedCategory}
+                    >
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
@@ -204,7 +221,9 @@ export function ChecklistDialog({
                             variant="outline"
                             className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
                             onClick={() => {
-                              const category = checklistCategories.find(c => c.id === selectedCategory)
+                              const category = checklistCategories.find(
+                                c => c.id === selectedCategory
+                              )
                               if (category) {
                                 append({
                                   category: category.name,
@@ -228,7 +247,9 @@ export function ChecklistDialog({
                   <FormLabel>Items ({fields.length})</FormLabel>
                   {fields.length === 0 ? (
                     <div className="rounded-lg border border-dashed p-8 text-center">
-                      <p className="text-muted-foreground">No items added yet</p>
+                      <p className="text-muted-foreground">
+                        No items added yet
+                      </p>
                       <p className="text-sm text-muted-foreground mt-1">
                         Select a category and add items to get started
                       </p>
@@ -236,7 +257,10 @@ export function ChecklistDialog({
                   ) : (
                     <div className="space-y-3">
                       {fields.map((field, index) => (
-                        <div key={field.id} className="rounded-lg border p-4 space-y-3">
+                        <div
+                          key={field.id}
+                          className="rounded-lg border p-4 space-y-3"
+                        >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <FormField
@@ -271,7 +295,10 @@ export function ChecklistDialog({
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Status</FormLabel>
-                                  <Select value={field.value} onValueChange={field.onChange}>
+                                  <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                  >
                                     <FormControl>
                                       <SelectTrigger>
                                         <SelectValue />
@@ -281,8 +308,12 @@ export function ChecklistDialog({
                                       <SelectItem value="good">Good</SelectItem>
                                       <SelectItem value="fair">Fair</SelectItem>
                                       <SelectItem value="poor">Poor</SelectItem>
-                                      <SelectItem value="damaged">Damaged</SelectItem>
-                                      <SelectItem value="missing">Missing</SelectItem>
+                                      <SelectItem value="damaged">
+                                        Damaged
+                                      </SelectItem>
+                                      <SelectItem value="missing">
+                                        Missing
+                                      </SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <FormMessage />
@@ -300,7 +331,12 @@ export function ChecklistDialog({
                                     <Input
                                       type="number"
                                       {...field}
-                                      onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
+                                      onChange={e =>
+                                        field.onChange(
+                                          parseFloat(e.target.value) ||
+                                            undefined
+                                        )
+                                      }
                                       value={field.value || ''}
                                     />
                                   </FormControl>
@@ -310,7 +346,8 @@ export function ChecklistDialog({
                             />
                           </div>
 
-                          {form.watch(`items.${index}.status`) === 'damaged' && (
+                          {form.watch(`items.${index}.status`) ===
+                            'damaged' && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <FormField
                                 control={form.control}
@@ -335,7 +372,12 @@ export function ChecklistDialog({
                                       <Input
                                         type="number"
                                         {...field}
-                                        onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
+                                        onChange={e =>
+                                          field.onChange(
+                                            parseFloat(e.target.value) ||
+                                              undefined
+                                          )
+                                        }
                                         value={field.value || ''}
                                       />
                                     </FormControl>
@@ -353,7 +395,11 @@ export function ChecklistDialog({
                               <FormItem>
                                 <FormLabel>Notes</FormLabel>
                                 <FormControl>
-                                  <Textarea {...field} rows={2} placeholder="Additional notes..." />
+                                  <Textarea
+                                    {...field}
+                                    rows={2}
+                                    placeholder="Additional notes..."
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -373,7 +419,11 @@ export function ChecklistDialog({
                     <FormItem>
                       <FormLabel>Overall Notes</FormLabel>
                       <FormControl>
-                        <Textarea {...field} rows={3} placeholder="General notes about the property condition..." />
+                        <Textarea
+                          {...field}
+                          rows={3}
+                          placeholder="General notes about the property condition..."
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -383,7 +433,11 @@ export function ChecklistDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={fields.length === 0}>

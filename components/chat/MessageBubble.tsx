@@ -1,8 +1,15 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
-import { Check, CheckCheck, Clock, Download, Image as ImageIcon } from 'lucide-react'
+import {
+  Check,
+  CheckCheck,
+  Clock,
+  Download,
+  Image as ImageIcon,
+} from 'lucide-react'
 import Image from 'next/image'
 import type { ChatMessage } from '@/types/chat'
 
@@ -55,9 +62,7 @@ export function MessageBubble({
 
   return (
     <div
-      className={`flex gap-2 mb-4 ${
-        isOwn ? 'flex-row-reverse' : 'flex-row'
-      }`}
+      className={`flex gap-2 mb-4 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
     >
       {/* Avatar */}
       {showAvatar && !isOwn && (

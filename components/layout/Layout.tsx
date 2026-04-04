@@ -37,9 +37,7 @@ export const Layout = ({ children, userRole }: LayoutProps) => {
           <Navbar userRole={currentRole} />
         </div>
       )}
-      <main className="flex-grow pb-16 md:pb-0">
-        {children}
-      </main>
+      <main className="flex-grow pb-16 md:pb-0">{children}</main>
       {/* Desktop Footer */}
       <div className="hidden md:block">
         <Footer />

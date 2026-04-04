@@ -121,7 +121,10 @@ export function SMSGroupDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Group Name */}
@@ -132,7 +135,10 @@ export function SMSGroupDialog({
                     <FormItem>
                       <FormLabel>Group Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Payment Due, Absent Students" {...field} />
+                        <Input
+                          placeholder="e.g., Payment Due, Absent Students"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -201,14 +207,17 @@ export function SMSGroupDialog({
                             htmlFor={`member-${student.id}`}
                             className="flex-1 cursor-pointer text-sm"
                           >
-                            {student.name} {student.seatNumber && `(Seat ${student.seatNumber})`}
+                            {student.name}{' '}
+                            {student.seatNumber &&
+                              `(Seat ${student.seatNumber})`}
                           </label>
                         </div>
                       ))
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    {selectedMembers.length} member{selectedMembers.length !== 1 ? 's' : ''} selected
+                    {selectedMembers.length} member
+                    {selectedMembers.length !== 1 ? 's' : ''} selected
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -216,7 +225,11 @@ export function SMSGroupDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={selectedMembers.length === 0}>

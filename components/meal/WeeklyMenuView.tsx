@@ -34,7 +34,9 @@ const categoryLabels = {
 }
 
 export function WeeklyMenuView({ schedule, mealTiming }: WeeklyMenuViewProps) {
-  const weekStart = startOfWeek(new Date(schedule.weekStartDate), { weekStartsOn: 1 })
+  const weekStart = startOfWeek(new Date(schedule.weekStartDate), {
+    weekStartsOn: 1,
+  })
 
   const renderMealItems = (items: any[] | undefined, category: string) => {
     if (!items || items.length === 0) return null
@@ -53,7 +55,10 @@ export function WeeklyMenuView({ schedule, mealTiming }: WeeklyMenuViewProps) {
         </div>
         <div className="space-y-1">
           {items.map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between text-xs">
+            <div
+              key={idx}
+              className="flex items-center justify-between text-xs"
+            >
               <div className="flex items-center gap-1">
                 <span>{item.name}</span>
                 {item.isSpecial && (

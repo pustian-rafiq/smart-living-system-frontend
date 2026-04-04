@@ -6,16 +6,16 @@ import { EnhancedNoticeBoard } from '@/components/notice/EnhancedNoticeBoard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
-  User, 
-  Phone, 
-  Mail, 
-  GraduationCap, 
-  Home, 
-  DollarSign, 
+import {
+  User,
+  Phone,
+  Mail,
+  GraduationCap,
+  Home,
+  DollarSign,
   Calendar,
   CreditCard,
-  UtensilsCrossed
+  UtensilsCrossed,
 } from 'lucide-react'
 import { mockStudents, mockNotices, mockMess } from '@/data/mockMess'
 import { useRouter } from 'next/navigation'
@@ -33,7 +33,9 @@ export default function StudentDashboardPage() {
       <Layout>
         <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-lg font-semibold">No student information found</p>
+            <p className="text-lg font-semibold">
+              No student information found
+            </p>
             <Button
               variant="outline"
               onClick={() => router.push('/mess')}
@@ -105,7 +107,9 @@ export default function StudentDashboardPage() {
                     <div className="flex items-center gap-3">
                       <GraduationCap className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">University</p>
+                        <p className="text-sm text-muted-foreground">
+                          University
+                        </p>
                         <p className="font-medium">{student.university}</p>
                       </div>
                     </div>
@@ -143,10 +147,14 @@ export default function StudentDashboardPage() {
                         </p>
                       </div>
                       <Badge variant="outline">
-                        {mess.gender === 'male' ? 'Male' : mess.gender === 'female' ? 'Female' : 'Mixed'}
+                        {mess.gender === 'male'
+                          ? 'Male'
+                          : mess.gender === 'female'
+                            ? 'Female'
+                            : 'Mixed'}
                       </Badge>
                     </div>
-                    
+
                     {/* Mess Image */}
                     {mess.images[0] && (
                       <div className="relative mb-3 h-32 w-full overflow-hidden rounded-md">
@@ -163,7 +171,9 @@ export default function StudentDashboardPage() {
                     {/* Seat Number */}
                     <div className="flex items-center justify-between rounded-md bg-primary/5 p-3">
                       <div>
-                        <p className="text-sm text-muted-foreground">Your Seat</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your Seat
+                        </p>
                         <p className="text-xl font-bold text-primary">
                           {student.seatNumber || 'Not Assigned'}
                         </p>
@@ -182,7 +192,11 @@ export default function StudentDashboardPage() {
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {mess.facilities.map((facility, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             {facility}
                           </Badge>
                         ))}
@@ -210,7 +224,9 @@ export default function StudentDashboardPage() {
                   <p className="mt-1 text-3xl font-bold text-primary">
                     ৳{student.monthlyFee.toLocaleString()}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">per month</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    per month
+                  </p>
                 </div>
 
                 <div className="space-y-2 rounded-lg border p-3">
@@ -235,7 +251,7 @@ export default function StudentDashboardPage() {
             <EnhancedNoticeBoard
               notices={notices}
               userId={student.id}
-              onAcknowledge={(noticeId) => {
+              onAcknowledge={noticeId => {
                 // In real app, call API to acknowledge
                 console.log('Acknowledged notice:', noticeId)
               }}
@@ -279,7 +295,9 @@ export default function StudentDashboardPage() {
                 <Button
                   className="w-full"
                   variant="outline"
-                  onClick={() => router.push('/mess/student-dashboard/attendance')}
+                  onClick={() =>
+                    router.push('/mess/student-dashboard/attendance')
+                  }
                 >
                   <Calendar className="mr-2 h-4 w-4" />
                   View Attendance

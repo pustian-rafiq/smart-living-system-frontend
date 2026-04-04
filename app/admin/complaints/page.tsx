@@ -5,7 +5,13 @@ import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Search, Check, X, Eye } from 'lucide-react'
 import { mockComplaints } from '@/data/mockComplaints'
@@ -15,7 +21,9 @@ import Image from 'next/image'
 
 export default function AdminComplaintsPage() {
   const [complaints, setComplaints] = useState(mockComplaints)
-  const [statusFilter, setStatusFilter] = useState<ComplaintStatus | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<ComplaintStatus | 'all'>(
+    'all'
+  )
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredComplaints = useMemo(() => {
@@ -29,7 +37,10 @@ export default function AdminComplaintsPage() {
     })
   }, [complaints, statusFilter, searchTerm])
 
-  const handleStatusChange = (complaintId: string, newStatus: ComplaintStatus) => {
+  const handleStatusChange = (
+    complaintId: string,
+    newStatus: ComplaintStatus
+  ) => {
     if (confirm(`Change complaint status to ${newStatus}?`)) {
       setComplaints(
         complaints.map(c =>
@@ -38,7 +49,10 @@ export default function AdminComplaintsPage() {
                 ...c,
                 status: newStatus,
                 updatedAt: new Date().toISOString(),
-                resolvedAt: newStatus === 'resolved' ? new Date().toISOString() : undefined,
+                resolvedAt:
+                  newStatus === 'resolved'
+                    ? new Date().toISOString()
+                    : undefined,
               }
             : c
         )
@@ -71,11 +85,14 @@ export default function AdminComplaintsPage() {
             <Input
               placeholder="Search complaints..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="pl-9"
             />
           </div>
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+          <Select
+            value={statusFilter}
+            onValueChange={value => setStatusFilter(value as any)}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -97,7 +114,8 @@ export default function AdminComplaintsPage() {
                   <div className="flex-1">
                     <CardTitle className="text-lg">{complaint.title}</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      By {complaint.userName} • {format(new Date(complaint.createdAt), 'MMM dd, yyyy')}
+                      By {complaint.userName} •{' '}
+                      {format(new Date(complaint.createdAt), 'MMM dd, yyyy')}
                     </p>
                   </div>
                   <Badge className={statusColors[complaint.status]}>
@@ -123,7 +141,9 @@ export default function AdminComplaintsPage() {
                 {complaint.response && (
                   <div className="mb-4 rounded bg-muted p-3">
                     <p className="text-sm font-semibold mb-1">Response:</p>
-                    <p className="text-sm text-foreground">{complaint.response}</p>
+                    <p className="text-sm text-foreground">
+                      {complaint.response}
+                    </p>
                   </div>
                 )}
 
@@ -132,7 +152,9 @@ export default function AdminComplaintsPage() {
                     <>
                       <Button
                         size="sm"
-                        onClick={() => handleStatusChange(complaint.id, 'in_progress')}
+                        onClick={() =>
+                          handleStatusChange(complaint.id, 'in_progress')
+                        }
                       >
                         <Check className="mr-2 h-4 w-4" />
                         Mark In Progress
@@ -140,7 +162,9 @@ export default function AdminComplaintsPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleStatusChange(complaint.id, 'resolved')}
+                        onClick={() =>
+                          handleStatusChange(complaint.id, 'resolved')
+                        }
                       >
                         Resolve
                       </Button>
@@ -149,7 +173,9 @@ export default function AdminComplaintsPage() {
                   {complaint.status === 'in_progress' && (
                     <Button
                       size="sm"
-                      onClick={() => handleStatusChange(complaint.id, 'resolved')}
+                      onClick={() =>
+                        handleStatusChange(complaint.id, 'resolved')
+                      }
                     >
                       <Check className="mr-2 h-4 w-4" />
                       Resolve

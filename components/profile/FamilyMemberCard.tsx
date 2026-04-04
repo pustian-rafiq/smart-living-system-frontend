@@ -14,7 +14,11 @@ interface FamilyMemberCardProps {
   onDelete: (id: string) => void
 }
 
-export function FamilyMemberCard({ member, onEdit, onDelete }: FamilyMemberCardProps) {
+export function FamilyMemberCard({
+  member,
+  onEdit,
+  onDelete,
+}: FamilyMemberCardProps) {
   const getRelationLabel = () => {
     switch (member.relation) {
       case 'spouse':
@@ -57,7 +61,8 @@ export function FamilyMemberCard({ member, onEdit, onDelete }: FamilyMemberCardP
               <div>
                 <h4 className="font-semibold text-sm">{member.name}</h4>
                 <p className="text-xs text-muted-foreground">
-                  {getRelationLabel()} • {member.age} years old • {member.gender}
+                  {getRelationLabel()} • {member.age} years old •{' '}
+                  {member.gender}
                 </p>
               </div>
               {member.isEmergencyContact && (
@@ -81,7 +86,9 @@ export function FamilyMemberCard({ member, onEdit, onDelete }: FamilyMemberCardP
                 </div>
               )}
               <div>
-                <span>Added: {format(new Date(member.createdAt), 'MMM dd, yyyy')}</span>
+                <span>
+                  Added: {format(new Date(member.createdAt), 'MMM dd, yyyy')}
+                </span>
               </div>
             </div>
           </div>

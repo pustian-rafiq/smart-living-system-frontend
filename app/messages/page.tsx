@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Layout } from '@/components/layout/Layout'
 import { ChatList } from '@/components/chat/ChatList'
@@ -15,13 +15,26 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { mockChats, mockMessages, getChatsByUserId, getMessagesByChatId, getChatUser, getChatById } from '@/data/mockChats'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  mockChats,
+  mockMessages,
+  getChatsByUserId,
+  getMessagesByChatId,
+  getChatUser,
+  getChatById,
+} from '@/data/mockChats'
 import { mockProperties } from '@/data/mockProperties'
 import type { Chat, ChatMessage } from '@/types/chat'
 import { Plus, Search } from 'lucide-react'
 
-export default function MessagesPage() {
+function MessagesPageContent() {
   const searchParams = useSearchParams()
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [showNewChatDialog, setShowNewChatDialog] = useState(false)
@@ -33,8 +46,12 @@ export default function MessagesPage() {
 
   const userChats = useMemo(() => {
     return getChatsByUserId(currentUserId).sort((a, b) => {
-      const timeA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0
-      const timeB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0
+      const timeA = a.lastMessageTime
+        ? new Date(a.lastMessageTime).getTime()
+        : 0
+      const timeB = b.lastMessageTime
+        ? new Date(b.lastMessageTime).getTime()
+        : 0
       return timeB - timeA
     })
   }, [currentUserId])
@@ -44,7 +61,9 @@ export default function MessagesPage() {
     const propertyId = searchParams.get('propertyId')
     if (propertyId) {
       // Find or create chat for this property
-      const existingChat = userChats.find(chat => chat.propertyId === propertyId)
+      const existingChat = userChats.find(
+        chat => chat.propertyId === propertyId
+      )
       if (existingChat) {
         setSelectedChatId(existingChat.id)
       } else {
@@ -66,9 +85,10 @@ export default function MessagesPage() {
 
   const otherParticipant = useMemo(() => {
     if (!selectedChat) return undefined
-    const otherId = selectedChat.participant1Id === currentUserId
-      ? selectedChat.participant2Id
-      : selectedChat.participant1Id
+    const otherId =
+      selectedChat.participant1Id === currentUserId
+        ? selectedChat.participant2Id
+        : selectedChat.participant1Id
     return getChatUser(otherId)
   }, [selectedChat, currentUserId])
 
@@ -77,7 +97,10 @@ export default function MessagesPage() {
     // In real app, mark messages as read
   }
 
-  const handleSendMessage = (content: string, type: 'text' | 'image' | 'file' = 'text') => {
+  const handleSendMessage = (
+    content: string,
+    type: 'text' | 'image' | 'file' = 'text'
+  ) => {
     if (!selectedChat) return
 
     // In real app, this would call an API
@@ -85,9 +108,10 @@ export default function MessagesPage() {
       id: `msg-${Date.now()}`,
       chatId: selectedChat.id,
       senderId: currentUserId,
-      receiverId: selectedChat.participant1Id === currentUserId
-        ? selectedChat.participant2Id
-        : selectedChat.participant1Id,
+      receiverId:
+        selectedChat.participant1Id === currentUserId
+          ? selectedChat.participant2Id
+          : selectedChat.participant1Id,
       type,
       content,
       status: 'sending',
@@ -218,7 +242,7 @@ export default function MessagesPage() {
                     id="search"
                     placeholder="Search by name, address, or area..."
                     value={searchProperty}
-                    onChange={(e) => setSearchProperty(e.target.value)}
+                    onChange={e => setSearchProperty(e.target.value)}
                     className="pl-9"
                   />
                 </div>
@@ -226,12 +250,15 @@ export default function MessagesPage() {
 
               <div>
                 <Label>Select Property</Label>
-                <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
+                <Select
+                  value={selectedPropertyId}
+                  onValueChange={setSelectedPropertyId}
+                >
                   <SelectTrigger className="mt-2">
                     <SelectValue placeholder="Choose a property" />
                   </SelectTrigger>
                   <SelectContent>
-                    {filteredProperties.map((property) => (
+                    {filteredProperties.map(property => (
                       <SelectItem key={property.id} value={property.id}>
                         <div className="flex flex-col">
                           <span className="font-medium">{property.name}</span>
@@ -266,5 +293,21 @@ export default function MessagesPage() {
         </Dialog>
       </div>
     </Layout>
+  )
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense
+      fallback={
+        <Layout>
+          <div className="flex min-h-[40vh] items-center justify-center p-8 text-muted-foreground">
+            Loading messages…
+          </div>
+        </Layout>
+      }
+    >
+      <MessagesPageContent />
+    </Suspense>
   )
 }

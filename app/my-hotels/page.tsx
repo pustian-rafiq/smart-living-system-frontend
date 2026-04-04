@@ -22,10 +22,12 @@ export default function MyHotelsPage() {
     const today = new Date()
     const thisMonth = bookings.filter(b => {
       const bookingDate = new Date(b.createdAt)
-      return bookingDate.getMonth() === today.getMonth() &&
-             bookingDate.getFullYear() === today.getFullYear()
+      return (
+        bookingDate.getMonth() === today.getMonth() &&
+        bookingDate.getFullYear() === today.getFullYear()
+      )
     })
-    
+
     return {
       totalBookings: bookings.length,
       thisMonthBookings: thisMonth.length,
@@ -73,9 +75,14 @@ export default function MyHotelsPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Bookings</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Bookings
+                  </p>
                   <p className="text-2xl font-bold">
-                    {myHotels.reduce((sum, h) => sum + getHotelStats(h.id).totalBookings, 0)}
+                    {myHotels.reduce(
+                      (sum, h) => sum + getHotelStats(h.id).totalBookings,
+                      0
+                    )}
                   </p>
                 </div>
                 <div className="rounded-full bg-green-500/10 p-3">
@@ -90,7 +97,10 @@ export default function MyHotelsPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Total Revenue</p>
                   <p className="text-2xl font-bold">
-                    ৳{myHotels.reduce((sum, h) => sum + getHotelStats(h.id).revenue, 0).toLocaleString()}
+                    ৳
+                    {myHotels
+                      .reduce((sum, h) => sum + getHotelStats(h.id).revenue, 0)
+                      .toLocaleString()}
                   </p>
                 </div>
                 <div className="rounded-full bg-blue-500/10 p-3">
@@ -123,7 +133,7 @@ export default function MyHotelsPage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {myHotels.map(hotel => {
               const stats = getHotelStats(hotel.id)
-              
+
               return (
                 <Card key={hotel.id} className="overflow-hidden">
                   <div className="relative h-48 w-full overflow-hidden bg-muted">
@@ -150,7 +160,9 @@ export default function MyHotelsPage() {
                     <h3 className="text-lg font-semibold mb-1">{hotel.name}</h3>
                     <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4" />
-                      <span>{hotel.area}, {hotel.city}</span>
+                      <span>
+                        {hotel.area}, {hotel.city}
+                      </span>
                     </div>
                     <div className="mb-4 flex items-center gap-2">
                       <RatingDisplay rating={hotel.averageRating} size="sm" />
@@ -158,7 +170,7 @@ export default function MyHotelsPage() {
                         ({hotel.totalReviews} reviews)
                       </span>
                     </div>
-                    
+
                     {/* Stats */}
                     <div className="mb-4 grid grid-cols-3 gap-2 text-center">
                       <div>
@@ -166,22 +178,30 @@ export default function MyHotelsPage() {
                         <p className="font-semibold">{hotel.totalRooms}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Bookings</p>
+                        <p className="text-xs text-muted-foreground">
+                          Bookings
+                        </p>
                         <p className="font-semibold">{stats.totalBookings}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Revenue</p>
-                        <p className="font-semibold">৳{(stats.revenue / 1000).toFixed(0)}k</p>
+                        <p className="font-semibold">
+                          ৳{(stats.revenue / 1000).toFixed(0)}k
+                        </p>
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex gap-2">
                       <Button variant="outline" className="flex-1" asChild>
-                        <Link href={`/my-hotels/${hotel.id}/rooms`}>Manage</Link>
+                        <Link href={`/my-hotels/${hotel.id}/rooms`}>
+                          Manage
+                        </Link>
                       </Button>
                       <Button variant="outline" className="flex-1" asChild>
-                        <Link href={`/my-hotels/${hotel.id}/bookings`}>Bookings</Link>
+                        <Link href={`/my-hotels/${hotel.id}/bookings`}>
+                          Bookings
+                        </Link>
                       </Button>
                     </div>
                   </CardContent>

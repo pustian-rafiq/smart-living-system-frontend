@@ -24,9 +24,8 @@ export function FloorCard({
   onDelete,
   showActions = true,
 }: FloorCardProps) {
-  const occupancyRate = floor.totalFlats > 0 
-    ? (floor.occupiedFlats / floor.totalFlats) * 100 
-    : 0
+  const occupancyRate =
+    floor.totalFlats > 0 ? (floor.occupiedFlats / floor.totalFlats) * 100 : 0
 
   return (
     <Card className="transition-all hover:shadow-md">
@@ -38,7 +37,9 @@ export function FloorCard({
               {floor.name || `Floor ${floor.floorNumber}`}
             </CardTitle>
             {buildingName && (
-              <p className="text-xs text-muted-foreground mt-1">{buildingName}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {buildingName}
+              </p>
             )}
           </div>
           {showActions && (
@@ -118,19 +119,25 @@ export function FloorCard({
         {/* Notes */}
         {floor.notes && (
           <div className="rounded-lg border p-2 bg-muted/30">
-            <p className="text-xs text-muted-foreground line-clamp-2">{floor.notes}</p>
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              {floor.notes}
+            </p>
           </div>
         )}
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-2 border-t">
           <Button asChild variant="outline" size="sm" className="flex-1">
-            <Link href={`/my-properties/buildings/${floor.buildingId}/floors/${floor.id}`}>
+            <Link
+              href={`/my-properties/buildings/${floor.buildingId}/floors/${floor.id}`}
+            >
               View Flats
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm" className="flex-1">
-            <Link href={`/my-properties/buildings/${floor.buildingId}/floors/${floor.id}/stats`}>
+            <Link
+              href={`/my-properties/buildings/${floor.buildingId}/floors/${floor.id}/stats`}
+            >
               View Stats
             </Link>
           </Button>

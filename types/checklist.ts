@@ -1,4 +1,9 @@
-export type ChecklistItemStatus = 'good' | 'fair' | 'poor' | 'damaged' | 'missing'
+export type ChecklistItemStatus =
+  | 'good'
+  | 'fair'
+  | 'poor'
+  | 'damaged'
+  | 'missing'
 
 export interface ChecklistItem {
   id: string

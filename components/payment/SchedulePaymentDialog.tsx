@@ -23,7 +23,13 @@ import {
   FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -35,7 +41,14 @@ const schedulePaymentSchema = z.object({
   billId: z.string().min(1, 'Bill is required'),
   scheduledDate: z.string().min(1, 'Scheduled date is required'),
   scheduledTime: z.string().optional(),
-  paymentMethod: z.enum(['bKash', 'Nagad', 'Rocket', 'Bank Transfer', 'Cash', 'Card']),
+  paymentMethod: z.enum([
+    'bKash',
+    'Nagad',
+    'Rocket',
+    'Bank Transfer',
+    'Cash',
+    'Card',
+  ]),
   accountNumber: z.string().optional(),
   reminderEnabled: z.boolean(),
   reminderDays: z.array(z.number()),
@@ -45,6 +58,8 @@ const schedulePaymentSchema = z.object({
 
 interface SchedulePaymentDialogProps {
   payment?: ScheduledPayment | null
+  /** Pre-select this bill when opening for a new schedule */
+  billId?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (data: any) => void
@@ -59,7 +74,9 @@ export function SchedulePaymentDialog({
   onOpenChange,
   onSubmit,
 }: SchedulePaymentDialogProps) {
-  const userBills = mockBills.filter(b => b.tenantId === 'r1' && b.status === 'unpaid')
+  const userBills = mockBills.filter(
+    b => b.tenantId === 'r1' && b.status === 'unpaid'
+  )
 
   const form = useForm({
     resolver: zodResolver(schedulePaymentSchema),
@@ -131,7 +148,10 @@ export function SchedulePaymentDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Bill Selection */}
@@ -141,7 +161,10 @@ export function SchedulePaymentDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Select Bill</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a bill" />
@@ -150,7 +173,8 @@ export function SchedulePaymentDialog({
                         <SelectContent>
                           {userBills.map(bill => (
                             <SelectItem key={bill.id} value={bill.id}>
-                              {bill.month} {bill.year} - {bill.propertyName} (৳{bill.amount.toLocaleString()})
+                              {bill.month} {bill.year} - {bill.propertyName} (৳
+                              {bill.amount.toLocaleString()})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -203,7 +227,10 @@ export function SchedulePaymentDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Payment Method</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -213,7 +240,9 @@ export function SchedulePaymentDialog({
                           <SelectItem value="bKash">bKash</SelectItem>
                           <SelectItem value="Nagad">Nagad</SelectItem>
                           <SelectItem value="Rocket">Rocket</SelectItem>
-                          <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                          <SelectItem value="Bank Transfer">
+                            Bank Transfer
+                          </SelectItem>
                           <SelectItem value="Cash">Cash</SelectItem>
                           <SelectItem value="Card">Card</SelectItem>
                         </SelectContent>
@@ -256,7 +285,10 @@ export function SchedulePaymentDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -272,16 +304,23 @@ export function SchedulePaymentDialog({
                           <FormLabel>Remind Me (Days Before)</FormLabel>
                           <div className="grid grid-cols-3 gap-2">
                             {reminderDays.map(day => (
-                              <div key={day} className="flex items-center space-x-2">
+                              <div
+                                key={day}
+                                className="flex items-center space-x-2"
+                              >
                                 <Checkbox
                                   id={`reminder-${day}`}
                                   checked={field.value?.includes(day)}
                                   onCheckedChange={checked => {
                                     const current = field.value || []
                                     if (checked) {
-                                      field.onChange([...current, day].sort((a, b) => b - a))
+                                      field.onChange(
+                                        [...current, day].sort((a, b) => b - a)
+                                      )
                                     } else {
-                                      field.onChange(current.filter(d => d !== day))
+                                      field.onChange(
+                                        current.filter(d => d !== day)
+                                      )
                                     }
                                   }}
                                 />
@@ -289,7 +328,9 @@ export function SchedulePaymentDialog({
                                   htmlFor={`reminder-${day}`}
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                                 >
-                                  {day === 0 ? 'On day' : `${day} day${day !== 1 ? 's' : ''}`}
+                                  {day === 0
+                                    ? 'On day'
+                                    : `${day} day${day !== 1 ? 's' : ''}`}
                                 </label>
                               </div>
                             ))}
@@ -316,7 +357,10 @@ export function SchedulePaymentDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -336,7 +380,9 @@ export function SchedulePaymentDialog({
                               min="1"
                               max="5"
                               {...field}
-                              onChange={e => field.onChange(parseInt(e.target.value) || 1)}
+                              onChange={e =>
+                                field.onChange(parseInt(e.target.value) || 1)
+                              }
                               value={field.value || 1}
                             />
                           </FormControl>
@@ -353,10 +399,16 @@ export function SchedulePaymentDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit">{payment ? 'Update' : 'Schedule'} Payment</Button>
+              <Button type="submit">
+                {payment ? 'Update' : 'Schedule'} Payment
+              </Button>
             </DialogFooter>
           </form>
         </Form>

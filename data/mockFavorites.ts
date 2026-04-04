@@ -7,7 +7,8 @@ export const mockFavorites: Favorite[] = [
     propertyId: '1',
     propertyName: 'Green Valley Mess',
     propertyType: 'mess',
-    propertyImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+    propertyImage:
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
     propertyRent: 3500,
     propertyArea: 'Mirpur-10',
     propertyCity: 'Dhaka',
@@ -20,7 +21,8 @@ export const mockFavorites: Favorite[] = [
     propertyId: '2',
     propertyName: 'Sunshine Apartment',
     propertyType: 'apartment',
-    propertyImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
+    propertyImage:
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
     propertyRent: 15000,
     propertyArea: 'Uttara',
     propertyCity: 'Dhaka',
@@ -32,7 +34,8 @@ export const mockFavorites: Favorite[] = [
     propertyId: '7',
     propertyName: 'Family Apartment',
     propertyType: 'apartment',
-    propertyImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
+    propertyImage:
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
     propertyRent: 12000,
     propertyArea: 'Gulshan',
     propertyCity: 'Dhaka',
@@ -46,8 +49,13 @@ export function getFavoritesByUserId(userId: string): Favorite[] {
   return mockFavorites.filter(fav => fav.userId === userId)
 }
 
-export function isPropertyFavorite(userId: string, propertyId: string): boolean {
-  return mockFavorites.some(fav => fav.userId === userId && fav.propertyId === propertyId)
+export function isPropertyFavorite(
+  userId: string,
+  propertyId: string
+): boolean {
+  return mockFavorites.some(
+    fav => fav.userId === userId && fav.propertyId === propertyId
+  )
 }
 
 export function getFavoriteById(id: string): Favorite | undefined {

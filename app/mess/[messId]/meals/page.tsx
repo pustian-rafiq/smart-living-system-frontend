@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,16 +34,26 @@ export default function MealManagementPage() {
 
   const mess = mockMess.find(m => m.id === messId)
   const [dailyMenus, setDailyMenus] = useState(getDailyMenusByMess(messId))
-  const [weeklySchedule, setWeeklySchedule] = useState(getWeeklyScheduleByMess(messId))
+  const [weeklySchedule, setWeeklySchedule] = useState(
+    getWeeklyScheduleByMess(messId)
+  )
   const [mealTiming, setMealTiming] = useState(getMealTimingByMess(messId))
   const [isDailyMenuDialogOpen, setIsDailyMenuDialogOpen] = useState(false)
-  const [isWeeklyScheduleDialogOpen, setIsWeeklyScheduleDialogOpen] = useState(false)
+  const [isWeeklyScheduleDialogOpen, setIsWeeklyScheduleDialogOpen] =
+    useState(false)
   const [isMealTimingDialogOpen, setIsMealTimingDialogOpen] = useState(false)
   const [editingMenu, setEditingMenu] = useState<DailyMenu | null>(null)
-  const [editingSchedule, setEditingSchedule] = useState<WeeklySchedule | null>(null)
+  const [editingSchedule, setEditingSchedule] = useState<WeeklySchedule | null>(
+    null
+  )
+
+  useEffect(() => {
+    if (role !== 'owner') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
 
   if (role !== 'owner') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -146,7 +156,9 @@ export default function MealManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No menu set for today</p>
+                  <p className="text-muted-foreground mb-4">
+                    No menu set for today
+                  </p>
                   <Button onClick={() => setIsDailyMenuDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Today's Menu
@@ -181,7 +193,9 @@ export default function MealManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No daily menus created yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    No daily menus created yet
+                  </p>
                   <Button onClick={() => setIsDailyMenuDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Daily Menu
@@ -199,8 +213,8 @@ export default function MealManagementPage() {
                   <div>
                     <h3 className="font-semibold">Active Weekly Schedule</h3>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(weeklySchedule.weekStartDate), 'MMM dd')} -{' '}
-                      {format(new Date(weeklySchedule.weekEndDate), 'MMM dd')}
+                      {format(new Date(weeklySchedule.weekStartDate), 'MMM dd')}{' '}
+                      - {format(new Date(weeklySchedule.weekEndDate), 'MMM dd')}
                     </p>
                   </div>
                   <Button
@@ -213,13 +227,18 @@ export default function MealManagementPage() {
                     Edit Schedule
                   </Button>
                 </div>
-                <WeeklyMenuView schedule={weeklySchedule} mealTiming={mealTiming} />
+                <WeeklyMenuView
+                  schedule={weeklySchedule}
+                  mealTiming={mealTiming}
+                />
               </div>
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No weekly schedule set</p>
+                  <p className="text-muted-foreground mb-4">
+                    No weekly schedule set
+                  </p>
                   <Button onClick={() => setIsWeeklyScheduleDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Weekly Schedule
@@ -235,7 +254,7 @@ export default function MealManagementPage() {
           menu={editingMenu}
           messId={messId}
           open={isDailyMenuDialogOpen}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setIsDailyMenuDialogOpen(open)
             if (!open) setEditingMenu(null)
           }}
@@ -245,7 +264,7 @@ export default function MealManagementPage() {
           schedule={editingSchedule}
           messId={messId}
           open={isWeeklyScheduleDialogOpen}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setIsWeeklyScheduleDialogOpen(open)
             if (!open) setEditingSchedule(null)
           }}

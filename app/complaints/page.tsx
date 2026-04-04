@@ -5,7 +5,13 @@ import { Layout } from '@/components/layout/Layout'
 import { ComplaintCard } from '@/components/complaint/ComplaintCard'
 import { ComplaintForm } from '@/components/complaint/ComplaintForm'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Filter, Plus } from 'lucide-react'
 import { mockComplaints } from '@/data/mockComplaints'
 import type { Complaint, ComplaintStatus } from '@/types/complaint'
@@ -13,7 +19,9 @@ import { getStoredRole } from '@/utils/auth'
 
 export default function ComplaintsPage() {
   const [complaints, setComplaints] = useState(mockComplaints)
-  const [statusFilter, setStatusFilter] = useState<ComplaintStatus | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<ComplaintStatus | 'all'>(
+    'all'
+  )
   const [showForm, setShowForm] = useState(false)
 
   // Get user role (in real app, get from auth context)
@@ -101,7 +109,9 @@ export default function ComplaintsPage() {
           </div>
           <Select
             value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as ComplaintStatus | 'all')}
+            onValueChange={value =>
+              setStatusFilter(value as ComplaintStatus | 'all')
+            }
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue />
@@ -112,7 +122,9 @@ export default function ComplaintsPage() {
               <SelectItem value="in_progress">
                 In Progress ({statusCounts.in_progress})
               </SelectItem>
-              <SelectItem value="resolved">Resolved ({statusCounts.resolved})</SelectItem>
+              <SelectItem value="resolved">
+                Resolved ({statusCounts.resolved})
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -139,7 +151,7 @@ export default function ComplaintsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {filteredComplaints.map((complaint) => (
+            {filteredComplaints.map(complaint => (
               <ComplaintCard key={complaint.id} complaint={complaint} />
             ))}
           </div>

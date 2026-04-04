@@ -14,7 +14,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { MessageBubble } from '@/components/chat/MessageBubble'
-import { Send, Paperclip, Image as ImageIcon, X, Phone, MapPin } from 'lucide-react'
+import {
+  Send,
+  Paperclip,
+  Image as ImageIcon,
+  X,
+  Phone,
+  MapPin,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import Image from 'next/image'
 import type { Chat, ChatMessage, ChatUser } from '@/types/chat'
@@ -55,23 +62,26 @@ export function ChatWindow({
     return (
       <Card className="h-full flex items-center justify-center">
         <CardContent className="text-center">
-          <p className="text-muted-foreground">Select a chat to start messaging</p>
+          <p className="text-muted-foreground">
+            Select a chat to start messaging
+          </p>
         </CardContent>
       </Card>
     )
   }
 
-  const otherUser = chat.participant1Id === currentUserId
-    ? {
-        id: chat.participant2Id,
-        name: chat.participant2Name,
-        avatar: chat.participant2Avatar,
-      }
-    : {
-        id: chat.participant1Id,
-        name: chat.participant1Name,
-        avatar: chat.participant1Avatar,
-      }
+  const otherUser =
+    chat.participant1Id === currentUserId
+      ? {
+          id: chat.participant2Id,
+          name: chat.participant2Name,
+          avatar: chat.participant2Avatar,
+        }
+      : {
+          id: chat.participant1Id,
+          name: chat.participant1Name,
+          avatar: chat.participant1Avatar,
+        }
 
   const handleSend = () => {
     if (messageText.trim()) {
@@ -92,7 +102,7 @@ export function ChatWindow({
     if (file) {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader()
-        reader.onload = (event) => {
+        reader.onload = event => {
           setImagePreview(event.target?.result as string)
           setShowImagePreview(true)
           setSelectedFile(file)
@@ -130,14 +140,17 @@ export function ChatWindow({
   }
 
   // Group messages by date
-  const groupedMessages = messages.reduce((groups, message) => {
-    const date = format(new Date(message.timestamp), 'yyyy-MM-dd')
-    if (!groups[date]) {
-      groups[date] = []
-    }
-    groups[date].push(message)
-    return groups
-  }, {} as Record<string, ChatMessage[]>)
+  const groupedMessages = messages.reduce(
+    (groups, message) => {
+      const date = format(new Date(message.timestamp), 'yyyy-MM-dd')
+      if (!groups[date]) {
+        groups[date] = []
+      }
+      groups[date].push(message)
+      return groups
+    },
+    {} as Record<string, ChatMessage[]>
+  )
 
   const formatDateHeader = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -343,7 +356,7 @@ export function ChatWindow({
           {/* Message Input */}
           <Textarea
             value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
+            onChange={e => setMessageText(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Type a message..."
             className="min-h-[60px] max-h-[120px] resize-none"

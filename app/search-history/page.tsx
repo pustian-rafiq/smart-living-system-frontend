@@ -37,7 +37,10 @@ export default function SearchHistoryPage() {
   const handleSearch = (historyItem: SearchHistory) => {
     // Navigate to search page with filters
     const params = new URLSearchParams()
-    if (historyItem.filters.propertyType && historyItem.filters.propertyType !== 'all') {
+    if (
+      historyItem.filters.propertyType &&
+      historyItem.filters.propertyType !== 'all'
+    ) {
       params.set('type', historyItem.filters.propertyType)
     }
     if (historyItem.filters.city) {
@@ -58,7 +61,9 @@ export default function SearchHistoryPage() {
 
   const handleRemove = (id: string) => {
     // In real app, this would call an API
-    const index = getSearchHistoryByUserId(currentUserId).findIndex(h => h.id === id)
+    const index = getSearchHistoryByUserId(currentUserId).findIndex(
+      h => h.id === id
+    )
     if (index > -1) {
       // Remove from mock data
       const allHistory = getSearchHistoryByUserId(currentUserId)
@@ -80,7 +85,8 @@ export default function SearchHistoryPage() {
             <div>
               <h1 className="text-2xl font-bold sm:text-3xl">Search History</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {history.length} {history.length === 1 ? 'search' : 'searches'} in history
+                {history.length} {history.length === 1 ? 'search' : 'searches'}{' '}
+                in history
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -120,7 +126,7 @@ export default function SearchHistoryPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {history.map((historyItem) => (
+            {history.map(historyItem => (
               <SearchHistoryItem
                 key={historyItem.id}
                 history={historyItem}
@@ -137,12 +143,16 @@ export default function SearchHistoryPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>Clear Search History?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete all your search history. This action cannot be undone.
+                This will permanently delete all your search history. This
+                action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleClearAll} className="bg-destructive text-destructive-foreground">
+              <AlertDialogAction
+                onClick={handleClearAll}
+                className="bg-destructive text-destructive-foreground"
+              >
                 Clear All
               </AlertDialogAction>
             </AlertDialogFooter>

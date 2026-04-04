@@ -15,7 +15,7 @@ export const Footer = () => {
               About
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Smart Living Ecosystem is a platform connecting renters and property
+              Smart Living System is a platform connecting renters and property
               owners in Bangladesh.
             </p>
           </div>
@@ -102,7 +102,7 @@ export const Footer = () => {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800">
           <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            © {currentYear} Smart Living Ecosystem. All rights reserved.
+            © {currentYear} Smart Living System. All rights reserved.
           </p>
         </div>
       </div>

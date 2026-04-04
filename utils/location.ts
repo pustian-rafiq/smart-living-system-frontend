@@ -28,15 +28,18 @@ function toRad(degrees: number): number {
 /**
  * Get user's current location
  */
-export async function getCurrentLocation(): Promise<{ lat: number; lng: number } | null> {
-  return new Promise((resolve) => {
+export async function getCurrentLocation(): Promise<{
+  lat: number
+  lng: number
+} | null> {
+  return new Promise(resolve => {
     if (!navigator.geolocation) {
       resolve(null)
       return
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      position => {
         resolve({
           lat: position.coords.latitude,
           lng: position.coords.longitude,

@@ -23,7 +23,13 @@ import {
   FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { FileText, Download } from 'lucide-react'
 import type { ReportFormat, ReportType } from '@/types/report'
@@ -34,7 +40,9 @@ const reportGeneratorSchema = z.object({
   endDate: z.string().min(1, 'End date is required'),
   format: z.enum(['pdf', 'excel', 'csv']),
   taxYear: z.number().optional(),
-  documentType: z.enum(['rent_receipt', 'expense_summary', 'tax_certificate']).optional(),
+  documentType: z
+    .enum(['rent_receipt', 'expense_summary', 'tax_certificate'])
+    .optional(),
 })
 
 interface ReportGeneratorDialogProps {
@@ -97,7 +105,10 @@ export function ReportGeneratorDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <div className="space-y-4">
               {/* Report Type */}
               <FormField
@@ -114,19 +125,33 @@ export function ReportGeneratorDialog({
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="expense" id="expense" />
-                          <label htmlFor="expense" className="cursor-pointer">Expense Report</label>
+                          <label htmlFor="expense" className="cursor-pointer">
+                            Expense Report
+                          </label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="payment" id="payment" />
-                          <label htmlFor="payment" className="cursor-pointer">Payment Report</label>
+                          <label htmlFor="payment" className="cursor-pointer">
+                            Payment Report
+                          </label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="tax" id="tax" />
-                          <label htmlFor="tax" className="cursor-pointer">Tax Document</label>
+                          <label htmlFor="tax" className="cursor-pointer">
+                            Tax Document
+                          </label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="comprehensive" id="comprehensive" />
-                          <label htmlFor="comprehensive" className="cursor-pointer">Comprehensive</label>
+                          <RadioGroupItem
+                            value="comprehensive"
+                            id="comprehensive"
+                          />
+                          <label
+                            htmlFor="comprehensive"
+                            className="cursor-pointer"
+                          >
+                            Comprehensive
+                          </label>
                         </div>
                       </RadioGroup>
                     </FormControl>
@@ -147,7 +172,11 @@ export function ReportGeneratorDialog({
                         <Input
                           type="number"
                           {...field}
-                          onChange={e => field.onChange(parseInt(e.target.value) || currentYear)}
+                          onChange={e =>
+                            field.onChange(
+                              parseInt(e.target.value) || currentYear
+                            )
+                          }
                           value={field.value || currentYear}
                         />
                       </FormControl>
@@ -165,16 +194,25 @@ export function ReportGeneratorDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Document Type</FormLabel>
-                      <Select value={field.value || 'rent_receipt'} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value || 'rent_receipt'}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="rent_receipt">Rent Receipt</SelectItem>
-                          <SelectItem value="expense_summary">Expense Summary</SelectItem>
-                          <SelectItem value="tax_certificate">Tax Certificate</SelectItem>
+                          <SelectItem value="rent_receipt">
+                            Rent Receipt
+                          </SelectItem>
+                          <SelectItem value="expense_summary">
+                            Expense Summary
+                          </SelectItem>
+                          <SelectItem value="tax_certificate">
+                            Tax Certificate
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -242,7 +280,11 @@ export function ReportGeneratorDialog({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">

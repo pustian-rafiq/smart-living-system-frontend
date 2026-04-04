@@ -5,7 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/components/language/LanguageProvider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
 
 export default function OTPVerify() {
@@ -19,7 +25,8 @@ export default function OTPVerify() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Get phone from sessionStorage
-  const phone = typeof window !== 'undefined' ? sessionStorage.getItem('loginPhone') : null
+  const phone =
+    typeof window !== 'undefined' ? sessionStorage.getItem('loginPhone') : null
 
   // Mock OTP for auto-read (in real app, this would come from SMS)
   const mockOtp = '123456'
@@ -47,7 +54,7 @@ export default function OTPVerify() {
   useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => {
-        setTimer((prev) => {
+        setTimer(prev => {
           if (prev <= 1) {
             setCanResend(true)
             return 0
@@ -99,7 +106,10 @@ export default function OTPVerify() {
     setError('')
   }
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus()
     }
@@ -107,9 +117,11 @@ export default function OTPVerify() {
 
   const handleVerify = async () => {
     const otpString = otp.join('')
-    
+
     if (otpString.length !== 6) {
-      setError(language === 'bn' ? 'সম্পূর্ণ OTP লিখুন' : 'Please enter complete OTP')
+      setError(
+        language === 'bn' ? 'সম্পূর্ণ OTP লিখুন' : 'Please enter complete OTP'
+      )
       return
     }
 
@@ -160,100 +172,92 @@ export default function OTPVerify() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-[480px]">
-          {/* Language Toggle */}
-          <div className="flex justify-end mb-4">
-            <Button onClick={toggleLang} variant="outline" size="sm">
-              {language === 'bn' ? 'English' : 'বাংলা'}
-            </Button>
-          </div>
-
-          {/* OTP Card */}
-          <Card className="w-full">
-            <CardHeader>
-              {/* Back Button */}
-              <Button
-                onClick={() => router.back()}
-                variant="ghost"
-                size="sm"
-                className="mb-2 -ml-2"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t.common.back}
-              </Button>
-              <CardTitle className="text-2xl sm:text-3xl text-center">
-                {t.otp.title}
-              </CardTitle>
-              <CardDescription className="text-center">
-                {t.otp.subtitle}
-              </CardDescription>
-              <p className="text-sm font-medium text-primary text-center">
-                {displayPhone}
-              </p>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              {/* OTP Inputs */}
-              <div className="space-y-4">
-                <div className="flex justify-center gap-2 sm:gap-3">
-                  {otp.map((digit, index) => (
-                    <Input
-                      key={index}
-                      ref={(el) => (inputRefs.current[index] = el)}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-bold"
-                    />
-                  ))}
-                </div>
-                {error && (
-                  <p className="text-sm text-center text-destructive">
-                    {error}
-                  </p>
-                )}
-              </div>
-
-              {/* Verify Button */}
-              <Button
-                onClick={handleVerify}
-                disabled={loading || otp.join('').length !== 6}
-                className="w-full h-12 sm:h-14 text-base sm:text-lg"
-                size="lg"
-              >
-                {loading ? t.common.loading : t.otp.verify}
-              </Button>
-
-              {/* Resend OTP */}
-              <div className="text-center space-y-2">
-                {!canResend ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t.otp.resendIn} {timer} {t.otp.seconds}
-                  </p>
-                ) : (
-                  <Button
-                    onClick={handleResend}
-                    variant="link"
-                    size="sm"
-                  >
-                    {t.otp.resend}
-                  </Button>
-                )}
-                <div className="pt-2">
-                  <Button
-                    onClick={handleChangeNumber}
-                    variant="ghost"
-                    size="sm"
-                  >
-                    {t.otp.changeNumber}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Language Toggle */}
+        <div className="flex justify-end mb-4">
+          <Button onClick={toggleLang} variant="outline" size="sm">
+            {language === 'bn' ? 'English' : 'বাংলা'}
+          </Button>
         </div>
+
+        {/* OTP Card */}
+        <Card className="w-full">
+          <CardHeader>
+            {/* Back Button */}
+            <Button
+              onClick={() => router.back()}
+              variant="ghost"
+              size="sm"
+              className="mb-2 -ml-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t.common.back}
+            </Button>
+            <CardTitle className="text-2xl sm:text-3xl text-center">
+              {t.otp.title}
+            </CardTitle>
+            <CardDescription className="text-center">
+              {t.otp.subtitle}
+            </CardDescription>
+            <p className="text-sm font-medium text-primary text-center">
+              {displayPhone}
+            </p>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* OTP Inputs */}
+            <div className="space-y-4">
+              <div className="flex justify-center gap-2 sm:gap-3">
+                {otp.map((digit, index) => (
+                  <Input
+                    key={index}
+                    ref={el => {
+                      inputRefs.current[index] = el
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={e => handleOtpChange(index, e.target.value)}
+                    onKeyDown={e => handleKeyDown(index, e)}
+                    className="w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-bold"
+                  />
+                ))}
+              </div>
+              {error && (
+                <p className="text-sm text-center text-destructive">{error}</p>
+              )}
+            </div>
+
+            {/* Verify Button */}
+            <Button
+              onClick={handleVerify}
+              disabled={loading || otp.join('').length !== 6}
+              className="w-full h-12 sm:h-14 text-base sm:text-lg"
+              size="lg"
+            >
+              {loading ? t.common.loading : t.otp.verify}
+            </Button>
+
+            {/* Resend OTP */}
+            <div className="text-center space-y-2">
+              {!canResend ? (
+                <p className="text-sm text-muted-foreground">
+                  {t.otp.resendIn} {timer} {t.otp.seconds}
+                </p>
+              ) : (
+                <Button onClick={handleResend} variant="link" size="sm">
+                  {t.otp.resend}
+                </Button>
+              )}
+              <div className="pt-2">
+                <Button onClick={handleChangeNumber} variant="ghost" size="sm">
+                  {t.otp.changeNumber}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

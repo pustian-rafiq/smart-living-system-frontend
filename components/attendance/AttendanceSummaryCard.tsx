@@ -25,7 +25,9 @@ export function AttendanceSummaryCard({ summary }: AttendanceSummaryCardProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Attendance Rate</span>
-            <span className="font-semibold">{summary.attendanceRate.toFixed(1)}%</span>
+            <span className="font-semibold">
+              {summary.attendanceRate.toFixed(1)}%
+            </span>
           </div>
           <Progress value={summary.attendanceRate} className="h-2" />
         </div>
@@ -70,8 +72,12 @@ export function AttendanceSummaryCard({ summary }: AttendanceSummaryCardProps) {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Meal Attendance Rate</span>
-              <span className="font-semibold">{summary.mealAttendanceRate.toFixed(1)}%</span>
+              <span className="text-muted-foreground">
+                Meal Attendance Rate
+              </span>
+              <span className="font-semibold">
+                {summary.mealAttendanceRate.toFixed(1)}%
+              </span>
             </div>
             <Progress value={summary.mealAttendanceRate} className="h-2" />
             <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">

@@ -72,7 +72,9 @@ export function VerificationRequestCard({
           {request.documentNumber && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Number:</span>
-              <span className="font-mono text-xs">{request.documentNumber}</span>
+              <span className="font-mono text-xs">
+                {request.documentNumber}
+              </span>
             </div>
           )}
           <div className="flex justify-between">
@@ -82,12 +84,16 @@ export function VerificationRequestCard({
           {request.reviewedAt && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Reviewed:</span>
-              <span>{format(new Date(request.reviewedAt), 'MMM dd, yyyy')}</span>
+              <span>
+                {format(new Date(request.reviewedAt), 'MMM dd, yyyy')}
+              </span>
             </div>
           )}
           {request.rejectionReason && (
             <div className="mt-2 rounded bg-red-50 p-2">
-              <p className="text-xs font-semibold text-red-800">Rejection Reason:</p>
+              <p className="text-xs font-semibold text-red-800">
+                Rejection Reason:
+              </p>
               <p className="text-xs text-red-700">{request.rejectionReason}</p>
             </div>
           )}
@@ -106,7 +112,8 @@ export function VerificationRequestCard({
                 <DialogHeader>
                   <DialogTitle>Verification Document</DialogTitle>
                   <DialogDescription>
-                    {request.documentType?.toUpperCase()} - {request.documentNumber}
+                    {request.documentType?.toUpperCase()} -{' '}
+                    {request.documentNumber}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="relative h-[500px] w-full">

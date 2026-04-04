@@ -6,11 +6,26 @@ import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, Phone, Mail, Star, Verified, Wifi, Car, Utensils, Dumbbell, Waves } from 'lucide-react'
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Star,
+  Verified,
+  Wifi,
+  Car,
+  Utensils,
+  Dumbbell,
+  Waves,
+} from 'lucide-react'
 import { RatingDisplay } from '@/components/hotel/RatingDisplay'
 import { ReviewCard } from '@/components/hotel/ReviewCard'
 import { RoomCard } from '@/components/hotel/RoomCard'
-import { mockHotels, getRoomsByHotelId, getReviewsByHotelId } from '@/data/mockHotels'
+import {
+  mockHotels,
+  getRoomsByHotelId,
+  getReviewsByHotelId,
+} from '@/data/mockHotels'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -39,8 +54,14 @@ export default function HotelDetailPage() {
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-lg font-semibold text-muted-foreground">Hotel not found</p>
-              <Button variant="outline" onClick={() => router.push('/hotels')} className="mt-4">
+              <p className="text-lg font-semibold text-muted-foreground">
+                Hotel not found
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/hotels')}
+                className="mt-4"
+              >
                 Back to Hotels
               </Button>
             </CardContent>
@@ -123,7 +144,9 @@ export default function HotelDetailPage() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
-                        <span>{hotel.area}, {hotel.city}</span>
+                        <span>
+                          {hotel.area}, {hotel.city}
+                        </span>
                       </div>
                       {hotel.starRating && (
                         <div className="flex items-center gap-1">
@@ -150,8 +173,13 @@ export default function HotelDetailPage() {
                   <h3 className="mb-3 font-semibold">Amenities</h3>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {hotel.amenities.map((amenity, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
-                        {amenityIcons[amenity] || <span className="h-4 w-4">•</span>}
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        {amenityIcons[amenity] || (
+                          <span className="h-4 w-4">•</span>
+                        )}
                         <span>{amenity}</span>
                       </div>
                     ))}
@@ -167,11 +195,15 @@ export default function HotelDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {rooms.filter(r => r.available).map(room => (
-                    <RoomCard key={room.id} room={room} />
-                  ))}
+                  {rooms
+                    .filter(r => r.available)
+                    .map(room => (
+                      <RoomCard key={room.id} room={room} />
+                    ))}
                   {rooms.filter(r => r.available).length === 0 && (
-                    <p className="text-center text-muted-foreground">No rooms available</p>
+                    <p className="text-center text-muted-foreground">
+                      No rooms available
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -188,7 +220,9 @@ export default function HotelDetailPage() {
                     <ReviewCard key={review.id} review={review} />
                   ))}
                   {reviews.length === 0 && (
-                    <p className="text-center text-muted-foreground">No reviews yet</p>
+                    <p className="text-center text-muted-foreground">
+                      No reviews yet
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -222,7 +256,9 @@ export default function HotelDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Minimum Stay:</span>
-                    <span className="font-medium">{hotel.minimumStay} night(s)</span>
+                    <span className="font-medium">
+                      {hotel.minimumStay} night(s)
+                    </span>
                   </div>
                 </div>
 
@@ -235,14 +271,20 @@ export default function HotelDetailPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <a href={`tel:${hotel.ownerPhone}`} className="text-primary hover:underline">
+                      <a
+                        href={`tel:${hotel.ownerPhone}`}
+                        className="text-primary hover:underline"
+                      >
                         {hotel.ownerPhone}
                       </a>
                     </div>
                     {hotel.ownerEmail && (
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <a href={`mailto:${hotel.ownerEmail}`} className="text-primary hover:underline">
+                        <a
+                          href={`mailto:${hotel.ownerEmail}`}
+                          className="text-primary hover:underline"
+                        >
                           {hotel.ownerEmail}
                         </a>
                       </div>

@@ -1,13 +1,21 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { Shield, CheckCircle2, FileCheck, Lock, Award, Users } from 'lucide-react'
+import {
+  Shield,
+  CheckCircle2,
+  FileCheck,
+  Lock,
+  Award,
+  Users,
+} from 'lucide-react'
 
 const trustFeatures = [
   {
     icon: <Shield className="h-6 w-6" />,
     title: 'Verified Listings',
-    description: 'All properties verified with NID, documents, and background checks.',
+    description:
+      'All properties verified with NID, documents, and background checks.',
   },
   {
     icon: <FileCheck className="h-6 w-6" />,
@@ -17,12 +25,14 @@ const trustFeatures = [
   {
     icon: <Lock className="h-6 w-6" />,
     title: 'Secure Payments',
-    description: 'Encrypted payment processing with bKash, Nagad, and Rocket integration.',
+    description:
+      'Encrypted payment processing with bKash, Nagad, and Rocket integration.',
   },
   {
     icon: <Award className="h-6 w-6" />,
     title: 'Trust Badge System',
-    description: 'Earn trust badges for verified properties and reliable owners.',
+    description:
+      'Earn trust badges for verified properties and reliable owners.',
   },
   {
     icon: <Users className="h-6 w-6" />,
@@ -50,7 +60,8 @@ export function TrustSection() {
             Your Safety is Our Priority
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            We verify every listing, owner, and transaction to ensure a safe and secure experience.
+            We verify every listing, owner, and transaction to ensure a safe and
+            secure experience.
           </p>
         </div>
 
@@ -66,7 +77,9 @@ export function TrustSection() {
                   {feature.icon}
                 </div>
                 <h3 className="mb-2 text-lg font-bold">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {feature.description}
+                </p>
               </CardContent>
             </Card>
           ))}

@@ -22,7 +22,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { MealPreference, MealCategory } from '@/types/meal'
 
@@ -104,17 +110,25 @@ export function MealPreferenceDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {fields.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <p>No preferences set yet</p>
-                    <p className="text-sm mt-1">Add preferences for each meal category</p>
+                    <p className="text-sm mt-1">
+                      Add preferences for each meal category
+                    </p>
                   </div>
                 ) : (
                   fields.map((field, index) => (
-                    <div key={field.id} className="rounded-lg border p-4 space-y-3">
+                    <div
+                      key={field.id}
+                      className="rounded-lg border p-4 space-y-3"
+                    >
                       <div className="flex items-center justify-between">
                         <FormField
                           control={form.control}
@@ -122,7 +136,10 @@ export function MealPreferenceDialog({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Category</FormLabel>
-                              <Select value={field.value} onValueChange={field.onChange}>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
                                 <FormControl>
                                   <SelectTrigger className="w-[150px]">
                                     <SelectValue />
@@ -130,7 +147,10 @@ export function MealPreferenceDialog({
                                 </FormControl>
                                 <SelectContent>
                                   {categories.map(cat => (
-                                    <SelectItem key={cat.value} value={cat.value}>
+                                    <SelectItem
+                                      key={cat.value}
+                                      value={cat.value}
+                                    >
                                       {cat.label}
                                     </SelectItem>
                                   ))}
@@ -162,7 +182,10 @@ export function MealPreferenceDialog({
                                 value={field.value.join(', ')}
                                 onChange={e =>
                                   field.onChange(
-                                    e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                    e.target.value
+                                      .split(',')
+                                      .map(s => s.trim())
+                                      .filter(Boolean)
                                   )
                                 }
                               />
@@ -176,7 +199,9 @@ export function MealPreferenceDialog({
                         name={`preferences.${index}.dislikedItems`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Disliked Items (comma-separated)</FormLabel>
+                            <FormLabel>
+                              Disliked Items (comma-separated)
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="e.g., Fish, Egg"
@@ -184,7 +209,10 @@ export function MealPreferenceDialog({
                                 value={field.value.join(', ')}
                                 onChange={e =>
                                   field.onChange(
-                                    e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                    e.target.value
+                                      .split(',')
+                                      .map(s => s.trim())
+                                      .filter(Boolean)
                                   )
                                 }
                               />
@@ -206,7 +234,10 @@ export function MealPreferenceDialog({
                                 value={field.value?.join(', ') || ''}
                                 onChange={e =>
                                   field.onChange(
-                                    e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                    e.target.value
+                                      .split(',')
+                                      .map(s => s.trim())
+                                      .filter(Boolean)
                                   )
                                 }
                               />
@@ -220,7 +251,9 @@ export function MealPreferenceDialog({
                         name={`preferences.${index}.dietaryRestrictions`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Dietary Restrictions (comma-separated)</FormLabel>
+                            <FormLabel>
+                              Dietary Restrictions (comma-separated)
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="e.g., Vegetarian, Halal only"
@@ -228,7 +261,10 @@ export function MealPreferenceDialog({
                                 value={field.value?.join(', ') || ''}
                                 onChange={e =>
                                   field.onChange(
-                                    e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                                    e.target.value
+                                      .split(',')
+                                      .map(s => s.trim())
+                                      .filter(Boolean)
                                   )
                                 }
                               />
@@ -259,7 +295,11 @@ export function MealPreferenceDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">Save Preferences</Button>

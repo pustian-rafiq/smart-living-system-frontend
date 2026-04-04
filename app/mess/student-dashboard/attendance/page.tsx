@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -37,8 +37,13 @@ export default function StudentAttendancePage() {
     return getAttendanceSummary(student.id, mess.id, monthStart, monthEnd)
   }, [student, mess, monthStart, monthEnd])
 
+  useEffect(() => {
+    if (role !== 'renter') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
+
   if (role !== 'renter') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -91,7 +96,10 @@ export default function StudentAttendancePage() {
 
           {/* Records Tab */}
           <TabsContent value="records" className="space-y-4">
-            <AttendanceTable records={attendanceRecords} showStudentName={false} />
+            <AttendanceTable
+              records={attendanceRecords}
+              showStudentName={false}
+            />
           </TabsContent>
         </Tabs>
       </div>

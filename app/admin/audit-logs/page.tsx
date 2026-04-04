@@ -2,11 +2,23 @@
 
 import { useState, useMemo } from 'react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AuditLogTable } from '@/components/audit/AuditLogTable'
 import { AuditLogCard } from '@/components/audit/AuditLogCard'
@@ -18,9 +30,15 @@ import { Download, Filter, X } from 'lucide-react'
 
 export default function AuditLogsPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedAction, setSelectedAction] = useState<AuditAction | 'all'>('all')
-  const [selectedEntityType, setSelectedEntityType] = useState<AuditEntityType | 'all'>('all')
-  const [selectedUserRole, setSelectedUserRole] = useState<'renter' | 'owner' | 'admin' | 'all'>('all')
+  const [selectedAction, setSelectedAction] = useState<AuditAction | 'all'>(
+    'all'
+  )
+  const [selectedEntityType, setSelectedEntityType] = useState<
+    AuditEntityType | 'all'
+  >('all')
+  const [selectedUserRole, setSelectedUserRole] = useState<
+    'renter' | 'owner' | 'admin' | 'all'
+  >('all')
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
@@ -32,7 +50,8 @@ export default function AuditLogsPage() {
     return getAuditLogs({
       search: searchQuery || undefined,
       action: selectedAction !== 'all' ? [selectedAction] : undefined,
-      entityType: selectedEntityType !== 'all' ? [selectedEntityType] : undefined,
+      entityType:
+        selectedEntityType !== 'all' ? [selectedEntityType] : undefined,
       userRole: selectedUserRole !== 'all' ? selectedUserRole : undefined,
     })
   }, [searchQuery, selectedAction, selectedEntityType, selectedUserRole])
@@ -88,7 +107,9 @@ export default function AuditLogsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg">Filters</CardTitle>
-                <CardDescription>Filter audit logs by various criteria</CardDescription>
+                <CardDescription>
+                  Filter audit logs by various criteria
+                </CardDescription>
               </div>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -111,7 +132,12 @@ export default function AuditLogsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="action">Action</Label>
-                <Select value={selectedAction} onValueChange={v => setSelectedAction(v as AuditAction | 'all')}>
+                <Select
+                  value={selectedAction}
+                  onValueChange={v =>
+                    setSelectedAction(v as AuditAction | 'all')
+                  }
+                >
                   <SelectTrigger id="action">
                     <SelectValue />
                   </SelectTrigger>
@@ -133,7 +159,9 @@ export default function AuditLogsPage() {
                 <Label htmlFor="entityType">Entity Type</Label>
                 <Select
                   value={selectedEntityType}
-                  onValueChange={v => setSelectedEntityType(v as AuditEntityType | 'all')}
+                  onValueChange={v =>
+                    setSelectedEntityType(v as AuditEntityType | 'all')
+                  }
                 >
                   <SelectTrigger id="entityType">
                     <SelectValue />
@@ -160,7 +188,11 @@ export default function AuditLogsPage() {
                 <Label htmlFor="userRole">User Role</Label>
                 <Select
                   value={selectedUserRole}
-                  onValueChange={v => setSelectedUserRole(v as 'renter' | 'owner' | 'admin' | 'all')}
+                  onValueChange={v =>
+                    setSelectedUserRole(
+                      v as 'renter' | 'owner' | 'admin' | 'all'
+                    )
+                  }
                 >
                   <SelectTrigger id="userRole">
                     <SelectValue />
@@ -186,11 +218,15 @@ export default function AuditLogsPage() {
                   Audit Logs ({filteredLogs.length})
                 </CardTitle>
                 <CardDescription>
-                  Showing {filteredLogs.length} log{filteredLogs.length !== 1 ? 's' : ''}
+                  Showing {filteredLogs.length} log
+                  {filteredLogs.length !== 1 ? 's' : ''}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                <Tabs value={viewMode} onValueChange={v => setViewMode(v as 'table' | 'card')}>
+                <Tabs
+                  value={viewMode}
+                  onValueChange={v => setViewMode(v as 'table' | 'card')}
+                >
                   <TabsList>
                     <TabsTrigger value="table">Table</TabsTrigger>
                     <TabsTrigger value="card">Card</TabsTrigger>

@@ -109,9 +109,8 @@ export function getFloorStats(floorId: string): FloorStats | undefined {
     .filter(flat => flat.status === 'occupied')
     .reduce((sum, flat) => sum + flat.rent, 0)
   const pendingRent = totalRent - collectedRent
-  const occupancyRate = floor.totalFlats > 0 
-    ? (floor.occupiedFlats / floor.totalFlats) * 100 
-    : 0
+  const occupancyRate =
+    floor.totalFlats > 0 ? (floor.occupiedFlats / floor.totalFlats) * 100 : 0
 
   return {
     floorId: floor.id,
@@ -127,7 +126,9 @@ export function getFloorStats(floorId: string): FloorStats | undefined {
   }
 }
 
-export function addFloor(floor: Omit<Floor, 'id' | 'createdAt' | 'updatedAt'>): Floor {
+export function addFloor(
+  floor: Omit<Floor, 'id' | 'createdAt' | 'updatedAt'>
+): Floor {
   const newFloor: Floor = {
     ...floor,
     id: `fl${mockFloors.length + 1}`,
@@ -138,7 +139,10 @@ export function addFloor(floor: Omit<Floor, 'id' | 'createdAt' | 'updatedAt'>): 
   return newFloor
 }
 
-export function updateFloor(floorId: string, updates: Partial<Floor>): Floor | undefined {
+export function updateFloor(
+  floorId: string,
+  updates: Partial<Floor>
+): Floor | undefined {
   const index = mockFloors.findIndex(f => f.id === floorId)
   if (index === -1) return undefined
 

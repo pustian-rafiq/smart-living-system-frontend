@@ -18,7 +18,10 @@ interface ProfileSummaryProps {
 
 function VerificationBadge() {
   return (
-    <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+    <Badge
+      variant="outline"
+      className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+    >
       <Check className="h-3.5 w-3.5 mr-1" />
       Verified
     </Badge>
@@ -70,7 +73,9 @@ export function ProfileSummary({
             {profileCompletion !== undefined && (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Profile Completion</span>
+                  <span className="text-muted-foreground">
+                    Profile Completion
+                  </span>
                   <span className="font-medium">{profileCompletion}%</span>
                 </div>
                 <Progress value={profileCompletion} className="h-2" />

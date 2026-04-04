@@ -5,15 +5,36 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Layout } from '@/components/layout/Layout'
 import { CreateNoticeDialog } from '@/components/notice/CreateNoticeDialog'
 import { BulkNoticeDialog } from '@/components/bulk/BulkNoticeDialog'
 import { BulkSMSDialog } from '@/components/bulk/BulkSMSDialog'
 import { EnhancedNoticeBoard } from '@/components/notice/EnhancedNoticeBoard'
-import { Plus, Search, Filter, Trash2, Edit, Eye, CheckCircle2 } from 'lucide-react'
-import { mockMess, mockNotices, addNotice, updateNotice, deleteNotice, acknowledgeNotice } from '@/data/mockMess'
+import {
+  Plus,
+  Search,
+  Filter,
+  Trash2,
+  Edit,
+  Eye,
+  CheckCircle2,
+} from 'lucide-react'
+import {
+  mockMess,
+  mockNotices,
+  addNotice,
+  updateNotice,
+  deleteNotice,
+  acknowledgeNotice,
+} from '@/data/mockMess'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import type { Notice } from '@/types/mess'
@@ -37,7 +58,7 @@ export default function NoticesPage() {
 
   // Filter notices
   const filteredNotices = useMemo(() => {
-    return notices.filter((notice) => {
+    return notices.filter(notice => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
@@ -77,14 +98,21 @@ export default function NoticesPage() {
 
       return true
     })
-  }, [notices, searchQuery, categoryFilter, priorityFilter, statusFilter, selectedMess])
+  }, [
+    notices,
+    searchQuery,
+    categoryFilter,
+    priorityFilter,
+    statusFilter,
+    selectedMess,
+  ])
 
-  const activeNotices = filteredNotices.filter((notice) => {
+  const activeNotices = filteredNotices.filter(notice => {
     if (!notice.expiryDate) return true
     return new Date(notice.expiryDate) >= new Date()
   })
 
-  const expiredNotices = filteredNotices.filter((notice) => {
+  const expiredNotices = filteredNotices.filter(notice => {
     if (!notice.expiryDate) return false
     return new Date(notice.expiryDate) < new Date()
   })
@@ -101,7 +129,9 @@ export default function NoticesPage() {
       category: data.category,
       expiryDate: data.expiryDate ? data.expiryDate.toISOString() : undefined,
       pdfUrl: data.pdfFile ? URL.createObjectURL(data.pdfFile) : undefined,
-      imageUrls: data.imageFiles?.map((file: File) => URL.createObjectURL(file)),
+      imageUrls: data.imageFiles?.map((file: File) =>
+        URL.createObjectURL(file)
+      ),
       createdBy: currentUserId,
       createdAt: new Date().toISOString(),
       acknowledgments: [],
@@ -121,22 +151,24 @@ export default function NoticesPage() {
 
   const handleAcknowledge = (noticeId: string) => {
     acknowledgeNotice(noticeId, currentUserId, 'Current User')
-    setNotices(notices.map(n => {
-      if (n.id === noticeId) {
-        return {
-          ...n,
-          acknowledgments: [
-            ...(n.acknowledgments || []),
-            {
-              userId: currentUserId,
-              userName: 'Current User',
-              acknowledgedAt: new Date().toISOString(),
-            },
-          ],
+    setNotices(
+      notices.map(n => {
+        if (n.id === noticeId) {
+          return {
+            ...n,
+            acknowledgments: [
+              ...(n.acknowledgments || []),
+              {
+                userId: currentUserId,
+                userName: 'Current User',
+                acknowledgedAt: new Date().toISOString(),
+              },
+            ],
+          }
         }
-      }
-      return n
-    }))
+        return n
+      })
+    )
   }
 
   if (role !== 'owner') {
@@ -145,7 +177,9 @@ export default function NoticesPage() {
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">You don't have permission to access this page.</p>
+              <p className="text-muted-foreground">
+                You don't have permission to access this page.
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -168,11 +202,17 @@ export default function NoticesPage() {
               <Plus className="mr-2 h-4 w-4" />
               Create Notice
             </Button>
-            <Button onClick={() => setIsBulkNoticeDialogOpen(true)} variant="outline">
+            <Button
+              onClick={() => setIsBulkNoticeDialogOpen(true)}
+              variant="outline"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Bulk Notice
             </Button>
-            <Button onClick={() => setIsBulkSMSDialogOpen(true)} variant="outline">
+            <Button
+              onClick={() => setIsBulkSMSDialogOpen(true)}
+              variant="outline"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Bulk SMS
             </Button>
@@ -192,7 +232,7 @@ export default function NoticesPage() {
                   <Input
                     placeholder="Search notices..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                     className="pl-9"
                   />
                 </div>
@@ -204,7 +244,7 @@ export default function NoticesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Mess</SelectItem>
-                  {mockMess.map((mess) => (
+                  {mockMess.map(mess => (
                     <SelectItem key={mess.id} value={mess.id}>
                       {mess.name}
                     </SelectItem>
@@ -246,9 +286,15 @@ export default function NoticesPage() {
         {/* Notices List */}
         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
           <TabsList>
-            <TabsTrigger value="all">All ({filteredNotices.length})</TabsTrigger>
-            <TabsTrigger value="active">Active ({activeNotices.length})</TabsTrigger>
-            <TabsTrigger value="expired">Expired ({expiredNotices.length})</TabsTrigger>
+            <TabsTrigger value="all">
+              All ({filteredNotices.length})
+            </TabsTrigger>
+            <TabsTrigger value="active">
+              Active ({activeNotices.length})
+            </TabsTrigger>
+            <TabsTrigger value="expired">
+              Expired ({expiredNotices.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-4">
@@ -286,8 +332,9 @@ export default function NoticesPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {filteredNotices.map((notice) => {
-                const isExpired = notice.expiryDate && new Date(notice.expiryDate) < new Date()
+              {filteredNotices.map(notice => {
+                const isExpired =
+                  notice.expiryDate && new Date(notice.expiryDate) < new Date()
                 const ackCount = notice.acknowledgments?.length || 0
 
                 return (
@@ -299,13 +346,18 @@ export default function NoticesPage() {
                       <div className="flex items-start gap-2 mb-2">
                         <h3 className="font-semibold">{notice.title}</h3>
                         {isExpired && (
-                          <Badge variant="outline" className="bg-red-50 text-red-600">
+                          <Badge
+                            variant="outline"
+                            className="bg-red-50 text-red-600"
+                          >
                             Expired
                           </Badge>
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                        <span>{format(new Date(notice.date), 'MMM dd, yyyy')}</span>
+                        <span>
+                          {format(new Date(notice.date), 'MMM dd, yyyy')}
+                        </span>
                         {notice.category && (
                           <>
                             <span>•</span>
@@ -360,16 +412,18 @@ export default function NoticesPage() {
         <BulkNoticeDialog
           open={isBulkNoticeDialogOpen}
           onOpenChange={setIsBulkNoticeDialogOpen}
-          onSubmit={(data) => {
+          onSubmit={data => {
             // Handle bulk notice sending
-            alert(`Bulk notice sent to ${data.buildingId || data.messId ? 'multiple' : 'all'} recipients`)
+            alert(
+              `Bulk notice sent to ${data.buildingId || data.messId ? 'multiple' : 'all'} recipients`
+            )
             // In a real app, this would send notices to all selected recipients
           }}
         />
         <BulkSMSDialog
           open={isBulkSMSDialogOpen}
           onOpenChange={setIsBulkSMSDialogOpen}
-          onSubmit={(data) => {
+          onSubmit={data => {
             // Handle bulk SMS sending
             alert(`Bulk SMS sent to ${data.recipientType} recipients`)
             // In a real app, this would send SMS to all selected recipients

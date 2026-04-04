@@ -15,21 +15,33 @@ interface AuditLogCardProps {
 }
 
 const actionColors: Record<string, string> = {
-  create: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
-  update: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  delete: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
-  approve: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400',
-  reject: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
-  verify: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
-  unverify: 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
-  payment: 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-400',
-  rollback: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+  create:
+    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+  update:
+    'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+  delete:
+    'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
+  approve:
+    'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400',
+  reject:
+    'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
+  verify:
+    'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
+  unverify:
+    'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
+  payment:
+    'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-400',
+  rollback:
+    'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
 }
 
 const roleColors: Record<string, string> = {
-  admin: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
-  owner: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  renter: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+  admin:
+    'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
+  owner:
+    'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+  renter:
+    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
 }
 
 export function AuditLogCard({
@@ -50,7 +62,10 @@ export function AuditLogCard({
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <Badge
                   variant="outline"
-                  className={actionColors[log.action] || 'bg-gray-50 text-gray-700 border-gray-200'}
+                  className={
+                    actionColors[log.action] ||
+                    'bg-gray-50 text-gray-700 border-gray-200'
+                  }
                 >
                   {log.action.toUpperCase()}
                 </Badge>
@@ -58,7 +73,10 @@ export function AuditLogCard({
                   {log.entityType}
                 </Badge>
                 {log.canRollback && (
-                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400">
+                  <Badge
+                    variant="outline"
+                    className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400"
+                  >
                     Rollback Available
                   </Badge>
                 )}

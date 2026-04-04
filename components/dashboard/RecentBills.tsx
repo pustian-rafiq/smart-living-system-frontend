@@ -14,7 +14,11 @@ interface RecentBillsProps {
   showViewAll?: boolean
 }
 
-export function RecentBills({ bills, limit = 3, showViewAll = true }: RecentBillsProps) {
+export function RecentBills({
+  bills,
+  limit = 3,
+  showViewAll = true,
+}: RecentBillsProps) {
   if (bills.length === 0) return null
 
   const recentBills = bills.slice(0, limit)
@@ -34,8 +38,9 @@ export function RecentBills({ bills, limit = 3, showViewAll = true }: RecentBill
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {recentBills.map((bill) => {
-            const isOverdue = bill.status === 'unpaid' && new Date(bill.dueDate) < new Date()
+          {recentBills.map(bill => {
+            const isOverdue =
+              bill.status === 'unpaid' && new Date(bill.dueDate) < new Date()
             return (
               <div
                 key={bill.id}
@@ -52,11 +57,15 @@ export function RecentBills({ bills, limit = 3, showViewAll = true }: RecentBill
                         bill.status === 'paid'
                           ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
                           : isOverdue
-                          ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
-                          : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400'
+                            ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
+                            : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400'
                       }
                     >
-                      {bill.status === 'paid' ? 'Paid' : isOverdue ? 'Overdue' : 'Pending'}
+                      {bill.status === 'paid'
+                        ? 'Paid'
+                        : isOverdue
+                          ? 'Overdue'
+                          : 'Pending'}
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -71,7 +80,12 @@ export function RecentBills({ bills, limit = 3, showViewAll = true }: RecentBill
                     ৳{bill.amount.toLocaleString()}
                   </p>
                   {bill.status === 'unpaid' && (
-                    <Button asChild variant="outline" size="sm" className="mt-2">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                    >
                       <Link href="/bills">Pay</Link>
                     </Button>
                   )}

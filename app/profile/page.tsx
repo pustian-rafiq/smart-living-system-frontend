@@ -41,7 +41,12 @@ import { getRenterProfile, updateRenterProfile } from '@/data/mockRenterProfile'
 import { getRenterHistory } from '@/data/mockRenterHistory'
 import { RenterHistoryDialog } from '@/components/renter/RenterHistoryDialog'
 import type { UserRole } from '@/types'
-import type { Document, JobInfo, FamilyMember, EmergencyContact } from '@/types/renterProfile'
+import type {
+  Document,
+  JobInfo,
+  FamilyMember,
+  EmergencyContact,
+} from '@/types/renterProfile'
 
 interface ProfileData {
   name: string
@@ -68,16 +73,19 @@ export default function ProfilePage() {
   const [showDocumentUpload, setShowDocumentUpload] = useState(false)
   const [showJobInfoDialog, setShowJobInfoDialog] = useState(false)
   const [showFamilyMemberDialog, setShowFamilyMemberDialog] = useState(false)
-  const [editingFamilyMember, setEditingFamilyMember] = useState<FamilyMember | null>(null)
-  const [showEmergencyContactDialog, setShowEmergencyContactDialog] = useState(false)
-  const [editingEmergencyContact, setEditingEmergencyContact] = useState<EmergencyContact | null>(null)
+  const [editingFamilyMember, setEditingFamilyMember] =
+    useState<FamilyMember | null>(null)
+  const [showEmergencyContactDialog, setShowEmergencyContactDialog] =
+    useState(false)
+  const [editingEmergencyContact, setEditingEmergencyContact] =
+    useState<EmergencyContact | null>(null)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
 
   // Load profile from sessionStorage (in real app, get from API)
   useEffect(() => {
     const storedPhone = sessionStorage.getItem('loginPhone')
     const storedRole = getStoredRole()
-    
+
     if (storedPhone) {
       setProfile(prev => ({
         ...prev,
@@ -85,7 +93,7 @@ export default function ProfilePage() {
         name: 'User ' + storedPhone.slice(-4),
       }))
     }
-    
+
     if (storedRole) {
       setProfile(prev => ({
         ...prev,
@@ -123,7 +131,10 @@ export default function ProfilePage() {
       verificationStatus: 'pending',
     }
     const updated = renterProfile
-      ? { ...renterProfile, documents: [...renterProfile.documents, newDocument] }
+      ? {
+          ...renterProfile,
+          documents: [...renterProfile.documents, newDocument],
+        }
       : null
     if (updated) {
       setRenterProfile(updated)
@@ -173,7 +184,9 @@ export default function ProfilePage() {
       gender: data.gender,
       phone: data.phone,
       nid: data.nid,
-      photoUrl: data.photoFile ? URL.createObjectURL(data.photoFile) : editingFamilyMember?.photoUrl,
+      photoUrl: data.photoFile
+        ? URL.createObjectURL(data.photoFile)
+        : editingFamilyMember?.photoUrl,
       isEmergencyContact: data.isEmergencyContact,
       createdAt: editingFamilyMember?.createdAt || new Date().toISOString(),
     }
@@ -181,7 +194,9 @@ export default function ProfilePage() {
       ? {
           ...renterProfile,
           familyMembers: editingFamilyMember
-            ? renterProfile.familyMembers.map(m => (m.id === editingFamilyMember.id ? newMember : m))
+            ? renterProfile.familyMembers.map(m =>
+                m.id === editingFamilyMember.id ? newMember : m
+              )
             : [...renterProfile.familyMembers, newMember],
         }
       : null
@@ -217,7 +232,9 @@ export default function ProfilePage() {
       ? {
           ...renterProfile,
           emergencyContacts: editingEmergencyContact
-            ? renterProfile.emergencyContacts.map(c => (c.id === editingEmergencyContact.id ? newContact : c))
+            ? renterProfile.emergencyContacts.map(c =>
+                c.id === editingEmergencyContact.id ? newContact : c
+              )
             : [...renterProfile.emergencyContacts, newContact],
         }
       : null
@@ -233,7 +250,9 @@ export default function ProfilePage() {
       const updated = renterProfile
         ? {
             ...renterProfile,
-            emergencyContacts: renterProfile.emergencyContacts.filter(c => c.id !== id),
+            emergencyContacts: renterProfile.emergencyContacts.filter(
+              c => c.id !== id
+            ),
           }
         : null
       if (updated) {
@@ -270,79 +289,79 @@ export default function ProfilePage() {
             <TabsContent value="profile" className="space-y-6">
               {/* Profile Information Card */}
               <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Profile Information
-                </CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditDialogOpen(true)}
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Name */}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <User className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-lg font-semibold">{profile.name}</p>
-                      {profile.verified && (
-                        <Badge
-                          variant="outline"
-                          className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-                        >
-                          <Check className="mr-1 h-3 w-3" />
-                          Verified
-                        </Badge>
-                      )}
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Profile Information
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditDialogOpen(true)}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Name */}
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                      <User className="h-6 w-6 text-primary" />
                     </div>
-                    <p className="text-sm text-muted-foreground capitalize">
-                      {profile.role}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Contact Information */}
-                <div className="space-y-3 rounded-lg border p-4">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
                     <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Phone</p>
-                      <p className="font-medium">{profile.phone}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-lg font-semibold">{profile.name}</p>
+                        {profile.verified && (
+                          <Badge
+                            variant="outline"
+                            className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                          >
+                            <Check className="mr-1 h-3 w-3" />
+                            Verified
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground capitalize">
+                        {profile.role}
+                      </p>
                     </div>
                   </div>
-                  {profile.email && (
+
+                  {/* Contact Information */}
+                  <div className="space-y-3 rounded-lg border p-4">
                     <div className="flex items-center gap-3">
-                      <Mail className="h-5 w-5 text-muted-foreground" />
+                      <Phone className="h-5 w-5 text-muted-foreground" />
                       <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-medium">{profile.email}</p>
+                        <p className="text-sm text-muted-foreground">Phone</p>
+                        <p className="font-medium">{profile.phone}</p>
                       </div>
                     </div>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <Shield className="h-5 w-5 text-muted-foreground" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Role</p>
-                      <p className="font-medium capitalize">{profile.role}</p>
+                    {profile.email && (
+                      <div className="flex items-center gap-3">
+                        <Mail className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex-1">
+                          <p className="text-sm text-muted-foreground">Email</p>
+                          <p className="font-medium">{profile.email}</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <Shield className="h-5 w-5 text-muted-foreground" />
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground">Role</p>
+                        <p className="font-medium capitalize">{profile.role}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Job/Institute Information */}
-            <JobInfoCard
-              jobInfo={renterProfile?.jobInfo}
-              onEdit={() => setShowJobInfoDialog(true)}
-            />
+              {/* Job/Institute Information */}
+              <JobInfoCard
+                jobInfo={renterProfile?.jobInfo}
+                onEdit={() => setShowJobInfoDialog(true)}
+              />
             </TabsContent>
 
             {/* Documents Tab */}
@@ -352,9 +371,12 @@ export default function ProfilePage() {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold mb-1">Rental Agreements & Checklists</h3>
+                      <h3 className="font-semibold mb-1">
+                        Rental Agreements & Checklists
+                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        Manage your rental agreements and move-in/move-out checklists
+                        Manage your rental agreements and move-in/move-out
+                        checklists
                       </p>
                     </div>
                     <Button asChild>
@@ -379,9 +401,10 @@ export default function ProfilePage() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  {renterProfile?.documents && renterProfile.documents.length > 0 ? (
+                  {renterProfile?.documents &&
+                  renterProfile.documents.length > 0 ? (
                     <div className="space-y-4">
-                      {renterProfile.documents.map((doc) => (
+                      {renterProfile.documents.map(doc => (
                         <DocumentCard
                           key={doc.id}
                           document={doc}
@@ -394,7 +417,10 @@ export default function ProfilePage() {
                     <div className="text-center py-8 text-muted-foreground">
                       <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>No documents uploaded yet</p>
-                      <Button className="mt-4" onClick={() => setShowDocumentUpload(true)}>
+                      <Button
+                        className="mt-4"
+                        onClick={() => setShowDocumentUpload(true)}
+                      >
                         Upload Document
                       </Button>
                     </div>
@@ -412,22 +438,25 @@ export default function ProfilePage() {
                     <Users className="h-5 w-5" />
                     Family Members
                   </CardTitle>
-                  <Button onClick={() => {
-                    setEditingFamilyMember(null)
-                    setShowFamilyMemberDialog(true)
-                  }}>
+                  <Button
+                    onClick={() => {
+                      setEditingFamilyMember(null)
+                      setShowFamilyMemberDialog(true)
+                    }}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Member
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  {renterProfile?.familyMembers && renterProfile.familyMembers.length > 0 ? (
+                  {renterProfile?.familyMembers &&
+                  renterProfile.familyMembers.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {renterProfile.familyMembers.map((member) => (
+                      {renterProfile.familyMembers.map(member => (
                         <FamilyMemberCard
                           key={member.id}
                           member={member}
-                          onEdit={(m) => {
+                          onEdit={m => {
                             setEditingFamilyMember(m)
                             setShowFamilyMemberDialog(true)
                           }}
@@ -439,10 +468,13 @@ export default function ProfilePage() {
                     <div className="text-center py-8 text-muted-foreground">
                       <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>No family members added yet</p>
-                      <Button className="mt-4" onClick={() => {
-                        setEditingFamilyMember(null)
-                        setShowFamilyMemberDialog(true)
-                      }}>
+                      <Button
+                        className="mt-4"
+                        onClick={() => {
+                          setEditingFamilyMember(null)
+                          setShowFamilyMemberDialog(true)
+                        }}
+                      >
                         Add Family Member
                       </Button>
                     </div>
@@ -457,22 +489,25 @@ export default function ProfilePage() {
                     <AlertCircle className="h-5 w-5" />
                     Emergency Contacts
                   </CardTitle>
-                  <Button onClick={() => {
-                    setEditingEmergencyContact(null)
-                    setShowEmergencyContactDialog(true)
-                  }}>
+                  <Button
+                    onClick={() => {
+                      setEditingEmergencyContact(null)
+                      setShowEmergencyContactDialog(true)
+                    }}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Contact
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  {renterProfile?.emergencyContacts && renterProfile.emergencyContacts.length > 0 ? (
+                  {renterProfile?.emergencyContacts &&
+                  renterProfile.emergencyContacts.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {renterProfile.emergencyContacts.map((contact) => (
+                      {renterProfile.emergencyContacts.map(contact => (
                         <EmergencyContactCard
                           key={contact.id}
                           contact={contact}
-                          onEdit={(c) => {
+                          onEdit={c => {
                             setEditingEmergencyContact(c)
                             setShowEmergencyContactDialog(true)
                           }}
@@ -484,10 +519,13 @@ export default function ProfilePage() {
                     <div className="text-center py-8 text-muted-foreground">
                       <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>No emergency contacts added yet</p>
-                      <Button className="mt-4" onClick={() => {
-                        setEditingEmergencyContact(null)
-                        setShowEmergencyContactDialog(true)
-                      }}>
+                      <Button
+                        className="mt-4"
+                        onClick={() => {
+                          setEditingEmergencyContact(null)
+                          setShowEmergencyContactDialog(true)
+                        }}
+                      >
                         Add Emergency Contact
                       </Button>
                     </div>
@@ -510,13 +548,16 @@ export default function ProfilePage() {
                     // Get current user ID (in real app, get from auth context)
                     const currentUserId = 'r1' // This should come from auth
                     const history = getRenterHistory(currentUserId)
-                    
+
                     if (!history || history.rentalHistories.length === 0) {
                       return (
                         <div className="text-center py-8 text-muted-foreground">
                           <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                           <p>No rental history available</p>
-                          <p className="text-sm mt-2">Your rental history will appear here once you start renting properties.</p>
+                          <p className="text-sm mt-2">
+                            Your rental history will appear here once you start
+                            renting properties.
+                          </p>
                         </div>
                       )
                     }
@@ -529,65 +570,100 @@ export default function ProfilePage() {
                             <CardContent className="pt-4">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-muted-foreground" />
-                                <p className="text-xs text-muted-foreground">Total Rentals</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Total Rentals
+                                </p>
                               </div>
-                              <p className="mt-1 text-2xl font-bold">{history.totalRentals}</p>
+                              <p className="mt-1 text-2xl font-bold">
+                                {history.totalRentals}
+                              </p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="pt-4">
                               <div className="flex items-center gap-2">
                                 <Shield className="h-4 w-4 text-muted-foreground" />
-                                <p className="text-xs text-muted-foreground">Avg Rating</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Avg Rating
+                                </p>
                               </div>
-                              <p className="mt-1 text-2xl font-bold">{history.averageRating.toFixed(1)}</p>
+                              <p className="mt-1 text-2xl font-bold">
+                                {history.averageRating.toFixed(1)}
+                              </p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="pt-4">
                               <div className="flex items-center gap-2">
                                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                                <p className="text-xs text-muted-foreground">Complaints</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Complaints
+                                </p>
                               </div>
-                              <p className="mt-1 text-2xl font-bold">{history.totalComplaints}</p>
+                              <p className="mt-1 text-2xl font-bold">
+                                {history.totalComplaints}
+                              </p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="pt-4">
                               <div className="flex items-center gap-2">
                                 <Check className="h-4 w-4 text-muted-foreground" />
-                                <p className="text-xs text-muted-foreground">Resolved</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Resolved
+                                </p>
                               </div>
-                              <p className="mt-1 text-2xl font-bold">{history.resolvedComplaints}</p>
+                              <p className="mt-1 text-2xl font-bold">
+                                {history.resolvedComplaints}
+                              </p>
                             </CardContent>
                           </Card>
                         </div>
 
                         {/* Quick Preview */}
                         <div className="space-y-3">
-                          <h3 className="text-lg font-semibold">Recent Rentals</h3>
-                          {history.rentalHistories.slice(0, 3).map((rental) => (
-                            <Card key={rental.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setIsHistoryDialogOpen(true)}>
+                          <h3 className="text-lg font-semibold">
+                            Recent Rentals
+                          </h3>
+                          {history.rentalHistories.slice(0, 3).map(rental => (
+                            <Card
+                              key={rental.id}
+                              className="cursor-pointer hover:shadow-md transition-shadow"
+                              onClick={() => setIsHistoryDialogOpen(true)}
+                            >
                               <CardContent className="pt-4">
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1">
-                                    <h4 className="font-semibold">{rental.propertyName}</h4>
+                                    <h4 className="font-semibold">
+                                      {rental.propertyName}
+                                    </h4>
                                     <p className="text-sm text-muted-foreground mt-1">
                                       {rental.propertyAddress}
-                                      {rental.flatNumber && ` • Flat ${rental.flatNumber}`}
+                                      {rental.flatNumber &&
+                                        ` • Flat ${rental.flatNumber}`}
                                     </p>
                                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                       <span>
-                                        {new Date(rental.moveInDate).toLocaleDateString()} -{' '}
+                                        {new Date(
+                                          rental.moveInDate
+                                        ).toLocaleDateString()}{' '}
+                                        -{' '}
                                         {rental.moveOutDate
-                                          ? new Date(rental.moveOutDate).toLocaleDateString()
+                                          ? new Date(
+                                              rental.moveOutDate
+                                            ).toLocaleDateString()
                                           : 'Present'}
                                       </span>
-                                      <span>৳{rental.monthlyRent.toLocaleString()}/month</span>
+                                      <span>
+                                        ৳{rental.monthlyRent.toLocaleString()}
+                                        /month
+                                      </span>
                                     </div>
                                   </div>
                                   <Badge variant="outline">
-                                    {rental.status === 'ongoing' ? 'Current' : 'Completed'}
+                                    {rental.status === 'ongoing'
+                                      ? 'Current'
+                                      : 'Completed'}
                                   </Badge>
                                 </div>
                               </CardContent>
@@ -614,78 +690,87 @@ export default function ProfilePage() {
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-6">
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Preferences Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Preferences</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Language Toggle */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-5 w-5 text-muted-foreground" />
-                    <div className="space-y-0.5">
-                      <Label htmlFor="language-toggle" className="text-base font-medium">
-                        Language
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        {language === 'bn' ? 'বাংলা' : 'English'}
-                      </p>
+                {/* Preferences Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Preferences</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Language Toggle */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-muted-foreground" />
+                        <div className="space-y-0.5">
+                          <Label
+                            htmlFor="language-toggle"
+                            className="text-base font-medium"
+                          >
+                            Language
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            {language === 'bn' ? 'বাংলা' : 'English'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={toggleLanguage}
+                        id="language-toggle"
+                      >
+                        {language === 'bn' ? 'EN' : 'BN'}
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={toggleLanguage}
-                    id="language-toggle"
-                  >
-                    {language === 'bn' ? 'EN' : 'BN'}
-                  </Button>
-                </div>
 
-                {/* Theme Toggle */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {theme === 'dark' ? (
-                      <Moon className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <Sun className="h-5 w-5 text-muted-foreground" />
-                    )}
-                    <div className="space-y-0.5">
-                      <Label htmlFor="theme-toggle" className="text-base font-medium">
-                        Theme
-                      </Label>
-                      <p className="text-xs text-muted-foreground capitalize">
-                        {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-                      </p>
+                    {/* Theme Toggle */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {theme === 'dark' ? (
+                          <Moon className="h-5 w-5 text-muted-foreground" />
+                        ) : (
+                          <Sun className="h-5 w-5 text-muted-foreground" />
+                        )}
+                        <div className="space-y-0.5">
+                          <Label
+                            htmlFor="theme-toggle"
+                            className="text-base font-medium"
+                          >
+                            Theme
+                          </Label>
+                          <p className="text-xs text-muted-foreground capitalize">
+                            {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        id="theme-toggle"
+                        checked={theme === 'dark'}
+                        onCheckedChange={toggleTheme}
+                      />
                     </div>
-                  </div>
-                  <Switch
-                    id="theme-toggle"
-                    checked={theme === 'dark'}
-                    onCheckedChange={toggleTheme}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            {/* Account Actions Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Account</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  Change Password
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  Privacy Settings
-                </Button>
-                <Button variant="destructive" className="w-full justify-start">
-                  Delete Account
-                </Button>
-              </CardContent>
-            </Card>
+                {/* Account Actions Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button variant="outline" className="w-full justify-start">
+                      Change Password
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      Privacy Settings
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="w-full justify-start"
+                    >
+                      Delete Account
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>
@@ -777,7 +862,10 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-3">
                       <Globe className="h-5 w-5 text-muted-foreground" />
                       <div className="space-y-0.5">
-                        <Label htmlFor="language-toggle" className="text-base font-medium">
+                        <Label
+                          htmlFor="language-toggle"
+                          className="text-base font-medium"
+                        >
                           Language
                         </Label>
                         <p className="text-xs text-muted-foreground">
@@ -804,7 +892,10 @@ export default function ProfilePage() {
                         <Sun className="h-5 w-5 text-muted-foreground" />
                       )}
                       <div className="space-y-0.5">
-                        <Label htmlFor="theme-toggle" className="text-base font-medium">
+                        <Label
+                          htmlFor="theme-toggle"
+                          className="text-base font-medium"
+                        >
                           Theme
                         </Label>
                         <p className="text-xs text-muted-foreground capitalize">
@@ -833,7 +924,10 @@ export default function ProfilePage() {
                   <Button variant="outline" className="w-full justify-start">
                     Privacy Settings
                   </Button>
-                  <Button variant="destructive" className="w-full justify-start">
+                  <Button
+                    variant="destructive"
+                    className="w-full justify-start"
+                  >
                     Delete Account
                   </Button>
                 </CardContent>
@@ -867,7 +961,7 @@ export default function ProfilePage() {
 
             <FamilyMemberDialog
               open={showFamilyMemberDialog}
-              onOpenChange={(open) => {
+              onOpenChange={open => {
                 setShowFamilyMemberDialog(open)
                 if (!open) setEditingFamilyMember(null)
               }}
@@ -877,7 +971,7 @@ export default function ProfilePage() {
 
             <EmergencyContactDialog
               open={showEmergencyContactDialog}
-              onOpenChange={(open) => {
+              onOpenChange={open => {
                 setShowEmergencyContactDialog(open)
                 if (!open) setEditingEmergencyContact(null)
               }}
@@ -886,17 +980,17 @@ export default function ProfilePage() {
             />
           </>
         )}
-        </div>
+      </div>
 
-        {/* Renter History Dialog */}
-        {profile.role === 'renter' && (
-          <RenterHistoryDialog
-            renterId="r1" // In real app, get from auth context
-            renterName={profile.name}
-            open={isHistoryDialogOpen}
-            onOpenChange={setIsHistoryDialogOpen}
-          />
-        )}
-      </Layout>
-    )
-  }
+      {/* Renter History Dialog */}
+      {profile.role === 'renter' && (
+        <RenterHistoryDialog
+          renterId="r1" // In real app, get from auth context
+          renterName={profile.name}
+          open={isHistoryDialogOpen}
+          onOpenChange={setIsHistoryDialogOpen}
+        />
+      )}
+    </Layout>
+  )
+}

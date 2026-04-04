@@ -23,7 +23,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, X, Upload, Image as ImageIcon } from 'lucide-react'
@@ -31,30 +37,46 @@ import type { DailyMenu, MealItem, MealCategory } from '@/types/meal'
 
 const dailyMenuSchema = z.object({
   date: z.string().min(1, 'Date is required'),
-  breakfast: z.array(z.object({
-    name: z.string().min(1, 'Item name is required'),
-    description: z.string().optional(),
-    isSpecial: z.boolean().optional(),
-    price: z.number().optional(),
-  })).optional(),
-  lunch: z.array(z.object({
-    name: z.string().min(1, 'Item name is required'),
-    description: z.string().optional(),
-    isSpecial: z.boolean().optional(),
-    price: z.number().optional(),
-  })).optional(),
-  dinner: z.array(z.object({
-    name: z.string().min(1, 'Item name is required'),
-    description: z.string().optional(),
-    isSpecial: z.boolean().optional(),
-    price: z.number().optional(),
-  })).optional(),
-  snack: z.array(z.object({
-    name: z.string().min(1, 'Item name is required'),
-    description: z.string().optional(),
-    isSpecial: z.boolean().optional(),
-    price: z.number().optional(),
-  })).optional(),
+  breakfast: z
+    .array(
+      z.object({
+        name: z.string().min(1, 'Item name is required'),
+        description: z.string().optional(),
+        isSpecial: z.boolean().optional(),
+        price: z.number().optional(),
+      })
+    )
+    .optional(),
+  lunch: z
+    .array(
+      z.object({
+        name: z.string().min(1, 'Item name is required'),
+        description: z.string().optional(),
+        isSpecial: z.boolean().optional(),
+        price: z.number().optional(),
+      })
+    )
+    .optional(),
+  dinner: z
+    .array(
+      z.object({
+        name: z.string().min(1, 'Item name is required'),
+        description: z.string().optional(),
+        isSpecial: z.boolean().optional(),
+        price: z.number().optional(),
+      })
+    )
+    .optional(),
+  snack: z
+    .array(
+      z.object({
+        name: z.string().min(1, 'Item name is required'),
+        description: z.string().optional(),
+        isSpecial: z.boolean().optional(),
+        price: z.number().optional(),
+      })
+    )
+    .optional(),
   notes: z.string().optional(),
 })
 
@@ -92,7 +114,10 @@ export function DailyMenuDialog({
     },
   })
 
-  const breakfastArray = useFieldArray({ control: form.control, name: 'breakfast' })
+  const breakfastArray = useFieldArray({
+    control: form.control,
+    name: 'breakfast',
+  })
   const lunchArray = useFieldArray({ control: form.control, name: 'lunch' })
   const dinnerArray = useFieldArray({ control: form.control, name: 'dinner' })
   const snackArray = useFieldArray({ control: form.control, name: 'snack' })
@@ -133,7 +158,8 @@ export function DailyMenuDialog({
     category: MealCategory,
     fieldArray: ReturnType<typeof useFieldArray>
   ) => {
-    const label = mealCategories.find(c => c.value === category)?.label || category
+    const label =
+      mealCategories.find(c => c.value === category)?.label || category
 
     return (
       <div className="space-y-3 rounded-lg border p-4">
@@ -143,7 +169,9 @@ export function DailyMenuDialog({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => fieldArray.append({ name: '', description: '', isSpecial: false })}
+            onClick={() =>
+              fieldArray.append({ name: '', description: '', isSpecial: false })
+            }
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Item
@@ -217,7 +245,11 @@ export function DailyMenuDialog({
                                   type="number"
                                   placeholder="Price (৳)"
                                   {...field}
-                                  onChange={e => field.onChange(parseFloat(e.target.value) || undefined)}
+                                  onChange={e =>
+                                    field.onChange(
+                                      parseFloat(e.target.value) || undefined
+                                    )
+                                  }
                                   value={field.value || ''}
                                 />
                               </FormControl>
@@ -249,14 +281,19 @@ export function DailyMenuDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>{menu ? 'Edit Daily Menu' : 'Create Daily Menu'}</DialogTitle>
+          <DialogTitle>
+            {menu ? 'Edit Daily Menu' : 'Create Daily Menu'}
+          </DialogTitle>
           <DialogDescription>
             Add or edit the menu for a specific date
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Date */}
@@ -302,7 +339,11 @@ export function DailyMenuDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">{menu ? 'Update' : 'Create'} Menu</Button>

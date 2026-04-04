@@ -29,7 +29,9 @@ export default function FloorStatsPage() {
               <Button
                 variant="outline"
                 className="mt-4"
-                onClick={() => router.push(`/my-properties/buildings/${buildingId}/floors`)}
+                onClick={() =>
+                  router.push(`/my-properties/buildings/${buildingId}/floors`)
+                }
               >
                 Back to Floors
               </Button>
@@ -47,7 +49,9 @@ export default function FloorStatsPage() {
         <div className="mb-6">
           <Button
             variant="ghost"
-            onClick={() => router.push(`/my-properties/buildings/${buildingId}/floors`)}
+            onClick={() =>
+              router.push(`/my-properties/buildings/${buildingId}/floors`)
+            }
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -56,13 +60,14 @@ export default function FloorStatsPage() {
           <h1 className="text-2xl font-bold">
             {floor.name || `Floor ${floor.floorNumber}`} - Statistics
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {building.name}
-          </p>
+          <p className="text-muted-foreground mt-1">{building.name}</p>
         </div>
 
         {/* Stats */}
-        <FloorStats stats={stats} floorName={floor.name || `Floor ${floor.floorNumber}`} />
+        <FloorStats
+          stats={stats}
+          floorName={floor.name || `Floor ${floor.floorNumber}`}
+        />
       </div>
     </Layout>
   )

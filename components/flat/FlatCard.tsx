@@ -15,15 +15,18 @@ interface FlatCardProps {
 const statusConfig = {
   available: {
     label: 'Available',
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
+    className:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
   },
   occupied: {
     label: 'Occupied',
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+    className:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
   },
   maintenance: {
     label: 'Maintenance',
-    className: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800',
+    className:
+      'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800',
   },
 }
 
@@ -39,7 +42,9 @@ export function FlatCard({ flat, onViewDetails }: FlatCardProps) {
             <div>
               <div className="flex items-center gap-2">
                 <Home className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold">Flat {flat.flatNumber}</h3>
+                <h3 className="text-lg font-semibold">
+                  Flat {flat.flatNumber}
+                </h3>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
                 Floor {flat.floor}
@@ -64,8 +69,12 @@ export function FlatCard({ flat, onViewDetails }: FlatCardProps) {
               <div className="flex items-center gap-2 rounded-md border p-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{flat.renter.name}</p>
-                  <p className="text-xs text-muted-foreground">{flat.renter.phone}</p>
+                  <p className="text-sm font-medium truncate">
+                    {flat.renter.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {flat.renter.phone}
+                  </p>
                 </div>
               </div>
             )}

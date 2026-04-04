@@ -36,7 +36,10 @@ export function SearchHistoryItem({
 
   const getFilterSummary = () => {
     const parts: string[] = []
-    if (history.filters.propertyType && history.filters.propertyType !== 'all') {
+    if (
+      history.filters.propertyType &&
+      history.filters.propertyType !== 'all'
+    ) {
       parts.push(history.filters.propertyType)
     }
     if (history.filters.city) {
@@ -56,8 +59,12 @@ export function SearchHistoryItem({
             {/* Search Query or Filter Summary */}
             {history.searchQuery ? (
               <div className="mb-2">
-                <p className="font-semibold text-sm mb-1">"{history.searchQuery}"</p>
-                <p className="text-xs text-muted-foreground">{getFilterSummary()}</p>
+                <p className="font-semibold text-sm mb-1">
+                  &ldquo;{history.searchQuery}&rdquo;
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {getFilterSummary()}
+                </p>
               </div>
             ) : (
               <p className="font-semibold text-sm mb-2">{getFilterSummary()}</p>
@@ -69,7 +76,8 @@ export function SearchHistoryItem({
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-3 w-3" />
                   <span>
-                    ৳{history.filters.rentRange[0].toLocaleString()} - ৳{history.filters.rentRange[1].toLocaleString()}
+                    ৳{history.filters.rentRange[0].toLocaleString()} - ৳
+                    {history.filters.rentRange[1].toLocaleString()}
                   </span>
                 </div>
               )}
@@ -87,7 +95,8 @@ export function SearchHistoryItem({
             {/* Result Count and Time */}
             <div className="mt-2 flex items-center gap-3">
               <Badge variant="secondary" className="text-xs">
-                {history.resultCount} {history.resultCount === 1 ? 'result' : 'results'}
+                {history.resultCount}{' '}
+                {history.resultCount === 1 ? 'result' : 'results'}
               </Badge>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />

@@ -7,19 +7,22 @@ const steps = [
   {
     number: '01',
     title: 'Search & Discover',
-    description: 'Browse verified properties by city, area, price, and amenities. Use filters to find exactly what you need.',
+    description:
+      'Browse verified properties by city, area, price, and amenities. Use filters to find exactly what you need.',
     icon: <Search className="h-8 w-8" />,
   },
   {
     number: '02',
     title: 'Connect & Chat',
-    description: 'Chat directly with property owners. Ask questions, view photos, and get instant responses.',
+    description:
+      'Chat directly with property owners. Ask questions, view photos, and get instant responses.',
     icon: <MessageCircle className="h-8 w-8" />,
   },
   {
     number: '03',
     title: 'Book & Pay',
-    description: 'Book instantly or request a seat. Pay securely with bKash, Nagad, or Rocket. Get instant confirmation.',
+    description:
+      'Book instantly or request a seat. Pay securely with bKash, Nagad, or Rocket. Get instant confirmation.',
     icon: <CheckCircle className="h-8 w-8" />,
   },
 ]
@@ -34,7 +37,8 @@ export function HowItWorksSection() {
             How It Works
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Get started in three simple steps. Find, connect, and book your perfect living space.
+            Get started in three simple steps. Find, connect, and book your
+            perfect living space.
           </p>
         </div>
 
@@ -42,7 +46,7 @@ export function HowItWorksSection() {
         <div className="relative">
           {/* Connection Line (Desktop) */}
           <div className="absolute left-0 right-0 top-24 hidden h-0.5 bg-gradient-to-r from-primary/20 via-primary/50 to-primary/20 lg:block" />
-          
+
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {steps.map((step, index) => (
               <div key={index} className="relative">
@@ -59,9 +63,7 @@ export function HowItWorksSection() {
                     </div>
 
                     {/* Icon */}
-                    <div className="mb-4 text-primary">
-                      {step.icon}
-                    </div>
+                    <div className="mb-4 text-primary">{step.icon}</div>
 
                     {/* Content */}
                     <h3 className="mb-3 text-xl font-bold">{step.title}</h3>

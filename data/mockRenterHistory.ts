@@ -221,7 +221,8 @@ export const mockOwnerReferences: OwnerReference[] = [
     ownerName: 'Ahmed Rahman',
     ownerPhone: '+8801712345689',
     propertyName: 'Sunshine Tower',
-    referenceText: 'Rahim was a responsible tenant. Always paid rent on time and maintained the property well. Would recommend.',
+    referenceText:
+      'Rahim was a responsible tenant. Always paid rent on time and maintained the property well. Would recommend.',
     rating: 5,
     wouldRentAgain: true,
     createdAt: '2024-01-05T10:00:00Z',
@@ -234,7 +235,8 @@ export const mockOwnerReferences: OwnerReference[] = [
     ownerName: 'Fatima Begum',
     ownerPhone: '+8801712345690',
     propertyName: 'Modern Heights',
-    referenceText: 'Good tenant overall. Minor issues with late payments on a couple of occasions but resolved quickly.',
+    referenceText:
+      'Good tenant overall. Minor issues with late payments on a couple of occasions but resolved quickly.',
     rating: 4,
     wouldRentAgain: true,
     createdAt: '2022-01-15T11:00:00Z',
@@ -247,7 +249,8 @@ export const mockOwnerReferences: OwnerReference[] = [
     ownerName: 'Ahmed Rahman',
     ownerPhone: '+8801712345689',
     propertyName: 'Sunshine Tower',
-    referenceText: 'Karim was an excellent tenant. Very clean, respectful, and always communicated well. Highly recommended.',
+    referenceText:
+      'Karim was an excellent tenant. Very clean, respectful, and always communicated well. Highly recommended.',
     rating: 5,
     wouldRentAgain: true,
     createdAt: '2023-01-05T09:00:00Z',
@@ -300,7 +303,9 @@ export const mockOwnerRatings: OwnerRating[] = [
 
 // Helper functions
 export function getRenterHistory(renterId: string): RenterHistory | undefined {
-  const rentalHistories = mockRentalHistories.filter(rh => rh.renterId === renterId)
+  const rentalHistories = mockRentalHistories.filter(
+    rh => rh.renterId === renterId
+  )
   const paymentHistories = mockPaymentHistories.filter(ph =>
     rentalHistories.some(rh => rh.id === ph.rentalHistoryId)
   )
@@ -319,20 +324,29 @@ export function getRenterHistory(renterId: string): RenterHistory | undefined {
   const totalRentals = rentalHistories.length
   const averageRating =
     ownerRatings.length > 0
-      ? ownerRatings.reduce((sum, r) => sum + r.overallRating, 0) / ownerRatings.length
+      ? ownerRatings.reduce((sum, r) => sum + r.overallRating, 0) /
+        ownerRatings.length
       : 0
   const totalComplaints = complaintHistories.length
-  const resolvedComplaints = complaintHistories.filter(c => c.status === 'resolved').length
+  const resolvedComplaints = complaintHistories.filter(
+    c => c.status === 'resolved'
+  ).length
 
   // Get renter name from first rental history or use a default
   let renterName = 'Unknown Renter'
   if (rentalHistories.length > 0) {
     // In real app, fetch from renter data
     const firstRenterId = rentalHistories[0]?.renterId
-    renterName = firstRenterId === 'r1' ? 'Rahim Uddin' : 
-                 firstRenterId === 'r2' ? 'Fatima Begum' : 
-                 firstRenterId === 'r3' ? 'Karim Ahmed' : 
-                 firstRenterId === 'r4' ? 'Sadia Islam' : 'Unknown Renter'
+    renterName =
+      firstRenterId === 'r1'
+        ? 'Rahim Uddin'
+        : firstRenterId === 'r2'
+          ? 'Fatima Begum'
+          : firstRenterId === 'r3'
+            ? 'Karim Ahmed'
+            : firstRenterId === 'r4'
+              ? 'Sadia Islam'
+              : 'Unknown Renter'
   }
 
   return {
@@ -350,22 +364,38 @@ export function getRenterHistory(renterId: string): RenterHistory | undefined {
   }
 }
 
-export function getRentalHistoryById(rentalHistoryId: string): RentalHistory | undefined {
+export function getRentalHistoryById(
+  rentalHistoryId: string
+): RentalHistory | undefined {
   return mockRentalHistories.find(rh => rh.id === rentalHistoryId)
 }
 
-export function getPaymentsByRentalHistory(rentalHistoryId: string): PaymentHistory[] {
-  return mockPaymentHistories.filter(ph => ph.rentalHistoryId === rentalHistoryId)
+export function getPaymentsByRentalHistory(
+  rentalHistoryId: string
+): PaymentHistory[] {
+  return mockPaymentHistories.filter(
+    ph => ph.rentalHistoryId === rentalHistoryId
+  )
 }
 
-export function getComplaintsByRentalHistory(rentalHistoryId: string): ComplaintHistory[] {
-  return mockComplaintHistories.filter(ch => ch.rentalHistoryId === rentalHistoryId)
+export function getComplaintsByRentalHistory(
+  rentalHistoryId: string
+): ComplaintHistory[] {
+  return mockComplaintHistories.filter(
+    ch => ch.rentalHistoryId === rentalHistoryId
+  )
 }
 
-export function getReferencesByRentalHistory(rentalHistoryId: string): OwnerReference[] {
-  return mockOwnerReferences.filter(or => or.rentalHistoryId === rentalHistoryId)
+export function getReferencesByRentalHistory(
+  rentalHistoryId: string
+): OwnerReference[] {
+  return mockOwnerReferences.filter(
+    or => or.rentalHistoryId === rentalHistoryId
+  )
 }
 
-export function getRatingsByRentalHistory(rentalHistoryId: string): OwnerRating[] {
+export function getRatingsByRentalHistory(
+  rentalHistoryId: string
+): OwnerRating[] {
   return mockOwnerRatings.filter(rat => rat.rentalHistoryId === rentalHistoryId)
 }

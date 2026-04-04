@@ -14,7 +14,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { VerificationBadge } from '@/components/property/VerificationBadge'
 import { ImageGallery } from '@/components/property/ImageGallery'
 import { VideoPlayer } from '@/components/property/VideoPlayer'
-import { Phone, MapPin, Wifi, Car, Shield, Zap, Home, Video, Image as ImageIcon, MessageCircle } from 'lucide-react'
+import {
+  Phone,
+  MapPin,
+  Wifi,
+  Car,
+  Shield,
+  Zap,
+  Home,
+  Video,
+  Image as ImageIcon,
+  MessageCircle,
+} from 'lucide-react'
 import { BookingForm } from '@/components/booking/BookingForm'
 import { FavoriteButton } from '@/components/favorites/FavoriteButton'
 import { useRouter } from 'next/navigation'
@@ -26,7 +37,10 @@ interface PropertyDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onRequest?: (property: Property) => void
-  onBookingSubmit?: (property: Property, data: BookingFormData & { moveInDate: string; moveOutDate?: string }) => void
+  onBookingSubmit?: (
+    property: Property,
+    data: BookingFormData & { moveInDate: string; moveOutDate?: string }
+  ) => void
   onCall: (phone: string) => void
 }
 
@@ -82,17 +96,27 @@ export function PropertyDetailDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl">{property.name}</DialogTitle>
-          <DialogDescription className="capitalize">{property.type}</DialogDescription>
+          <DialogTitle className="text-xl sm:text-2xl">
+            {property.name}
+          </DialogTitle>
+          <DialogDescription className="capitalize">
+            {property.type}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Media Gallery - Images and Videos */}
           {(hasImages || hasVideos) && (
-            <Tabs defaultValue={hasVideos ? 'video' : 'images'} className="w-full">
+            <Tabs
+              defaultValue={hasVideos ? 'video' : 'images'}
+              className="w-full"
+            >
               <TabsList className="grid w-full grid-cols-2">
                 {hasVideos && (
-                  <TabsTrigger value="video" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="video"
+                    className="flex items-center gap-2"
+                  >
                     <Video className="h-4 w-4" />
                     Video Walkthrough
                     {hasVideos && (
@@ -103,7 +127,10 @@ export function PropertyDetailDialog({
                   </TabsTrigger>
                 )}
                 {hasImages && (
-                  <TabsTrigger value="images" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="images"
+                    className="flex items-center gap-2"
+                  >
                     <ImageIcon className="h-4 w-4" />
                     Photos
                     {hasImages && (
@@ -128,7 +155,9 @@ export function PropertyDetailDialog({
                         )}
                         <VideoPlayer
                           videoUrl={videoUrl}
-                          thumbnail={idx === 0 ? property.videoThumbnail : undefined}
+                          thumbnail={
+                            idx === 0 ? property.videoThumbnail : undefined
+                          }
                           propertyName={property.name}
                         />
                       </div>
@@ -175,10 +204,15 @@ export function PropertyDetailDialog({
               </Badge>
               {property.gender && (
                 <Badge variant="outline">
-                  {property.gender === 'male' ? 'Male' : property.gender === 'female' ? 'Female' : 'Mixed'}
+                  {property.gender === 'male'
+                    ? 'Male'
+                    : property.gender === 'female'
+                      ? 'Female'
+                      : 'Mixed'}
                 </Badge>
               )}
-              {(property.verified !== undefined || property.verificationStatus) && (
+              {(property.verified !== undefined ||
+                property.verificationStatus) && (
                 <VerificationBadge
                   verified={property.verified}
                   verificationStatus={property.verificationStatus}
@@ -231,11 +265,7 @@ export function PropertyDetailDialog({
                 <p className="font-medium">{property.ownerName}</p>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleStartChat}
-                >
+                <Button variant="outline" size="sm" onClick={handleStartChat}>
                   <MessageCircle className="mr-2 h-4 w-4" />
                   Chat
                 </Button>
@@ -249,7 +279,9 @@ export function PropertyDetailDialog({
                 </Button>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">{property.ownerPhone}</p>
+            <p className="text-sm text-muted-foreground">
+              {property.ownerPhone}
+            </p>
           </div>
 
           {/* Actions */}

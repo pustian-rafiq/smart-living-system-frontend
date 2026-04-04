@@ -68,10 +68,15 @@ export const mockSearchHistory: SearchHistory[] = [
 export function getSearchHistoryByUserId(userId: string): SearchHistory[] {
   return mockSearchHistory
     .filter(history => history.userId === userId)
-    .sort((a, b) => new Date(b.searchedAt).getTime() - new Date(a.searchedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.searchedAt).getTime() - new Date(a.searchedAt).getTime()
+    )
 }
 
-export function addSearchHistory(history: Omit<SearchHistory, 'id' | 'searchedAt'>): SearchHistory {
+export function addSearchHistory(
+  history: Omit<SearchHistory, 'id' | 'searchedAt'>
+): SearchHistory {
   const newHistory: SearchHistory = {
     id: `hist-${Date.now()}`,
     ...history,

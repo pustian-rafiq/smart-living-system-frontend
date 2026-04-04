@@ -17,7 +17,14 @@ export interface Notice {
   date: string
   priority: 'high' | 'medium' | 'low'
   messId: string
-  category?: 'general' | 'payment' | 'maintenance' | 'event' | 'announcement' | 'rule' | 'other'
+  category?:
+    | 'general'
+    | 'payment'
+    | 'maintenance'
+    | 'event'
+    | 'announcement'
+    | 'rule'
+    | 'other'
   expiryDate?: string // ISO date string
   pdfUrl?: string // PDF file URL
   imageUrls?: string[] // Array of image URLs

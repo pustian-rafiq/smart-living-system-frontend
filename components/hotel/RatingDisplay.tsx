@@ -11,12 +11,12 @@ interface RatingDisplayProps {
   className?: string
 }
 
-export function RatingDisplay({ 
-  rating, 
-  maxRating = 5, 
+export function RatingDisplay({
+  rating,
+  maxRating = 5,
   showNumber = true,
   size = 'md',
-  className 
+  className,
 }: RatingDisplayProps) {
   const sizeClasses = {
     sm: 'h-3 w-3',
@@ -39,11 +39,12 @@ export function RatingDisplay({
         ))}
         {hasHalfStar && (
           <div className="relative">
+            <Star className={cn('text-gray-300', sizeClasses[size])} />
             <Star
-              className={cn('text-gray-300', sizeClasses[size])}
-            />
-            <Star
-              className={cn('absolute left-0 top-0 fill-yellow-400 text-yellow-400', sizeClasses[size])}
+              className={cn(
+                'absolute left-0 top-0 fill-yellow-400 text-yellow-400',
+                sizeClasses[size]
+              )}
               style={{ clipPath: 'inset(0 50% 0 0)' }}
             />
           </div>
@@ -56,10 +57,12 @@ export function RatingDisplay({
         ))}
       </div>
       {showNumber && (
-        <span className={cn(
-          'ml-1 font-medium',
-          size === 'sm' ? 'text-xs' : size === 'md' ? 'text-sm' : 'text-base'
-        )}>
+        <span
+          className={cn(
+            'ml-1 font-medium',
+            size === 'sm' ? 'text-xs' : size === 'md' ? 'text-sm' : 'text-base'
+          )}
+        >
           {rating.toFixed(1)}
         </span>
       )}

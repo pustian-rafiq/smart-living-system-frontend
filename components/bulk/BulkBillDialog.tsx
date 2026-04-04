@@ -23,14 +23,20 @@ import {
   FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { mockBuildings } from '@/data/mockBuildings'
 import { getFloorsByBuilding } from '@/data/mockFloors'
 import { mockFlats } from '@/data/mockBuildings'
-import { getBillTemplates } from '@/data/mockBillTemplates'
+import { getActiveTemplates } from '@/data/mockBillTemplates'
 import type { BulkBillGenerationData } from '@/types/bulk'
 import { Calendar, Building2, FileText } from 'lucide-react'
 
@@ -50,12 +56,16 @@ interface BulkBillDialogProps {
   onSubmit: (data: BulkBillGenerationData) => void
 }
 
-export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogProps) {
+export function BulkBillDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+}: BulkBillDialogProps) {
   const [selectedBuilding, setSelectedBuilding] = useState<string>('')
   const [selectedFloors, setSelectedFloors] = useState<string[]>([])
   const [selectedFlats, setSelectedFlats] = useState<string[]>([])
 
-  const templates = getBillTemplates()
+  const templates = getActiveTemplates()
   const floors = selectedBuilding ? getFloorsByBuilding(selectedBuilding) : []
   const availableFlats = selectedBuilding
     ? mockFlats.filter(f => f.buildingId === selectedBuilding)
@@ -120,7 +130,10 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Building Selection */}
@@ -166,7 +179,10 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                     <FormLabel>Select Floors (Optional)</FormLabel>
                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
                       {floors.map(floor => (
-                        <div key={floor.id} className="flex items-center space-x-2">
+                        <div
+                          key={floor.id}
+                          className="flex items-center space-x-2"
+                        >
                           <Checkbox
                             id={`floor-${floor.id}`}
                             checked={selectedFloors.includes(floor.id)}
@@ -175,7 +191,9 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                                 setSelectedFloors([...selectedFloors, floor.id])
                                 setSelectedFlats([])
                               } else {
-                                setSelectedFloors(selectedFloors.filter(id => id !== floor.id))
+                                setSelectedFloors(
+                                  selectedFloors.filter(id => id !== floor.id)
+                                )
                               }
                             }}
                           />
@@ -183,7 +201,8 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                             htmlFor={`floor-${floor.id}`}
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                           >
-                            {floor.name || `Floor ${floor.floorNumber}`} ({floor.totalFlats} flats)
+                            {floor.name || `Floor ${floor.floorNumber}`} (
+                            {floor.totalFlats} flats)
                           </label>
                         </div>
                       ))}
@@ -200,7 +219,10 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                     <FormLabel>Select Flats (Optional)</FormLabel>
                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
                       {availableFlats.map(flat => (
-                        <div key={flat.id} className="flex items-center space-x-2">
+                        <div
+                          key={flat.id}
+                          className="flex items-center space-x-2"
+                        >
                           <Checkbox
                             id={`flat-${flat.id}`}
                             checked={selectedFlats.includes(flat.id)}
@@ -209,7 +231,9 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                                 setSelectedFlats([...selectedFlats, flat.id])
                                 setSelectedFloors([])
                               } else {
-                                setSelectedFlats(selectedFlats.filter(id => id !== flat.id))
+                                setSelectedFlats(
+                                  selectedFlats.filter(id => id !== flat.id)
+                                )
                               }
                             }}
                           />
@@ -236,7 +260,10 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Month</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue />
@@ -244,8 +271,18 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                           </FormControl>
                           <SelectContent>
                             {[
-                              'January', 'February', 'March', 'April', 'May', 'June',
-                              'July', 'August', 'September', 'October', 'November', 'December',
+                              'January',
+                              'February',
+                              'March',
+                              'April',
+                              'May',
+                              'June',
+                              'July',
+                              'August',
+                              'September',
+                              'October',
+                              'November',
+                              'December',
                             ].map(month => (
                               <SelectItem key={month} value={month}>
                                 {month}
@@ -268,7 +305,12 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                           <Input
                             type="number"
                             {...field}
-                            onChange={e => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
+                            onChange={e =>
+                              field.onChange(
+                                parseInt(e.target.value) ||
+                                  new Date().getFullYear()
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -285,7 +327,10 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Bill Template (Optional)</FormLabel>
-                        <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value || ''}
+                          onValueChange={field.onChange}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a template" />
@@ -338,9 +383,12 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
               <div className="rounded-lg border p-4 bg-muted/30">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Selected for Bill Generation</p>
+                    <p className="text-sm font-medium">
+                      Selected for Bill Generation
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {selectedCount} flat{selectedCount !== 1 ? 's' : ''} will receive bills
+                      {selectedCount} flat{selectedCount !== 1 ? 's' : ''} will
+                      receive bills
                     </p>
                   </div>
                   <Badge variant="outline" className="text-lg px-3 py-1">
@@ -351,7 +399,11 @@ export function BulkBillDialog({ open, onOpenChange, onSubmit }: BulkBillDialogP
             )}
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={selectedCount === 0}>

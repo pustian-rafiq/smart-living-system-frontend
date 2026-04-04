@@ -28,13 +28,16 @@ export function ChecklistViewDialog({
 }: ChecklistViewDialogProps) {
   if (!checklist) return null
 
-  const itemsByCategory = checklist.items.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = []
-    }
-    acc[item.category].push(item)
-    return acc
-  }, {} as Record<string, typeof checklist.items>)
+  const itemsByCategory = checklist.items.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = []
+      }
+      acc[item.category].push(item)
+      return acc
+    },
+    {} as Record<string, typeof checklist.items>
+  )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,7 +47,8 @@ export function ChecklistViewDialog({
             {checklist.type === 'move_in' ? 'Move-in' : 'Move-out'} Checklist
           </DialogTitle>
           <DialogDescription>
-            {checklist.propertyName} {checklist.flatNumber && `- Flat ${checklist.flatNumber}`}
+            {checklist.propertyName}{' '}
+            {checklist.flatNumber && `- Flat ${checklist.flatNumber}`}
           </DialogDescription>
         </DialogHeader>
 
@@ -56,7 +60,9 @@ export function ChecklistViewDialog({
                 <CardContent className="pt-6">
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">Total Items</p>
-                    <p className="text-2xl font-bold">{checklist.items.length}</p>
+                    <p className="text-2xl font-bold">
+                      {checklist.items.length}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -64,8 +70,12 @@ export function ChecklistViewDialog({
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Total Value</p>
-                      <p className="text-2xl font-bold">৳{checklist.totalEstimatedValue.toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Total Value
+                      </p>
+                      <p className="text-2xl font-bold">
+                        ৳{checklist.totalEstimatedValue.toLocaleString()}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -74,7 +84,9 @@ export function ChecklistViewDialog({
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <p className="text-sm text-muted-foreground">Repair Cost</p>
+                      <p className="text-sm text-muted-foreground">
+                        Repair Cost
+                      </p>
                       <p className="text-2xl font-bold text-red-600">
                         ৳{checklist.totalRepairCost.toLocaleString()}
                       </p>
@@ -96,39 +108,53 @@ export function ChecklistViewDialog({
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Deposit Amount</p>
-                        <p className="font-semibold">৳{checklist.securityDepositAmount.toLocaleString()}</p>
+                        <p className="font-semibold">
+                          ৳{checklist.securityDepositAmount.toLocaleString()}
+                        </p>
                       </div>
                       {checklist.securityDepositReturned !== undefined && (
                         <div>
                           <p className="text-muted-foreground">Returned</p>
                           <p className="font-semibold text-green-600">
-                            ৳{checklist.securityDepositReturned.toLocaleString()}
+                            ৳
+                            {checklist.securityDepositReturned.toLocaleString()}
                           </p>
                         </div>
                       )}
                     </div>
-                    {checklist.securityDepositDeductions && checklist.securityDepositDeductions.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        <p className="text-sm font-medium">Deductions:</p>
-                        {checklist.securityDepositDeductions.map((deduction, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between rounded-lg border p-2 bg-muted/30"
-                          >
-                            <div>
-                              <p className="text-sm font-medium">{deduction.itemName}</p>
-                              <p className="text-xs text-muted-foreground">{deduction.reason}</p>
-                            </div>
-                            <p className="text-sm font-semibold text-red-600">
-                              -৳{deduction.amount.toLocaleString()}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {checklist.securityDepositDeductions &&
+                      checklist.securityDepositDeductions.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <p className="text-sm font-medium">Deductions:</p>
+                          {checklist.securityDepositDeductions.map(
+                            (deduction, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between rounded-lg border p-2 bg-muted/30"
+                              >
+                                <div>
+                                  <p className="text-sm font-medium">
+                                    {deduction.itemName}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {deduction.reason}
+                                  </p>
+                                </div>
+                                <p className="text-sm font-semibold text-red-600">
+                                  -৳{deduction.amount.toLocaleString()}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
                     {checklist.securityDepositReturnDate && (
                       <div className="mt-2 text-xs text-muted-foreground">
-                        Returned on: {format(new Date(checklist.securityDepositReturnDate), 'MMM dd, yyyy')}
+                        Returned on:{' '}
+                        {format(
+                          new Date(checklist.securityDepositReturnDate),
+                          'MMM dd, yyyy'
+                        )}
                       </div>
                     )}
                   </div>
@@ -142,7 +168,10 @@ export function ChecklistViewDialog({
                 <h3 className="font-semibold">Property Photos</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {checklist.photos.map((photo, idx) => (
-                    <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border bg-muted">
+                    <div
+                      key={idx}
+                      className="relative aspect-square rounded-lg overflow-hidden border bg-muted"
+                    >
                       <img
                         src={photo}
                         alt={`Property photo ${idx + 1}`}
@@ -159,10 +188,16 @@ export function ChecklistViewDialog({
               <h3 className="font-semibold">Items by Category</h3>
               {Object.entries(itemsByCategory).map(([category, items]) => (
                 <div key={category} className="space-y-2">
-                  <h4 className="font-medium text-sm text-muted-foreground">{category}</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground">
+                    {category}
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {items.map(item => (
-                      <ChecklistItemCard key={item.id} item={item} showActions={false} />
+                      <ChecklistItemCard
+                        key={item.id}
+                        item={item}
+                        showActions={false}
+                      />
                     ))}
                   </div>
                 </div>
@@ -173,7 +208,9 @@ export function ChecklistViewDialog({
             {checklist.notes && (
               <div className="rounded-lg border p-4 bg-muted/30">
                 <h3 className="font-semibold mb-2">Notes</h3>
-                <p className="text-sm text-muted-foreground">{checklist.notes}</p>
+                <p className="text-sm text-muted-foreground">
+                  {checklist.notes}
+                </p>
               </div>
             )}
 
@@ -191,11 +228,12 @@ export function ChecklistViewDialog({
                   checklist.status === 'approved'
                     ? 'bg-green-50 text-green-700 border-green-200'
                     : checklist.status === 'completed'
-                    ? 'bg-blue-50 text-blue-700 border-blue-200'
-                    : 'bg-gray-50 text-gray-700 border-gray-200'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-gray-50 text-gray-700 border-gray-200'
                 }
               >
-                {checklist.status.charAt(0).toUpperCase() + checklist.status.slice(1)}
+                {checklist.status.charAt(0).toUpperCase() +
+                  checklist.status.slice(1)}
               </Badge>
             </div>
           </div>

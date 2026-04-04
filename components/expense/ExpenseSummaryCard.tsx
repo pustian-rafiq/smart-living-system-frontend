@@ -22,6 +22,16 @@ export function ExpenseSummaryCard({
   const trend = yearlyExpense?.trend || 'stable'
   const growthRate = yearlyExpense?.growthRate || 0
 
+  const categoryRows =
+    monthlyExpense?.categories ||
+    yearlyExpense?.categoryTotals.map(c => ({
+      categoryId: c.categoryId,
+      categoryName: c.categoryName,
+      amount: c.total,
+      percentage: c.percentage,
+    })) ||
+    []
+
   return (
     <Card>
       <CardHeader>
@@ -29,9 +39,15 @@ export function ExpenseSummaryCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="text-2xl font-bold">৳{expense.total.toLocaleString()}</p>
+          <p className="text-2xl font-bold">
+            ৳{expense.total.toLocaleString()}
+          </p>
           <p className="text-sm text-muted-foreground">
-            {isYearly ? `Total for ${expense.year}` : `${expense.month} ${expense.year}`}
+            {isYearly && yearlyExpense
+              ? `Total for ${yearlyExpense.year}`
+              : monthlyExpense
+                ? `${monthlyExpense.month} ${monthlyExpense.year}`
+                : `Year ${expense.year}`}
           </p>
         </div>
 
@@ -62,16 +78,23 @@ export function ExpenseSummaryCard({
           </div>
         )}
 
-        {expense.categories && expense.categories.length > 0 && (
+        {categoryRows.length > 0 && (
           <div className="space-y-2 pt-4 border-t">
             <p className="text-sm font-medium">Top Categories</p>
-            {expense.categories
+            {categoryRows
               .sort((a, b) => b.amount - a.amount)
               .slice(0, 3)
               .map(cat => (
-                <div key={cat.categoryId} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{cat.categoryName}</span>
-                  <span className="font-medium">৳{cat.amount.toLocaleString()}</span>
+                <div
+                  key={cat.categoryId}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="text-muted-foreground">
+                    {cat.categoryName}
+                  </span>
+                  <span className="font-medium">
+                    ৳{cat.amount.toLocaleString()}
+                  </span>
                 </div>
               ))}
           </div>

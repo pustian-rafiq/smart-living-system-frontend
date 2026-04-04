@@ -58,7 +58,11 @@ export const mockAuditLogs: AuditLog[] = [
     ipAddress: '10.0.0.1',
     changes: [
       { field: 'verified', oldValue: false, newValue: true },
-      { field: 'verificationStatus', oldValue: 'pending', newValue: 'verified' },
+      {
+        field: 'verificationStatus',
+        oldValue: 'pending',
+        newValue: 'verified',
+      },
     ],
     canRollback: true,
     rollbackData: {
@@ -120,9 +124,7 @@ export const mockAuditLogs: AuditLog[] = [
     userRole: 'owner',
     timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
     ipAddress: '192.168.1.101',
-    changes: [
-      { field: 'status', oldValue: 'pending', newValue: 'approved' },
-    ],
+    changes: [{ field: 'status', oldValue: 'pending', newValue: 'approved' }],
     canRollback: true,
     rollbackData: {
       status: 'pending',
@@ -160,9 +162,7 @@ export const mockAuditLogs: AuditLog[] = [
     userRole: 'owner',
     timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(), // 6 days ago
     ipAddress: '192.168.1.100',
-    changes: [
-      { field: 'deleted', oldValue: false, newValue: true },
-    ],
+    changes: [{ field: 'deleted', oldValue: false, newValue: true }],
     canRollback: true,
     rollbackData: {
       action: 'restore',
@@ -206,9 +206,7 @@ export const mockAuditLogs: AuditLog[] = [
     userRole: 'admin',
     timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days ago
     ipAddress: '10.0.0.1',
-    changes: [
-      { field: 'status', oldValue: 'pending', newValue: 'rejected' },
-    ],
+    changes: [{ field: 'status', oldValue: 'pending', newValue: 'rejected' }],
     metadata: {
       rejectionReason: 'Incomplete documentation',
     },
@@ -236,7 +234,9 @@ export function getAuditLogs(filters?: {
   }
 
   if (filters?.entityType && filters.entityType.length > 0) {
-    filtered = filtered.filter(log => filters.entityType!.includes(log.entityType))
+    filtered = filtered.filter(log =>
+      filters.entityType!.includes(log.entityType)
+    )
   }
 
   if (filters?.userId) {
@@ -266,17 +266,25 @@ export function getAuditLogs(filters?: {
   }
 
   // Sort by timestamp (newest first)
-  return filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  return filtered.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  )
 }
 
 export function getAuditLogById(id: string): AuditLog | undefined {
   return mockAuditLogs.find(log => log.id === id)
 }
 
-export function getAuditLogsByEntity(entityType: AuditEntityType, entityId: string): AuditLog[] {
+export function getAuditLogsByEntity(
+  entityType: AuditEntityType,
+  entityId: string
+): AuditLog[] {
   return mockAuditLogs
     .filter(log => log.entityType === entityType && log.entityId === entityId)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
 }
 
 export function addAuditLog(log: Omit<AuditLog, 'id' | 'timestamp'>): AuditLog {

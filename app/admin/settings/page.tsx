@@ -2,7 +2,13 @@
 
 import { useState } from 'react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -82,7 +88,10 @@ export default function AdminSettingsPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="platformName"
@@ -134,7 +143,9 @@ export default function AdminSettingsPage() {
                             min="0"
                             max="100"
                             {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            onChange={e =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -165,9 +176,11 @@ export default function AdminSettingsPage() {
                   <div className="text-sm">
                     <p className="font-medium mb-1">Features:</p>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      {settings.subscriptionPlans.free.features.map((feature, idx) => (
-                        <li key={idx}>{feature}</li>
-                      ))}
+                      {settings.subscriptionPlans.free.features.map(
+                        (feature, idx) => (
+                          <li key={idx}>{feature}</li>
+                        )
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -182,9 +195,11 @@ export default function AdminSettingsPage() {
                   <div className="text-sm">
                     <p className="font-medium mb-1">Features:</p>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      {settings.subscriptionPlans.basic.features.map((feature, idx) => (
-                        <li key={idx}>{feature}</li>
-                      ))}
+                      {settings.subscriptionPlans.basic.features.map(
+                        (feature, idx) => (
+                          <li key={idx}>{feature}</li>
+                        )
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -194,14 +209,19 @@ export default function AdminSettingsPage() {
                     Price: ৳{settings.subscriptionPlans.premium.price}/month
                   </p>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Max Flats: {settings.subscriptionPlans.premium.maxFlats === -1 ? 'Unlimited' : settings.subscriptionPlans.premium.maxFlats}
+                    Max Flats:{' '}
+                    {settings.subscriptionPlans.premium.maxFlats === -1
+                      ? 'Unlimited'
+                      : settings.subscriptionPlans.premium.maxFlats}
                   </p>
                   <div className="text-sm">
                     <p className="font-medium mb-1">Features:</p>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      {settings.subscriptionPlans.premium.features.map((feature, idx) => (
-                        <li key={idx}>{feature}</li>
-                      ))}
+                      {settings.subscriptionPlans.premium.features.map(
+                        (feature, idx) => (
+                          <li key={idx}>{feature}</li>
+                        )
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -213,26 +233,33 @@ export default function AdminSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Feature Flags</CardTitle>
-              <CardDescription>Enable or disable platform features</CardDescription>
+              <CardDescription>
+                Enable or disable platform features
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Object.entries(settings.featureFlags).map(([feature, enabled]) => (
-                  <div key={feature} className="flex items-center justify-between">
-                    <div>
-                      <Label className="font-medium capitalize">
-                        {feature.replace(/([A-Z])/g, ' $1').trim()}
-                      </Label>
-                      <p className="text-sm text-muted-foreground">
-                        {enabled ? 'Enabled' : 'Disabled'}
-                      </p>
+                {Object.entries(settings.featureFlags).map(
+                  ([feature, enabled]) => (
+                    <div
+                      key={feature}
+                      className="flex items-center justify-between"
+                    >
+                      <div>
+                        <Label className="font-medium capitalize">
+                          {feature.replace(/([A-Z])/g, ' $1').trim()}
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          {enabled ? 'Enabled' : 'Disabled'}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={enabled}
+                        onCheckedChange={() => handleFeatureToggle(feature)}
+                      />
                     </div>
-                    <Switch
-                      checked={enabled}
-                      onCheckedChange={() => handleFeatureToggle(feature)}
-                    />
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </CardContent>
           </Card>

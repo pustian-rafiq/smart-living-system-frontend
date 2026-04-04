@@ -1,142 +1,65 @@
-# Smart Living Ecosystem - Frontend Project Structure
+# Smart Living Ecosystem — Frontend Structure
+
+This project is a **Next.js 15 (App Router)** frontend. Business data is loaded through a **mock API layer** (`lib/api/`) so routes can switch to real HTTP clients later without rewriting UI logic.
+
+## Top-level layout
 
 ```
-frontend/
-├── components/              # React components
-│   ├── layout/             # Layout components
-│   │   ├── Header.tsx      # Top header with theme toggle
-│   │   ├── Footer.tsx      # Footer component
-│   │   ├── Navbar.tsx      # Navigation bar with role-based links
-│   │   └── Layout.tsx      # Main layout wrapper
-│   └── theme/              # Theme-related components
-│       └── ThemeProvider.tsx  # Theme context provider
-│
-├── pages/                  # Next.js pages (Pages Router)
-│   ├── _app.tsx           # App wrapper with ThemeProvider
-│   ├── index.tsx          # Home page
-│   ├── about.tsx          # About page
-│   ├── contact.tsx        # Contact page
-│   ├── properties.tsx     # Properties listing page
-│   └── api/               # API routes
-│       └── example.ts     # Example API endpoint
-│
-├── styles/                 # Global styles
-│   └── globals.css        # Tailwind imports & global styles
-│
-├── utils/                  # Utility functions
-│   ├── api.ts             # REST API client utilities
-│   └── theme.ts           # Theme management utilities
-│
-├── types/                  # TypeScript type definitions
-│   └── index.ts           # Shared types and interfaces
-│
-├── public/                 # Static assets
-│   └── favicon.ico        # Site favicon
-│
-├── .eslintrc.json         # ESLint configuration
-├── .eslintignore          # ESLint ignore patterns
-├── .prettierrc            # Prettier configuration
-├── .prettierignore        # Prettier ignore patterns
-├── .gitignore             # Git ignore patterns
-├── next.config.js         # Next.js configuration
-├── package.json           # Dependencies and scripts
-├── postcss.config.js      # PostCSS configuration
-├── tailwind.config.ts     # Tailwind CSS configuration
-├── tsconfig.json          # TypeScript configuration
-└── README.md              # Project documentation
+├── app/                    # Routes (App Router): pages, layouts, route groups
+├── components/             # UI: layout, feature modules, shadcn/ui
+├── components/page/        # Shared page chrome: PageHeader, PageContainer, EmptyState, LoadingState
+├── data/                   # Mock datasets + in-memory mutators (dev/demo)
+├── hooks/                  # e.g. useMockQuery — async mock API + loading state
+├── lib/
+│   ├── api/                # Mock “API”: typed async functions, ApiResult<T>, delays
+│   └── utils.ts            # cn() and helpers
+├── styles/globals.css      # Design tokens + Tailwind
+├── types/                  # Shared TypeScript types
+└── utils/                  # auth helpers, theme, api client shell (real backend later)
 ```
 
-## Key Features
+## App routes (`app/`)
 
-### Mobile-First Design
-- Tailwind CSS configured with mobile-first breakpoints
-- Responsive components that work on all screen sizes
-- Touch-friendly UI elements
+| Area | Paths |
+|------|--------|
+| Public / marketing | `/`, `/about`, `/contact` |
+| Discovery | `/search`, `/properties` (featured browse), `/hotels`, `/hotels/[hotelId]`, `/hotels/[hotelId]/book` |
+| Auth (demo) | `/login`, `/otp-verify`, `/role-selection` |
+| Renter | `/dashboard`, `/rentals`, `/bills`, `/payments`, `/favorites`, `/saved-searches`, `/search-history`, `/messages`, `/complaints`, `/documents`, `/expenses`, `/reports`, `/reminders`, `/notifications`, `/profile` |
+| Owner | `/my-properties`, buildings/floors/flats, `/my-properties/bookings` |
+| Hotels (owner) | `/my-hotels`, `/my-hotels/[hotelId]/rooms`, `.../calendar`, `.../bookings` |
+| Mess | `/mess`, `/mess/[messId]/*`, `/mess/student-dashboard/*` |
+| Bookings | `/my-bookings` |
+| Admin | `/admin`, `/admin/users`, `.../properties`, `.../complaints`, etc. |
 
-### Theme System
-- Light & Dark mode support
-- Theme persistence in localStorage
-- System preference detection
-- Smooth theme transitions
+## Mock API (`lib/api/`)
 
-### Role-Based Navigation
-- Dynamic navigation based on user role (Renter, Owner, Admin)
-- Role-specific routes and links
-- Mobile-responsive hamburger menu
+- **`http.ts`** — `mockDelay`, `ApiResult<T>`, `ok` / `err`
+- **`demoUser.ts`** — demo renter id (sessionStorage hook for later auth)
+- **`properties.ts`** — `fetchProperties`, `fetchFeaturedProperties`, …
+- **`bookings.ts`** — renter/owner booking queries and status updates
+- **`rentals.ts`** — renter rental summaries (classifies booking phase)
 
-### API Integration Ready
-- REST API client utilities in `utils/api.ts`
-- Environment variable support for API base URL
-- Error handling and type-safe API calls
-- Example API route in `pages/api/`
+Pages should prefer **`useMockQuery(() => someApiCall())`** (with a stable `useCallback` fetcher) over importing `mock*` directly, for consistency and easier backend swap.
 
-### Development Tools
-- TypeScript for type safety
-- ESLint for code quality
-- Prettier for code formatting
-- Next.js 14 with Pages Router
+## Design consistency
 
-## Getting Started
+- **Layout**: `Layout` wraps most pages; `AppHeader`, `Navbar` (desktop), `BottomNavigation` (mobile)
+- **Spacing**: `PageContainer` + `PageHeader` for title/description/actions
+- **Empty / loading**: `EmptyState`, `LoadingState`
+- **Theming**: `ThemeProvider`, Tailwind + CSS variables in `globals.css`
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+## Scripts
 
-2. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API base URL
-   ```
-
-3. Run development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Build for production:
-   ```bash
-   npm run build
-   npm start
-   ```
-
-## Component Usage
-
-### Using the Layout
-```tsx
-import { Layout } from '@/components/layout/Layout'
-
-export default function MyPage() {
-  return (
-    <Layout userRole="renter">
-      <h1>My Page Content</h1>
-    </Layout>
-  )
-}
+```bash
+npm install
+npm run dev          # development
+npm run build        # production (see next.config.js: ESLint + TS settings)
+npm run lint         # ESLint
 ```
 
-### Using the Theme
-```tsx
-import { useTheme } from '@/components/theme/ThemeProvider'
+`next.config.js` may set `eslint.ignoreDuringBuilds` and `typescript.ignoreBuildErrors` until remaining Zod v4 / resolver typings are cleaned up project-wide. Run `npx tsc --noEmit` locally when tightening types.
 
-export default function MyComponent() {
-  const { theme, toggle } = useTheme()
-  
-  return (
-    <button onClick={toggle}>
-      Current theme: {theme}
-    </button>
-  )
-}
-```
+## Backend (later)
 
-### Using the API Client
-```tsx
-import { api } from '@/utils/api'
-
-// GET request
-const data = await api.get<MyType>('/endpoint')
-
-// POST request
-const result = await api.post<MyType>('/endpoint', { key: 'value' })
-```
+Replace `lib/api/*` implementations with `fetch`/`api` calls to your FastAPI/Nest service; keep the same function names and `ApiResult` shape where possible.

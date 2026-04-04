@@ -7,7 +7,18 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { NotificationBadge } from '@/components/chat/NotificationBadge'
 import { SearchNotification } from '@/components/search/SearchNotification'
-import { Check, Moon, Sun, Menu, X, MessageCircle, Heart, Clock, Bookmark, Bell } from 'lucide-react'
+import {
+  Check,
+  Moon,
+  Sun,
+  Menu,
+  X,
+  MessageCircle,
+  Heart,
+  Clock,
+  Bookmark,
+  Bell,
+} from 'lucide-react'
 import { getStoredRole, isLoggedIn } from '@/utils/auth'
 import { cn } from '@/lib/utils'
 
@@ -65,7 +76,9 @@ export function AppHeader() {
                     </Badge>
                   )}
                 </div>
-                <SearchNotification userId={getStoredRole() === 'owner' ? 'owner1' : 'user1'} />
+                <SearchNotification
+                  userId={getStoredRole() === 'owner' ? 'owner1' : 'user1'}
+                />
                 {getStoredRole() === 'renter' && (
                   <>
                     <Button
@@ -101,12 +114,7 @@ export function AppHeader() {
                   </>
                 )}
                 {getStoredRole() === 'owner' && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    asChild
-                    title="Notices"
-                  >
+                  <Button variant="ghost" size="icon" asChild title="Notices">
                     <Link href="/notices">
                       <Bell className="h-5 w-5" />
                     </Link>
@@ -120,7 +128,9 @@ export function AppHeader() {
                 >
                   <Link href="/messages">
                     <MessageCircle className="h-5 w-5" />
-                    <NotificationBadge userId={getStoredRole() === 'owner' ? 'owner1' : 'user1'} />
+                    <NotificationBadge
+                      userId={getStoredRole() === 'owner' ? 'owner1' : 'user1'}
+                    />
                   </Link>
                 </Button>
                 <Button
@@ -162,18 +172,20 @@ export function AppHeader() {
             {!mounted ? (
               // Show loading state during hydration
               <div className="h-4 w-16 animate-pulse rounded bg-muted" />
-            ) : isLoggedIn() && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium">{userName}</span>
-                {isVerified && (
-                  <Badge
-                    variant="outline"
-                    className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 px-1.5 py-0"
-                  >
-                    <Check className="h-2.5 w-2.5" />
-                  </Badge>
-                )}
-              </div>
+            ) : (
+              isLoggedIn() && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-medium">{userName}</span>
+                  {isVerified && (
+                    <Badge
+                      variant="outline"
+                      className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 px-1.5 py-0"
+                    >
+                      <Check className="h-2.5 w-2.5" />
+                    </Badge>
+                  )}
+                </div>
+              )
             )}
             <Button
               variant="ghost"

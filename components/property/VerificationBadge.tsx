@@ -24,7 +24,8 @@ export function VerificationBadge({
   showTooltip = true,
 }: VerificationBadgeProps) {
   // Determine status
-  const status: VerificationStatus = verificationStatus || (verified ? 'verified' : 'unverified')
+  const status: VerificationStatus =
+    verificationStatus || (verified ? 'verified' : 'unverified')
 
   const badgeContent = (
     <Badge
@@ -33,8 +34,8 @@ export function VerificationBadge({
         status === 'verified'
           ? 'bg-green-500 hover:bg-green-600'
           : status === 'pending'
-          ? 'bg-yellow-500 hover:bg-yellow-600'
-          : 'bg-gray-400 hover:bg-gray-500'
+            ? 'bg-yellow-500 hover:bg-yellow-600'
+            : 'bg-gray-400 hover:bg-gray-500'
       } text-white border-0`}
     >
       {status === 'verified' && <CheckCircle2 className="mr-1 h-3 w-3" />}
@@ -44,8 +45,8 @@ export function VerificationBadge({
         {status === 'verified'
           ? 'Verified'
           : status === 'pending'
-          ? 'Pending'
-          : 'Unverified'}
+            ? 'Pending'
+            : 'Unverified'}
       </span>
     </Badge>
   )
@@ -64,13 +65,14 @@ export function VerificationBadge({
               {status === 'verified'
                 ? 'Verified Listing'
                 : status === 'pending'
-                ? 'Verification Pending'
-                : 'Unverified Listing'}
+                  ? 'Verification Pending'
+                  : 'Unverified Listing'}
             </p>
             {status === 'verified' && (
               <>
                 <p className="text-xs text-muted-foreground">
-                  This property has been verified by our team. Verification includes:
+                  This property has been verified by our team. Verification
+                  includes:
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                   <li>Owner identity verification</li>
@@ -87,12 +89,14 @@ export function VerificationBadge({
             )}
             {status === 'pending' && (
               <p className="text-xs text-muted-foreground">
-                This property is currently under verification review. Verification typically takes 24-48 hours.
+                This property is currently under verification review.
+                Verification typically takes 24-48 hours.
               </p>
             )}
             {status === 'unverified' && (
               <p className="text-xs text-muted-foreground">
-                This property has not been verified yet. We recommend contacting the owner directly for more information.
+                This property has not been verified yet. We recommend contacting
+                the owner directly for more information.
               </p>
             )}
           </div>

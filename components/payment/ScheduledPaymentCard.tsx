@@ -3,7 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar, Clock, CreditCard, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
+import {
+  Calendar,
+  Clock,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+} from 'lucide-react'
 import type { ScheduledPayment } from '@/types/payment'
 import { format, differenceInDays } from 'date-fns'
 
@@ -15,12 +22,18 @@ interface ScheduledPaymentCardProps {
 }
 
 const statusColors = {
-  scheduled: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  pending: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
-  processing: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
-  completed: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
-  failed: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
-  cancelled: 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
+  scheduled:
+    'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+  pending:
+    'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+  processing:
+    'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
+  completed:
+    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+  failed:
+    'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
+  cancelled:
+    'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
 }
 
 const statusIcons = {
@@ -38,22 +51,33 @@ export function ScheduledPaymentCard({
   onCancel,
   showActions = true,
 }: ScheduledPaymentCardProps) {
-  const daysUntilPayment = differenceInDays(new Date(payment.scheduledDate), new Date())
+  const daysUntilPayment = differenceInDays(
+    new Date(payment.scheduledDate),
+    new Date()
+  )
   const isUpcoming = daysUntilPayment >= 0 && payment.status === 'scheduled'
   const isOverdue = daysUntilPayment < 0 && payment.status === 'scheduled'
 
   const StatusIcon = statusIcons[payment.status]
 
   return (
-    <Card className={`transition-all hover:shadow-md ${isOverdue ? 'border-red-500' : ''}`}>
+    <Card
+      className={`transition-all hover:shadow-md ${isOverdue ? 'border-red-500' : ''}`}
+    >
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-base md:text-lg truncate">{payment.billName}</CardTitle>
+            <CardTitle className="text-base md:text-lg truncate">
+              {payment.billName}
+            </CardTitle>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className={`text-xs ${statusColors[payment.status]}`}>
+              <Badge
+                variant="outline"
+                className={`text-xs ${statusColors[payment.status]}`}
+              >
                 <StatusIcon className="h-3 w-3 mr-1" />
-                {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                {payment.status.charAt(0).toUpperCase() +
+                  payment.status.slice(1)}
               </Badge>
               {payment.autoRetry && (
                 <Badge variant="outline" className="text-xs">
@@ -67,7 +91,9 @@ export function ScheduledPaymentCard({
       <CardContent className="space-y-4">
         {/* Amount */}
         <div>
-          <p className="text-2xl font-bold text-primary">৳{payment.amount.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-primary">
+            ৳{payment.amount.toLocaleString()}
+          </p>
         </div>
 
         {/* Schedule Info */}
@@ -114,8 +140,8 @@ export function ScheduledPaymentCard({
                 {daysUntilPayment === 0
                   ? 'Due today'
                   : daysUntilPayment === 1
-                  ? 'Due tomorrow'
-                  : `Due in ${daysUntilPayment} days`}
+                    ? 'Due tomorrow'
+                    : `Due in ${daysUntilPayment} days`}
               </p>
             </div>
           </div>
@@ -126,7 +152,8 @@ export function ScheduledPaymentCard({
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
               <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                Overdue by {Math.abs(daysUntilPayment)} day{Math.abs(daysUntilPayment) !== 1 ? 's' : ''}
+                Overdue by {Math.abs(daysUntilPayment)} day
+                {Math.abs(daysUntilPayment) !== 1 ? 's' : ''}
               </p>
             </div>
           </div>
@@ -157,20 +184,26 @@ export function ScheduledPaymentCard({
         {showActions && (
           <div className="flex gap-2 pt-2 border-t">
             {payment.status === 'scheduled' && onEdit && (
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => onEdit(payment)}>
-                Edit
-              </Button>
-            )}
-            {(payment.status === 'scheduled' || payment.status === 'pending') && onCancel && (
               <Button
                 variant="outline"
                 size="sm"
                 className="flex-1"
-                onClick={() => onCancel(payment)}
+                onClick={() => onEdit(payment)}
               >
-                Cancel
+                Edit
               </Button>
             )}
+            {(payment.status === 'scheduled' || payment.status === 'pending') &&
+              onCancel && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => onCancel(payment)}
+                >
+                  Cancel
+                </Button>
+              )}
           </div>
         )}
       </CardContent>

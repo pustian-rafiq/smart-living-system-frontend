@@ -1,11 +1,18 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
 import { ScheduledPaymentCard } from '@/components/payment/ScheduledPaymentCard'
 import { SchedulePaymentDialog } from '@/components/payment/SchedulePaymentDialog'
 import {
@@ -17,7 +24,14 @@ import {
 } from '@/data/mockPayments'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
-import { Calendar, Plus, Clock, CheckCircle2, XCircle, Settings } from 'lucide-react'
+import {
+  Calendar,
+  Plus,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Settings,
+} from 'lucide-react'
 import type { ScheduledPayment } from '@/types/payment'
 
 export default function PaymentsPage() {
@@ -32,7 +46,9 @@ export default function PaymentsPage() {
   )
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
-  const [editingPayment, setEditingPayment] = useState<ScheduledPayment | null>(null)
+  const [editingPayment, setEditingPayment] = useState<ScheduledPayment | null>(
+    null
+  )
 
   const filteredPayments = useMemo(() => {
     if (statusFilter === 'all') return scheduledPayments
@@ -90,8 +106,13 @@ export default function PaymentsPage() {
     }
   }
 
+  useEffect(() => {
+    if (role !== 'renter') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
+
   if (role !== 'renter') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -106,10 +127,12 @@ export default function PaymentsPage() {
               Schedule payments and manage automatic payment reminders
             </p>
           </div>
-          <Button onClick={() => {
-            setEditingPayment(null)
-            setIsScheduleDialogOpen(true)
-          }}>
+          <Button
+            onClick={() => {
+              setEditingPayment(null)
+              setIsScheduleDialogOpen(true)
+            }}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Schedule Payment
           </Button>
@@ -209,7 +232,9 @@ export default function PaymentsPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No scheduled payments</p>
+                  <p className="text-muted-foreground mb-4">
+                    No scheduled payments
+                  </p>
                   <Button onClick={() => setIsScheduleDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Schedule Payment
@@ -242,10 +267,20 @@ export default function PaymentsPage() {
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
-            {scheduledPayments.filter(p => p.status === 'completed' || p.status === 'failed' || p.status === 'cancelled').length > 0 ? (
+            {scheduledPayments.filter(
+              p =>
+                p.status === 'completed' ||
+                p.status === 'failed' ||
+                p.status === 'cancelled'
+            ).length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {scheduledPayments
-                  .filter(p => p.status === 'completed' || p.status === 'failed' || p.status === 'cancelled')
+                  .filter(
+                    p =>
+                      p.status === 'completed' ||
+                      p.status === 'failed' ||
+                      p.status === 'cancelled'
+                  )
                   .map(payment => (
                     <ScheduledPaymentCard
                       key={payment.id}
@@ -284,7 +319,9 @@ export default function PaymentsPage() {
                     <div>
                       <p className="font-medium">{schedule.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {schedule.frequency} • ৳{schedule.amount.toLocaleString()} • {schedule.paymentMethod}
+                        {schedule.frequency} • ৳
+                        {schedule.amount.toLocaleString()} •{' '}
+                        {schedule.paymentMethod}
                       </p>
                     </div>
                     <Badge variant={schedule.isActive ? 'default' : 'outline'}>
@@ -301,7 +338,7 @@ export default function PaymentsPage() {
         <SchedulePaymentDialog
           payment={editingPayment}
           open={isScheduleDialogOpen}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setIsScheduleDialogOpen(open)
             if (!open) setEditingPayment(null)
           }}

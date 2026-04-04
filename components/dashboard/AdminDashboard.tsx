@@ -4,10 +4,26 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatCard } from './StatCard'
-import { Users, Building2, Calendar, DollarSign, AlertCircle, FileCheck, MessageSquare, TrendingUp } from 'lucide-react'
-import { mockAnalytics, mockVerificationRequests, mockDisputes } from '@/data/mockAdmin'
+import {
+  Users,
+  Building2,
+  Calendar,
+  DollarSign,
+  AlertCircle,
+  FileCheck,
+  MessageSquare,
+  TrendingUp,
+} from 'lucide-react'
+import {
+  mockAnalytics,
+  mockVerificationRequests,
+  mockDisputes,
+} from '@/data/mockAdmin'
 import { mockComplaints } from '@/data/mockComplaints'
-import { getVerificationRequestsByStatus, getDisputesByStatus } from '@/data/mockAdmin'
+import {
+  getVerificationRequestsByStatus,
+  getDisputesByStatus,
+} from '@/data/mockAdmin'
 
 interface AdminDashboardProps {
   adminId: string
@@ -74,7 +90,9 @@ export function AdminDashboard({ adminId }: AdminDashboardProps) {
     <div className="space-y-6 md:space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold md:text-2xl mb-2">Dashboard Overview</h2>
+        <h2 className="text-xl font-bold md:text-2xl mb-2">
+          Dashboard Overview
+        </h2>
         <p className="text-muted-foreground">
           Overview of platform statistics and activities
         </p>
@@ -90,8 +108,12 @@ export function AdminDashboard({ adminId }: AdminDashboardProps) {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1 md:text-sm">{stat.title}</p>
-                      <p className="text-xl font-bold md:text-2xl">{stat.value}</p>
+                      <p className="text-xs text-muted-foreground mb-1 md:text-sm">
+                        {stat.title}
+                      </p>
+                      <p className="text-xl font-bold md:text-2xl">
+                        {stat.value}
+                      </p>
                       <div className="mt-2 flex items-center gap-1 text-xs text-green-600">
                         <TrendingUp className="h-3 w-3" />
                         <span>{stat.growth}</span>
@@ -127,7 +149,9 @@ export function AdminDashboard({ adminId }: AdminDashboardProps) {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium mb-1">{action.title}</p>
+                        <p className="text-sm font-medium mb-1">
+                          {action.title}
+                        </p>
                         <p className="text-2xl font-bold">{action.count}</p>
                       </div>
                       <div className="rounded-full p-2 bg-primary/10">

@@ -12,7 +12,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Bell, X, Search, ExternalLink } from 'lucide-react'
-import { mockSavedSearches, getActiveSavedSearches } from '@/data/mockSavedSearches'
+import {
+  mockSavedSearches,
+  getActiveSavedSearches,
+} from '@/data/mockSavedSearches'
 import { mockProperties } from '@/data/mockProperties'
 import type { SavedSearch } from '@/types/savedSearch'
 import type { Property, SearchFilters } from '@/types/property'
@@ -29,9 +32,15 @@ interface MatchNotification {
 }
 
 // Helper function to check if property matches search filters
-function propertyMatchesFilters(property: Property, filters: SearchFilters): boolean {
+function propertyMatchesFilters(
+  property: Property,
+  filters: SearchFilters
+): boolean {
   // Property type
-  if (filters.propertyType !== 'all' && property.type !== filters.propertyType) {
+  if (
+    filters.propertyType !== 'all' &&
+    property.type !== filters.propertyType
+  ) {
     return false
   }
 
@@ -46,7 +55,10 @@ function propertyMatchesFilters(property: Property, filters: SearchFilters): boo
   }
 
   // Rent range
-  if (property.rent < filters.rentRange[0] || property.rent > filters.rentRange[1]) {
+  if (
+    property.rent < filters.rentRange[0] ||
+    property.rent > filters.rentRange[1]
+  ) {
     return false
   }
 
@@ -61,8 +73,15 @@ function propertyMatchesFilters(property: Property, filters: SearchFilters): boo
   }
 
   // Gender (for mess/hostel)
-  if (filters.gender && (property.type === 'mess' || property.type === 'hostel')) {
-    if (property.gender && property.gender !== filters.gender && property.gender !== 'mixed') {
+  if (
+    filters.gender &&
+    (property.type === 'mess' || property.type === 'hostel')
+  ) {
+    if (
+      property.gender &&
+      property.gender !== filters.gender &&
+      property.gender !== 'mixed'
+    ) {
       return false
     }
   }
@@ -73,7 +92,10 @@ function propertyMatchesFilters(property: Property, filters: SearchFilters): boo
   }
 
   // Meal included
-  if (filters.mealIncluded !== undefined && property.mealIncluded !== filters.mealIncluded) {
+  if (
+    filters.mealIncluded !== undefined &&
+    property.mealIncluded !== filters.mealIncluded
+  ) {
     return false
   }
 
@@ -118,7 +140,10 @@ function propertyMatchesFilters(property: Property, filters: SearchFilters): boo
   }
 
   // Security
-  if (filters.security !== undefined && property.security !== filters.security) {
+  if (
+    filters.security !== undefined &&
+    property.security !== filters.security
+  ) {
     return false
   }
 
@@ -136,9 +161,9 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
       const activeSearches = getActiveSavedSearches(userId)
       const newNotifications: MatchNotification[] = []
 
-      activeSearches.forEach((savedSearch) => {
+      activeSearches.forEach(savedSearch => {
         // Find properties that match this search
-        const matchingProperties = mockProperties.filter((property) =>
+        const matchingProperties = mockProperties.filter(property =>
           propertyMatchesFilters(property, savedSearch.filters)
         )
 
@@ -147,7 +172,7 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
           ? new Date(savedSearch.lastChecked)
           : new Date(savedSearch.createdAt)
 
-        const newMatches = matchingProperties.filter((property) => {
+        const newMatches = matchingProperties.filter(property => {
           const propertyDate = new Date(property.createdAt)
           return propertyDate > lastChecked
         })
@@ -165,7 +190,7 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
         setNotifications(newNotifications)
         setHasNewMatches(true)
         // Update last checked time for all searches
-        newNotifications.forEach((notification) => {
+        newNotifications.forEach(notification => {
           notification.savedSearch.lastChecked = new Date().toISOString()
           notification.savedSearch.matchCount = notification.matchCount
           notification.savedSearch.updatedAt = new Date().toISOString()
@@ -185,7 +210,10 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
   const handleViewMatches = (savedSearch: SavedSearch) => {
     // Navigate to search page with filters
     const params = new URLSearchParams()
-    if (savedSearch.filters.propertyType && savedSearch.filters.propertyType !== 'all') {
+    if (
+      savedSearch.filters.propertyType &&
+      savedSearch.filters.propertyType !== 'all'
+    ) {
       params.set('type', savedSearch.filters.propertyType)
     }
     if (savedSearch.filters.city) {
@@ -218,7 +246,10 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
     return null
   }
 
-  const totalNewMatches = notifications.reduce((sum, notif) => sum + notif.newMatches.length, 0)
+  const totalNewMatches = notifications.reduce(
+    (sum, notif) => sum + notif.newMatches.length,
+    0
+  )
 
   return (
     <>
@@ -241,7 +272,10 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
       </Button>
 
       {/* Notification Dialog */}
-      <Dialog open={showNotificationDialog} onOpenChange={setShowNotificationDialog}>
+      <Dialog
+        open={showNotificationDialog}
+        onOpenChange={setShowNotificationDialog}
+      >
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -249,19 +283,30 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
               New Property Matches!
             </DialogTitle>
             <DialogDescription>
-              {totalNewMatches} new {totalNewMatches === 1 ? 'property matches' : 'properties match'} your saved searches
+              {totalNewMatches} new{' '}
+              {totalNewMatches === 1 ? 'property matches' : 'properties match'}{' '}
+              your saved searches
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
-            {notifications.map((notification) => (
-              <Card key={notification.savedSearch.id} className="border-l-4 border-l-primary">
+            {notifications.map(notification => (
+              <Card
+                key={notification.savedSearch.id}
+                className="border-l-4 border-l-primary"
+              >
                 <CardContent className="pt-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold">{notification.savedSearch.name}</h3>
+                      <h3 className="font-semibold">
+                        {notification.savedSearch.name}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        {notification.newMatches.length} new {notification.newMatches.length === 1 ? 'match' : 'matches'} found
+                        {notification.newMatches.length} new{' '}
+                        {notification.newMatches.length === 1
+                          ? 'match'
+                          : 'matches'}{' '}
+                        found
                       </p>
                     </div>
                     <Badge variant="secondary">
@@ -271,15 +316,18 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
 
                   {/* New Matches Preview */}
                   <div className="space-y-2 mb-4">
-                    {notification.newMatches.slice(0, 3).map((property) => (
+                    {notification.newMatches.slice(0, 3).map(property => (
                       <div
                         key={property.id}
                         className="flex items-center justify-between p-2 rounded border bg-muted/50"
                       >
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{property.name}</p>
+                          <p className="font-medium text-sm truncate">
+                            {property.name}
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            {property.area}, {property.city} • ৳{property.rent.toLocaleString()}/month
+                            {property.area}, {property.city} • ৳
+                            {property.rent.toLocaleString()}/month
                           </p>
                         </div>
                         <Button

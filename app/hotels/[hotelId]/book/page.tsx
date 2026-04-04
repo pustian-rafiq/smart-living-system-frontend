@@ -28,14 +28,29 @@ export default function HotelBookingPage() {
   const [guests, setGuests] = useState(1)
   const [loading, setLoading] = useState(false)
 
+  const totalPrice = useMemo(() => {
+    if (!selectedRoom || !checkIn || !checkOut) return 0
+
+    const nights = differenceInDays(checkOut, checkIn)
+    if (nights <= 0) return 0
+
+    return selectedRoom.basePrice * nights
+  }, [selectedRoom, checkIn, checkOut])
+
   if (!hotel) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-lg font-semibold text-muted-foreground">Hotel not found</p>
-              <Button variant="outline" onClick={() => router.push('/hotels')} className="mt-4">
+              <p className="text-lg font-semibold text-muted-foreground">
+                Hotel not found
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/hotels')}
+                className="mt-4"
+              >
                 Back to Hotels
               </Button>
             </CardContent>
@@ -44,16 +59,6 @@ export default function HotelBookingPage() {
       </Layout>
     )
   }
-
-  // Calculate total price
-  const totalPrice = useMemo(() => {
-    if (!selectedRoom || !checkIn || !checkOut) return 0
-    
-    const nights = differenceInDays(checkOut, checkIn)
-    if (nights <= 0) return 0
-    
-    return selectedRoom.basePrice * nights
-  }, [selectedRoom, checkIn, checkOut])
 
   const handleBookingSubmit = async (data: BookingFormData) => {
     if (!selectedRoom || !checkIn || !checkOut) {
@@ -76,7 +81,11 @@ export default function HotelBookingPage() {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="mb-4"
+          >
             ← Back
           </Button>
           <h1 className="text-2xl font-bold mb-2">Book {hotel.name}</h1>
@@ -98,8 +107,8 @@ export default function HotelBookingPage() {
                   bookings={mockBookings}
                   checkIn={checkIn}
                   checkOut={checkOut}
-                  onCheckInSelect={(date) => setCheckIn(date)}
-                  onCheckOutSelect={(date) => setCheckOut(date)}
+                  onCheckInSelect={date => setCheckIn(date)}
+                  onCheckOutSelect={date => setCheckOut(date)}
                   roomId={selectedRoom?.id}
                 />
               </CardContent>
@@ -118,11 +127,13 @@ export default function HotelBookingPage() {
                       room={room}
                       selected={selectedRoom?.id === room.id}
                       showSelectButton
-                      onSelect={(room) => setSelectedRoom(room)}
+                      onSelect={room => setSelectedRoom(room)}
                     />
                   ))}
                   {availableRooms.length === 0 && (
-                    <p className="text-center text-muted-foreground">No rooms available</p>
+                    <p className="text-center text-muted-foreground">
+                      No rooms available
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -131,8 +142,12 @@ export default function HotelBookingPage() {
             {/* Step 3: Guest Information */}
             <BookingForm
               onSubmit={handleBookingSubmit}
-              defaultCheckIn={checkIn ? format(checkIn, 'yyyy-MM-dd') : undefined}
-              defaultCheckOut={checkOut ? format(checkOut, 'yyyy-MM-dd') : undefined}
+              defaultCheckIn={
+                checkIn ? format(checkIn, 'yyyy-MM-dd') : undefined
+              }
+              defaultCheckOut={
+                checkOut ? format(checkOut, 'yyyy-MM-dd') : undefined
+              }
               defaultGuests={guests}
               loading={loading}
             />
@@ -147,18 +162,24 @@ export default function HotelBookingPage() {
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-semibold mb-2">{hotel.name}</h4>
-                  <p className="text-sm text-muted-foreground">{hotel.area}, {hotel.city}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {hotel.area}, {hotel.city}
+                  </p>
                 </div>
 
                 {selectedRoom && (
                   <div className="pt-4 border-t">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-muted-foreground">Room:</span>
-                      <span className="font-medium">Room {selectedRoom.roomNumber}</span>
+                      <span className="font-medium">
+                        Room {selectedRoom.roomNumber}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-muted-foreground">Type:</span>
-                      <span className="font-medium capitalize">{selectedRoom.type}</span>
+                      <span className="font-medium capitalize">
+                        {selectedRoom.type}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -167,11 +188,15 @@ export default function HotelBookingPage() {
                   <div className="pt-4 border-t">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-muted-foreground">Check-in:</span>
-                      <span className="font-medium">{format(checkIn, 'MMM dd, yyyy')}</span>
+                      <span className="font-medium">
+                        {format(checkIn, 'MMM dd, yyyy')}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-muted-foreground">Check-out:</span>
-                      <span className="font-medium">{format(checkOut, 'MMM dd, yyyy')}</span>
+                      <span className="font-medium">
+                        {format(checkOut, 'MMM dd, yyyy')}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Nights:</span>
@@ -186,18 +211,26 @@ export default function HotelBookingPage() {
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-muted-foreground">Room Price:</span>
                     <span className="font-medium">
-                      {selectedRoom ? `৳${selectedRoom.basePrice.toLocaleString()}/night` : 'Select room'}
+                      {selectedRoom
+                        ? `৳${selectedRoom.basePrice.toLocaleString()}/night`
+                        : 'Select room'}
                     </span>
                   </div>
                   {checkIn && checkOut && selectedRoom && (
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Total Nights:</span>
-                      <span className="font-medium">{differenceInDays(checkOut, checkIn)}</span>
+                      <span className="text-muted-foreground">
+                        Total Nights:
+                      </span>
+                      <span className="font-medium">
+                        {differenceInDays(checkOut, checkIn)}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between text-lg font-bold pt-2 border-t">
                     <span>Total:</span>
-                    <span className="text-primary">৳{totalPrice.toLocaleString()}</span>
+                    <span className="text-primary">
+                      ৳{totalPrice.toLocaleString()}
+                    </span>
                   </div>
                 </div>
 

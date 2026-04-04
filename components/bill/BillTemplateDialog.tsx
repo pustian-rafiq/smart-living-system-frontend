@@ -22,7 +22,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -39,19 +45,21 @@ const billTemplateSchema = z.object({
   flatId: z.string().optional(),
   seatId: z.string().optional(),
   isActive: z.boolean(),
-  items: z.array(
-    z.object({
-      description: z.string().min(1, 'Description is required'),
-      type: z.enum(['rent', 'utility', 'maintenance', 'other']),
-      calculationType: z.enum(['fixed', 'meter-based', 'percentage']),
-      fixedAmount: z.coerce.number().min(0).optional(),
-      unitRate: z.coerce.number().min(0).optional(),
-      percentage: z.coerce.number().min(0).max(100).optional(),
-      baseItemId: z.string().optional(),
-      meterType: z.enum(['electricity', 'gas', 'water']).optional(),
-      serviceCharge: z.coerce.number().min(0).optional(),
-    })
-  ).min(1, 'At least one item is required'),
+  items: z
+    .array(
+      z.object({
+        description: z.string().min(1, 'Description is required'),
+        type: z.enum(['rent', 'utility', 'maintenance', 'other']),
+        calculationType: z.enum(['fixed', 'meter-based', 'percentage']),
+        fixedAmount: z.coerce.number().min(0).optional(),
+        unitRate: z.coerce.number().min(0).optional(),
+        percentage: z.coerce.number().min(0).max(100).optional(),
+        baseItemId: z.string().optional(),
+        meterType: z.enum(['electricity', 'gas', 'water']).optional(),
+        serviceCharge: z.coerce.number().min(0).optional(),
+      })
+    )
+    .min(1, 'At least one item is required'),
 })
 
 type BillTemplateFormData = z.infer<typeof billTemplateSchema>
@@ -69,12 +77,12 @@ export function BillTemplateDialog({
   onSubmit,
   template,
 }: BillTemplateDialogProps) {
-  const [selectedPropertyType, setSelectedPropertyType] = useState<'apartment' | 'mess'>(
-    template?.propertyType || 'apartment'
-  )
+  const [selectedPropertyType, setSelectedPropertyType] = useState<
+    'apartment' | 'mess'
+  >(template?.propertyType || 'apartment')
 
   const form = useForm<BillTemplateFormData>({
-    resolver: zodResolver(billTemplateSchema),
+    resolver: zodResolver(billTemplateSchema) as never,
     defaultValues: template
       ? {
           name: template.name,
@@ -125,14 +133,17 @@ export function BillTemplateDialog({
     }
   }
 
-  const properties = selectedPropertyType === 'apartment' ? mockBuildings : mockMess
+  const properties =
+    selectedPropertyType === 'apartment' ? mockBuildings : mockMess
   const items = form.watch('items')
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{template ? 'Edit Bill Template' : 'Create Bill Template'}</DialogTitle>
+          <DialogTitle>
+            {template ? 'Edit Bill Template' : 'Create Bill Template'}
+          </DialogTitle>
           <DialogDescription>
             {template
               ? 'Update the bill template configuration'
@@ -141,7 +152,10 @@ export function BillTemplateDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -150,7 +164,10 @@ export function BillTemplateDialog({
                   <FormItem>
                     <FormLabel>Template Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Standard Apartment Bill" {...field} />
+                      <Input
+                        placeholder="e.g., Standard Apartment Bill"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -164,7 +181,7 @@ export function BillTemplateDialog({
                   <FormItem>
                     <FormLabel>Property Type</FormLabel>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value)
                         setSelectedPropertyType(value as 'apartment' | 'mess')
                         form.setValue('propertyId', '')
@@ -211,14 +228,17 @@ export function BillTemplateDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Property</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select property" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {properties.map((prop) => (
+                      {properties.map(prop => (
                         <SelectItem key={prop.id} value={prop.id}>
                           {prop.name}
                         </SelectItem>
@@ -238,11 +258,15 @@ export function BillTemplateDialog({
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Active</FormLabel>
                     <FormDescription>
-                      Only active templates will be used for automated bill generation
+                      Only active templates will be used for automated bill
+                      generation
                     </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -271,11 +295,16 @@ export function BillTemplateDialog({
               </div>
 
               {fields.map((field, index) => {
-                const calculationType = form.watch(`items.${index}.calculationType`)
+                const calculationType = form.watch(
+                  `items.${index}.calculationType`
+                )
                 const itemType = form.watch(`items.${index}.type`)
 
                 return (
-                  <div key={field.id} className="space-y-3 rounded-lg border p-4">
+                  <div
+                    key={field.id}
+                    className="space-y-3 rounded-lg border p-4"
+                  >
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <FormField
                         control={form.control}
@@ -284,7 +313,10 @@ export function BillTemplateDialog({
                           <FormItem>
                             <FormLabel>Description</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., Monthly Rent" {...field} />
+                              <Input
+                                placeholder="e.g., Monthly Rent"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -297,7 +329,10 @@ export function BillTemplateDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue />
@@ -306,7 +341,9 @@ export function BillTemplateDialog({
                               <SelectContent>
                                 <SelectItem value="rent">Rent</SelectItem>
                                 <SelectItem value="utility">Utility</SelectItem>
-                                <SelectItem value="maintenance">Maintenance</SelectItem>
+                                <SelectItem value="maintenance">
+                                  Maintenance
+                                </SelectItem>
                                 <SelectItem value="other">Other</SelectItem>
                               </SelectContent>
                             </Select>
@@ -322,16 +359,25 @@ export function BillTemplateDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Calculation Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="fixed">Fixed Amount</SelectItem>
-                              <SelectItem value="meter-based">Meter Based</SelectItem>
-                              <SelectItem value="percentage">Percentage</SelectItem>
+                              <SelectItem value="fixed">
+                                Fixed Amount
+                              </SelectItem>
+                              <SelectItem value="meter-based">
+                                Meter Based
+                              </SelectItem>
+                              <SelectItem value="percentage">
+                                Percentage
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -363,14 +409,19 @@ export function BillTemplateDialog({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Meter Type</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select meter type" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="electricity">Electricity</SelectItem>
+                                  <SelectItem value="electricity">
+                                    Electricity
+                                  </SelectItem>
                                   <SelectItem value="gas">Gas</SelectItem>
                                   <SelectItem value="water">Water</SelectItem>
                                 </SelectContent>
@@ -387,7 +438,12 @@ export function BillTemplateDialog({
                             <FormItem>
                               <FormLabel>Unit Rate (৳ per unit)</FormLabel>
                               <FormControl>
-                                <Input type="number" placeholder="0" step="0.01" {...field} />
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  step="0.01"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormDescription>
                                 Amount charged per unit of consumption
@@ -408,7 +464,12 @@ export function BillTemplateDialog({
                             <FormItem>
                               <FormLabel>Percentage (%)</FormLabel>
                               <FormControl>
-                                <Input type="number" placeholder="0" step="0.1" {...field} />
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  step="0.1"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -421,7 +482,10 @@ export function BillTemplateDialog({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Base Item</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select base item" />
@@ -429,9 +493,16 @@ export function BillTemplateDialog({
                                 </FormControl>
                                 <SelectContent>
                                   {items
-                                    .filter((_, idx) => idx < index && items[idx].type === 'rent')
+                                    .filter(
+                                      (_, idx) =>
+                                        idx < index &&
+                                        items[idx].type === 'rent'
+                                    )
                                     .map((item, idx) => (
-                                      <SelectItem key={idx} value={idx.toString()}>
+                                      <SelectItem
+                                        key={idx}
+                                        value={idx.toString()}
+                                      >
                                         {item.description}
                                       </SelectItem>
                                     ))}
@@ -475,7 +546,9 @@ export function BillTemplateDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit">{template ? 'Update Template' : 'Create Template'}</Button>
+              <Button type="submit">
+                {template ? 'Update Template' : 'Create Template'}
+              </Button>
             </div>
           </form>
         </Form>

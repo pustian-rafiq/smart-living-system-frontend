@@ -1,4 +1,8 @@
-import type { BillTemplate, BillGenerationRule, MeterReading } from '@/types/bill'
+import type {
+  BillTemplate,
+  BillGenerationRule,
+  MeterReading,
+} from '@/types/bill'
 
 export const mockBillTemplates: BillTemplate[] = [
   {
@@ -142,7 +146,8 @@ export const mockBillGenerationRules: BillGenerationRule[] = [
   {
     id: 'rule1',
     name: 'Auto-generate Monthly Bills',
-    description: 'Automatically generate bills for all apartments on the 1st of each month',
+    description:
+      'Automatically generate bills for all apartments on the 1st of each month',
     templateId: 'template1',
     schedule: {
       type: 'monthly',
@@ -313,8 +318,18 @@ export function getPreviousMeterReading(
   currentYear: number
 ): MeterReading | undefined {
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ]
   const currentIndex = months.indexOf(currentMonth)
   let prevMonth: string

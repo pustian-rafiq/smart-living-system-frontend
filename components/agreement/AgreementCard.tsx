@@ -3,7 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { FileText, Download, Eye, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react'
+import {
+  FileText,
+  Download,
+  Eye,
+  Calendar,
+  AlertCircle,
+  CheckCircle2,
+} from 'lucide-react'
 import type { RentalAgreement } from '@/types/agreement'
 import { format, differenceInDays } from 'date-fns'
 
@@ -13,8 +20,15 @@ interface AgreementCardProps {
   onDownload?: (agreement: RentalAgreement) => void
 }
 
-export function AgreementCard({ agreement, onView, onDownload }: AgreementCardProps) {
-  const daysUntilExpiry = differenceInDays(new Date(agreement.expiryDate), new Date())
+export function AgreementCard({
+  agreement,
+  onView,
+  onDownload,
+}: AgreementCardProps) {
+  const daysUntilExpiry = differenceInDays(
+    new Date(agreement.expiryDate),
+    new Date()
+  )
   const isExpiringSoon = daysUntilExpiry <= 30 && daysUntilExpiry > 0
   const isExpired = daysUntilExpiry < 0
 
@@ -25,7 +39,9 @@ export function AgreementCard({ agreement, onView, onDownload }: AgreementCardPr
   }
 
   return (
-    <Card className={`transition-all hover:shadow-md ${isExpiringSoon ? 'border-yellow-500' : isExpired ? 'border-red-500' : ''}`}>
+    <Card
+      className={`transition-all hover:shadow-md ${isExpiringSoon ? 'border-yellow-500' : isExpired ? 'border-red-500' : ''}`}
+    >
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -45,13 +61,14 @@ export function AgreementCard({ agreement, onView, onDownload }: AgreementCardPr
               agreement.status === 'active'
                 ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
                 : agreement.status === 'expired'
-                ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
-                : agreement.status === 'renewed'
-                ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400'
-                : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400'
+                  ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
+                  : agreement.status === 'renewed'
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400'
+                    : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400'
             }
           >
-            {agreement.status.charAt(0).toUpperCase() + agreement.status.slice(1)}
+            {agreement.status.charAt(0).toUpperCase() +
+              agreement.status.slice(1)}
           </Badge>
         </div>
       </CardHeader>
@@ -60,19 +77,27 @@ export function AgreementCard({ agreement, onView, onDownload }: AgreementCardPr
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <p className="text-muted-foreground">Monthly Rent</p>
-            <p className="font-semibold">৳{agreement.monthlyRent.toLocaleString()}</p>
+            <p className="font-semibold">
+              ৳{agreement.monthlyRent.toLocaleString()}
+            </p>
           </div>
           <div>
             <p className="text-muted-foreground">Security Deposit</p>
-            <p className="font-semibold">৳{agreement.securityDeposit.toLocaleString()}</p>
+            <p className="font-semibold">
+              ৳{agreement.securityDeposit.toLocaleString()}
+            </p>
           </div>
           <div>
             <p className="text-muted-foreground">Start Date</p>
-            <p className="font-medium">{format(new Date(agreement.startDate), 'MMM dd, yyyy')}</p>
+            <p className="font-medium">
+              {format(new Date(agreement.startDate), 'MMM dd, yyyy')}
+            </p>
           </div>
           <div>
             <p className="text-muted-foreground">End Date</p>
-            <p className="font-medium">{format(new Date(agreement.endDate), 'MMM dd, yyyy')}</p>
+            <p className="font-medium">
+              {format(new Date(agreement.endDate), 'MMM dd, yyyy')}
+            </p>
           </div>
         </div>
 
@@ -82,7 +107,8 @@ export function AgreementCard({ agreement, onView, onDownload }: AgreementCardPr
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
               <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                Expires in {daysUntilExpiry} day{daysUntilExpiry !== 1 ? 's' : ''}
+                Expires in {daysUntilExpiry} day
+                {daysUntilExpiry !== 1 ? 's' : ''}
               </p>
             </div>
           </div>
@@ -93,7 +119,8 @@ export function AgreementCard({ agreement, onView, onDownload }: AgreementCardPr
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
               <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                Expired {Math.abs(daysUntilExpiry)} day{Math.abs(daysUntilExpiry) !== 1 ? 's' : ''} ago
+                Expired {Math.abs(daysUntilExpiry)} day
+                {Math.abs(daysUntilExpiry) !== 1 ? 's' : ''} ago
               </p>
             </div>
           </div>
@@ -103,7 +130,9 @@ export function AgreementCard({ agreement, onView, onDownload }: AgreementCardPr
         <div className="rounded-lg border p-3 bg-muted/30">
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{agreement.documentName}</p>
+              <p className="text-sm font-medium truncate">
+                {agreement.documentName}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {formatFileSize(agreement.documentSize)} • Uploaded{' '}
                 {format(new Date(agreement.uploadedAt), 'MMM dd, yyyy')}
@@ -115,13 +144,23 @@ export function AgreementCard({ agreement, onView, onDownload }: AgreementCardPr
         {/* Actions */}
         <div className="flex gap-2 pt-2 border-t">
           {onView && (
-            <Button variant="outline" size="sm" className="flex-1" onClick={() => onView(agreement)}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => onView(agreement)}
+            >
               <Eye className="h-4 w-4 mr-2" />
               View
             </Button>
           )}
           {onDownload && (
-            <Button variant="outline" size="sm" className="flex-1" onClick={() => onDownload(agreement)}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => onDownload(agreement)}
+            >
               <Download className="h-4 w-4 mr-2" />
               Download
             </Button>

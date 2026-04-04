@@ -22,21 +22,33 @@ interface AuditLogTableProps {
 }
 
 const actionColors: Record<string, string> = {
-  create: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
-  update: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  delete: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
-  approve: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400',
-  reject: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
-  verify: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
-  unverify: 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
-  payment: 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-400',
-  rollback: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+  create:
+    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+  update:
+    'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+  delete:
+    'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
+  approve:
+    'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400',
+  reject:
+    'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
+  verify:
+    'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
+  unverify:
+    'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400',
+  payment:
+    'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-400',
+  rollback:
+    'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
 }
 
 const roleColors: Record<string, string> = {
-  admin: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
-  owner: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  renter: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+  admin:
+    'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400',
+  owner:
+    'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+  renter:
+    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
 }
 
 export function AuditLogTable({
@@ -77,13 +89,19 @@ export function AuditLogTable({
                   >
                     {log.action}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">{log.entityType}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {log.entityType}
+                  </span>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="max-w-[200px]">
-                  <p className="font-medium text-sm truncate">{log.entityName}</p>
-                  <p className="text-xs text-muted-foreground">ID: {log.entityId}</p>
+                  <p className="font-medium text-sm truncate">
+                    {log.entityName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ID: {log.entityId}
+                  </p>
                 </div>
               </TableCell>
               <TableCell>
@@ -119,7 +137,9 @@ export function AuditLogTable({
                     )}
                   </div>
                 ) : (
-                  <span className="text-xs text-muted-foreground">No changes</span>
+                  <span className="text-xs text-muted-foreground">
+                    No changes
+                  </span>
                 )}
               </TableCell>
               <TableCell className="hidden lg:table-cell">

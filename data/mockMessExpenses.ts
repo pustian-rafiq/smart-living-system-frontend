@@ -1,4 +1,8 @@
-import type { MessExpense, MonthlyExpenseSummary, ExpenseReport } from '@/types/messExpense'
+import type {
+  MessExpense,
+  MonthlyExpenseSummary,
+  ExpenseReport,
+} from '@/types/messExpense'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 
 export const mockMessExpenses: MessExpense[] = [
@@ -8,7 +12,9 @@ export const mockMessExpenses: MessExpense[] = [
     category: 'food',
     description: 'Rice purchase (50kg)',
     amount: 3500,
-    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     vendor: 'Local Grocery Store',
     notes: 'Monthly rice supply',
     createdBy: 'owner1',
@@ -21,7 +27,9 @@ export const mockMessExpenses: MessExpense[] = [
     category: 'food',
     description: 'Vegetables and spices',
     amount: 2500,
-    date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     vendor: 'Local Market',
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
@@ -33,7 +41,9 @@ export const mockMessExpenses: MessExpense[] = [
     category: 'food',
     description: 'Chicken and fish',
     amount: 8000,
-    date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     vendor: 'Meat Market',
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
@@ -45,7 +55,9 @@ export const mockMessExpenses: MessExpense[] = [
     category: 'utilities',
     description: 'Electricity bill',
     amount: 4500,
-    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     vendor: 'DESCO',
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -57,7 +69,9 @@ export const mockMessExpenses: MessExpense[] = [
     category: 'utilities',
     description: 'Gas bill',
     amount: 1200,
-    date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     vendor: 'Titas Gas',
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -69,7 +83,9 @@ export const mockMessExpenses: MessExpense[] = [
     category: 'staff',
     description: 'Cook salary',
     amount: 15000,
-    date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     vendor: 'Staff Payment',
     notes: 'Monthly salary',
     createdBy: 'owner1',
@@ -82,7 +98,9 @@ export const mockMessExpenses: MessExpense[] = [
     category: 'maintenance',
     description: 'Kitchen equipment repair',
     amount: 3000,
-    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     vendor: 'Repair Service',
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -94,7 +112,9 @@ export const mockMessExpenses: MessExpense[] = [
     category: 'supplies',
     description: 'Cleaning supplies',
     amount: 1500,
-    date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0],
     vendor: 'Supermarket',
     createdBy: 'owner1',
     createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
@@ -148,7 +168,9 @@ export function getExpensesByMess(
     expenses = expenses.filter(e => e.date <= endDate)
   }
 
-  return expenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  return expenses.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
 }
 
 export function getExpenseById(expenseId: string): MessExpense | undefined {
@@ -173,13 +195,19 @@ export function getMonthlyExpenseSummary(
     categoryMap.set(expense.category, current + expense.amount)
   })
 
-  const categoryBreakdown = Array.from(categoryMap.entries()).map(([category, amount]) => ({
-    category: category as ExpenseCategory,
-    amount,
-    percentage: totalAmount > 0 ? (amount / totalAmount) * 100 : 0,
-  }))
+  const categoryBreakdown = Array.from(categoryMap.entries()).map(
+    ([category, amount]) => ({
+      category: category as ExpenseCategory,
+      amount,
+      percentage: totalAmount > 0 ? (amount / totalAmount) * 100 : 0,
+    })
+  )
 
-  const daysInMonth = new Date(year, new Date(`${month} 1, ${year}`).getMonth() + 1, 0).getDate()
+  const daysInMonth = new Date(
+    year,
+    new Date(`${month} 1, ${year}`).getMonth() + 1,
+    0
+  ).getDate()
 
   return {
     messId,
@@ -243,15 +271,20 @@ export function generateExpenseReport(
     categoryMap.set(expense.category, current + expense.amount)
   })
 
-  const categoryBreakdown = Array.from(categoryMap.entries()).map(([category, amount]) => ({
-    category: category as ExpenseCategory,
-    amount,
-    percentage: totalAmount > 0 ? (amount / totalAmount) * 100 : 0,
-  }))
+  const categoryBreakdown = Array.from(categoryMap.entries()).map(
+    ([category, amount]) => ({
+      category: category as ExpenseCategory,
+      amount,
+      percentage: totalAmount > 0 ? (amount / totalAmount) * 100 : 0,
+    })
+  )
 
   const startDateObj = new Date(startDate)
   const endDateObj = new Date(endDate)
-  const daysDiff = Math.ceil((endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const daysDiff =
+    Math.ceil(
+      (endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24)
+    ) + 1
 
   const month = format(startDateObj, 'MMMM')
   const year = startDateObj.getFullYear()

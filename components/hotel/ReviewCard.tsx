@@ -43,15 +43,22 @@ export function ReviewCard({ review }: ReviewCardProps) {
                   {format(new Date(review.createdAt), 'MMM dd, yyyy')}
                 </p>
               </div>
-              <RatingDisplay rating={review.rating} showNumber={false} size="sm" />
+              <RatingDisplay
+                rating={review.rating}
+                showNumber={false}
+                size="sm"
+              />
             </div>
-            
+
             <p className="text-sm text-foreground mb-3">{review.comment}</p>
-            
+
             {review.images && review.images.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mb-3">
                 {review.images.map((img, idx) => (
-                  <div key={idx} className="relative h-20 w-full rounded overflow-hidden">
+                  <div
+                    key={idx}
+                    className="relative h-20 w-full rounded overflow-hidden"
+                  >
                     <Image
                       src={img}
                       alt={`Review image ${idx + 1}`}
@@ -63,18 +70,25 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 ))}
               </div>
             )}
-            
+
             {review.ownerResponse && (
               <div className="mt-3 pt-3 border-t bg-muted/50 rounded p-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold text-primary">Owner Response</span>
+                  <span className="text-xs font-semibold text-primary">
+                    Owner Response
+                  </span>
                   {review.ownerResponseDate && (
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(review.ownerResponseDate), 'MMM dd, yyyy')}
+                      {format(
+                        new Date(review.ownerResponseDate),
+                        'MMM dd, yyyy'
+                      )}
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-foreground">{review.ownerResponse}</p>
+                <p className="text-sm text-foreground">
+                  {review.ownerResponse}
+                </p>
               </div>
             )}
           </div>

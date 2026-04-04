@@ -1,6 +1,6 @@
 /**
  * Audit Log Helper Functions
- * 
+ *
  * These functions help track changes throughout the application.
  * In a real app, these would make API calls to log changes.
  */
@@ -193,7 +193,8 @@ export function trackBookingAction(
     changes,
     rollbackData: changes
       ? {
-          status: changes.find(c => c.field === 'status')?.oldValue || 'pending',
+          status:
+            changes.find(c => c.field === 'status')?.oldValue || 'pending',
         }
       : undefined,
   })
@@ -222,7 +223,12 @@ export function trackVerification(
       {
         field: 'status',
         oldValue: action === 'verify' ? 'pending' : 'verified',
-        newValue: action === 'verify' ? 'verified' : action === 'unverify' ? 'pending' : 'rejected',
+        newValue:
+          action === 'verify'
+            ? 'verified'
+            : action === 'unverify'
+              ? 'pending'
+              : 'rejected',
       },
     ],
     metadata: reason ? { reason } : undefined,

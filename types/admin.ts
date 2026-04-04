@@ -1,6 +1,11 @@
 export type AdminRole = 'super-admin' | 'moderator' | 'support'
 export type VerificationStatus = 'pending' | 'approved' | 'rejected' | 'expired'
-export type DisputeStatus = 'open' | 'assigned' | 'in_progress' | 'resolved' | 'closed'
+export type DisputeStatus =
+  | 'open'
+  | 'assigned'
+  | 'in_progress'
+  | 'resolved'
+  | 'closed'
 export type PropertyStatus = 'pending' | 'approved' | 'rejected' | 'suspended'
 export type UserStatus = 'active' | 'suspended' | 'banned'
 

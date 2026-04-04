@@ -25,7 +25,9 @@ export function BuildingCard({ building }: BuildingCardProps) {
               <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-lg sm:text-xl">{building.name}</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">
+                {building.name}
+              </CardTitle>
               <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5" />
                 <span className="line-clamp-1">{building.address}</span>
@@ -47,7 +49,9 @@ export function BuildingCard({ building }: BuildingCardProps) {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Available</p>
-            <p className="text-lg font-semibold text-primary">{availableFlats}</p>
+            <p className="text-lg font-semibold text-primary">
+              {availableFlats}
+            </p>
           </div>
         </div>
 
@@ -69,7 +73,9 @@ export function BuildingCard({ building }: BuildingCardProps) {
         {/* Action Button */}
         <Button
           className="w-full"
-          onClick={() => router.push(`/my-properties/buildings/${building.id}/flats`)}
+          onClick={() =>
+            router.push(`/my-properties/buildings/${building.id}/flats`)
+          }
         >
           View Flats
         </Button>

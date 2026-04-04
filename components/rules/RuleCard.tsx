@@ -16,10 +16,14 @@ interface RuleCardProps {
 }
 
 const severityColors = {
-  minor: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  moderate: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
-  major: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
-  critical: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
+  minor:
+    'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+  moderate:
+    'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+  major:
+    'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
+  critical:
+    'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
 }
 
 const categoryLabels = {
@@ -40,7 +44,9 @@ export function RuleCard({
   showActions = true,
 }: RuleCardProps) {
   return (
-    <Card className={`transition-all hover:shadow-md ${!isAccepted && rule.requiresAcceptance ? 'border-yellow-500' : ''}`}>
+    <Card
+      className={`transition-all hover:shadow-md ${!isAccepted && rule.requiresAcceptance ? 'border-yellow-500' : ''}`}
+    >
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -52,17 +58,26 @@ export function RuleCard({
               <Badge variant="outline" className="text-xs">
                 {categoryLabels[rule.category]}
               </Badge>
-              <Badge variant="outline" className={`text-xs ${severityColors[rule.severity]}`}>
+              <Badge
+                variant="outline"
+                className={`text-xs ${severityColors[rule.severity]}`}
+              >
                 {rule.severity.charAt(0).toUpperCase() + rule.severity.slice(1)}
               </Badge>
               {isAccepted && (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200 text-xs"
+                >
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Accepted
                 </Badge>
               )}
               {!isAccepted && rule.requiresAcceptance && (
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs"
+                >
                   <AlertTriangle className="h-3 w-3 mr-1" />
                   Pending Acceptance
                 </Badge>
@@ -90,7 +105,8 @@ export function RuleCard({
         {/* Effective Date */}
         {rule.effectiveDate && (
           <div className="text-xs text-muted-foreground">
-            Effective from: {format(new Date(rule.effectiveDate), 'MMM dd, yyyy')}
+            Effective from:{' '}
+            {format(new Date(rule.effectiveDate), 'MMM dd, yyyy')}
           </div>
         )}
 

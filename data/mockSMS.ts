@@ -11,7 +11,8 @@ export const mockSMSTemplates: SMSTemplate[] = [
   {
     id: 'template1',
     name: 'Payment Reminder',
-    content: 'Dear {name}, your monthly fee of ৳{amount} is due on {date}. Please pay before the due date to avoid late fees.',
+    content:
+      'Dear {name}, your monthly fee of ৳{amount} is due on {date}. Please pay before the due date to avoid late fees.',
     variables: ['name', 'amount', 'date'],
     category: 'payment',
     messId: 'm1',
@@ -22,7 +23,8 @@ export const mockSMSTemplates: SMSTemplate[] = [
   {
     id: 'template2',
     name: 'Attendance Notice',
-    content: 'Dear {name}, you have been marked {status} for {date}. Please contact the mess manager if you have any concerns.',
+    content:
+      'Dear {name}, you have been marked {status} for {date}. Please contact the mess manager if you have any concerns.',
     variables: ['name', 'status', 'date'],
     category: 'attendance',
     messId: 'm1',
@@ -92,7 +94,8 @@ export const mockSMSMessages: SMSMessage[] = [
     id: 'sms1',
     messId: 'm1',
     templateId: 'template1',
-    content: 'Dear John Doe, your monthly fee of ৳3500 is due on 2024-01-05. Please pay before the due date to avoid late fees.',
+    content:
+      'Dear John Doe, your monthly fee of ৳3500 is due on 2024-01-05. Please pay before the due date to avoid late fees.',
     recipientType: 'all',
     recipients: mockStudents.map(s => ({
       id: s.id,
@@ -114,7 +117,8 @@ export const mockSMSMessages: SMSMessage[] = [
     id: 'sms2',
     messId: 'm1',
     templateId: 'template2',
-    content: 'Dear Jane Smith, you have been marked absent for 2024-01-15. Please contact the mess manager if you have any concerns.',
+    content:
+      'Dear Jane Smith, you have been marked absent for 2024-01-15. Please contact the mess manager if you have any concerns.',
     recipientType: 'individual',
     recipients: [
       {
@@ -161,17 +165,25 @@ export const mockSMSMessages: SMSMessage[] = [
 export function getSMSTemplatesByMess(messId: string): SMSTemplate[] {
   return mockSMSTemplates
     .filter(t => !t.messId || t.messId === messId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
 }
 
-export function getSMSTemplateById(templateId: string): SMSTemplate | undefined {
+export function getSMSTemplateById(
+  templateId: string
+): SMSTemplate | undefined {
   return mockSMSTemplates.find(t => t.id === templateId)
 }
 
 export function getSMSGroupsByMess(messId: string): SMSGroup[] {
   return mockSMSGroups
     .filter(g => g.messId === messId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
 }
 
 export function getSMSGroupById(groupId: string): SMSGroup | undefined {
@@ -184,7 +196,10 @@ export function getSMSMessagesByMess(
 ): SMSMessage[] {
   let messages = mockSMSMessages
     .filter(m => m.messId === messId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
 
   if (limit) {
     messages = messages.slice(0, limit)
@@ -268,7 +283,10 @@ export function deleteSMSGroup(groupId: string): boolean {
 }
 
 export function sendBulkSMS(
-  message: Omit<SMSMessage, 'id' | 'createdAt' | 'sentAt' | 'status' | 'successful' | 'failed'>
+  message: Omit<
+    SMSMessage,
+    'id' | 'createdAt' | 'sentAt' | 'status' | 'successful' | 'failed'
+  >
 ): SMSMessage {
   // Simulate SMS sending
   const successRate = 0.95 // 95% success rate

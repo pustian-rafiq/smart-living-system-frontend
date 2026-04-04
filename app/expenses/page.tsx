@@ -1,10 +1,16 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ExpenseChart } from '@/components/expense/ExpenseChart'
 import { CategoryBreakdown } from '@/components/expense/CategoryBreakdown'
@@ -25,18 +31,26 @@ export default function ExpensesPage() {
   const router = useRouter()
   const role = getStoredRole()
 
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  )
   const [selectedMonth, setSelectedMonth] = useState<string>(
     new Date().toLocaleString('default', { month: 'long' })
   )
 
   const analytics = useMemo(() => getExpenseAnalytics('r1'), [])
-  const monthlyExpenses = useMemo(() => getMonthlyExpenses('r1', selectedYear), [selectedYear])
+  const monthlyExpenses = useMemo(
+    () => getMonthlyExpenses('r1', selectedYear),
+    [selectedYear]
+  )
   const yearlyExpenses = useMemo(() => getYearlyExpenses('r1'), [])
   const budgets = useMemo(() => getBudgets('r1'), [])
 
   const currentMonthlyExpense = useMemo(
-    () => monthlyExpenses.find(e => e.month === selectedMonth && e.year === selectedYear),
+    () =>
+      monthlyExpenses.find(
+        e => e.month === selectedMonth && e.year === selectedYear
+      ),
     [monthlyExpenses, selectedMonth, selectedYear]
   )
 
@@ -59,12 +73,27 @@ export default function ExpensesPage() {
   }, [monthlyExpenses])
 
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ]
 
+  useEffect(() => {
+    if (role !== 'renter') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
+
   if (role !== 'renter') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -143,7 +172,8 @@ export default function ExpensesPage() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">
-                ৳{currentYearlyExpense
+                ৳
+                {currentYearlyExpense
                   ? Math.round(
                       currentYearlyExpense.monthlyAverages.reduce(
                         (sum, m) => sum + m.average,
@@ -205,7 +235,12 @@ export default function ExpensesPage() {
             )}
             {currentYearlyExpense && (
               <CategoryBreakdown
-                categories={currentYearlyExpense.categoryTotals}
+                categories={currentYearlyExpense.categoryTotals.map(c => ({
+                  categoryId: c.categoryId,
+                  categoryName: c.categoryName,
+                  amount: c.total,
+                  percentage: c.percentage,
+                }))}
                 categoryColors={categoryColorMap}
                 title={`${selectedYear} - Yearly Category Breakdown`}
               />

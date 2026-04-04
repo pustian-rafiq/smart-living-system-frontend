@@ -1,12 +1,18 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ExpenseCard } from '@/components/expense/ExpenseCard'
 import { ExpenseDialog } from '@/components/expense/ExpenseDialog'
 import { ExpenseChart } from '@/components/expense/ExpenseChart'
@@ -37,8 +43,13 @@ export default function ExpensesManagementPage() {
   const [editingExpense, setEditingExpense] = useState<MessExpense | null>(null)
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
 
+  useEffect(() => {
+    if (role !== 'owner') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
+
   if (role !== 'owner') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -55,7 +66,12 @@ export default function ExpensesManagementPage() {
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
   const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
   const monthlySummary = useMemo(
-    () => getMonthlyExpenseSummary(messId, format(new Date(), 'MMMM'), new Date().getFullYear()),
+    () =>
+      getMonthlyExpenseSummary(
+        messId,
+        format(new Date(), 'MMMM'),
+        new Date().getFullYear()
+      ),
     [messId]
   )
 
@@ -111,10 +127,12 @@ export default function ExpensesManagementPage() {
               <FileText className="h-4 w-4 mr-2" />
               Generate Report
             </Button>
-            <Button onClick={() => {
-              setEditingExpense(null)
-              setIsExpenseDialogOpen(true)
-            }}>
+            <Button
+              onClick={() => {
+                setEditingExpense(null)
+                setIsExpenseDialogOpen(true)
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Expense
             </Button>
@@ -131,7 +149,9 @@ export default function ExpensesManagementPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">৳{totalExpenses.toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                ৳{totalExpenses.toLocaleString()}
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -142,7 +162,9 @@ export default function ExpensesManagementPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">৳{thisMonthExpenses.toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                ৳{thisMonthExpenses.toLocaleString()}
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -162,30 +184,52 @@ export default function ExpensesManagementPage() {
         {monthlySummary && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Monthly Summary - {monthlySummary.month} {monthlySummary.year}</CardTitle>
+              <CardTitle>
+                Monthly Summary - {monthlySummary.month} {monthlySummary.year}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Amount</p>
-                  <p className="text-2xl font-bold">৳{monthlySummary.totalAmount.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">
+                    ৳{monthlySummary.totalAmount.toLocaleString()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Expense Count</p>
-                  <p className="text-2xl font-bold">{monthlySummary.expenseCount}</p>
+                  <p className="text-2xl font-bold">
+                    {monthlySummary.expenseCount}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Average Daily</p>
-                  <p className="text-2xl font-bold">৳{monthlySummary.averageDailyExpense.toFixed(2)}</p>
+                  <p className="text-2xl font-bold">
+                    ৳{monthlySummary.averageDailyExpense.toFixed(2)}
+                  </p>
                 </div>
               </div>
               {monthlySummary.categoryBreakdown.length > 0 && (
-                <CategoryBreakdown categories={monthlySummary.categoryBreakdown.map(cat => ({
-                  categoryId: cat.category,
-                  categoryName: cat.category.charAt(0).toUpperCase() + cat.category.slice(1),
-                  amount: cat.amount,
-                  percentage: cat.percentage,
-                }))} />
+                <CategoryBreakdown
+                  categories={monthlySummary.categoryBreakdown.map(cat => ({
+                    categoryId: cat.category,
+                    categoryName:
+                      cat.category.charAt(0).toUpperCase() +
+                      cat.category.slice(1),
+                    amount: cat.amount,
+                    percentage: cat.percentage,
+                  }))}
+                  categoryColors={
+                    new Map(
+                      monthlySummary.categoryBreakdown.map((cat, i) => [
+                        cat.category,
+                        ['#0ea5e9', '#22c55e', '#eab308', '#a855f7', '#f97316'][
+                          i % 5
+                        ],
+                      ])
+                    )
+                  }
+                />
               )}
             </CardContent>
           </Card>
@@ -222,7 +266,7 @@ export default function ExpensesManagementPage() {
                   <ExpenseCard
                     key={expense.id}
                     expense={expense}
-                    onEdit={(exp) => {
+                    onEdit={exp => {
                       setEditingExpense(exp)
                       setIsExpenseDialogOpen(true)
                     }}
@@ -234,7 +278,9 @@ export default function ExpensesManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No expenses recorded yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    No expenses recorded yet
+                  </p>
                   <Button onClick={() => setIsExpenseDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add First Expense
@@ -248,20 +294,50 @@ export default function ExpensesManagementPage() {
           <TabsContent value="analytics" className="space-y-4">
             {expenses.length > 0 ? (
               <div className="space-y-6">
-                <ExpenseChart expenses={expenses} />
+                <ExpenseChart
+                  trends={Array.from(
+                    expenses
+                      .reduce((acc, e) => {
+                        const p = format(new Date(e.date), 'MMM yyyy')
+                        acc.set(p, (acc.get(p) || 0) + e.amount)
+                        return acc
+                      }, new Map<string, number>())
+                      .entries()
+                  ).map(([period, amount]) => ({
+                    period,
+                    amount,
+                    categoryBreakdown: [],
+                  }))}
+                  type="bar"
+                  title="Expenses by month"
+                />
                 <CategoryBreakdown
                   categories={monthlySummary.categoryBreakdown.map(cat => ({
                     categoryId: cat.category,
-                    categoryName: cat.category.charAt(0).toUpperCase() + cat.category.slice(1),
+                    categoryName:
+                      cat.category.charAt(0).toUpperCase() +
+                      cat.category.slice(1),
                     amount: cat.amount,
                     percentage: cat.percentage,
                   }))}
+                  categoryColors={
+                    new Map(
+                      monthlySummary.categoryBreakdown.map((cat, i) => [
+                        cat.category,
+                        ['#0ea5e9', '#22c55e', '#eab308', '#a855f7', '#f97316'][
+                          i % 5
+                        ],
+                      ])
+                    )
+                  }
                 />
               </div>
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No data available for analytics</p>
+                  <p className="text-muted-foreground">
+                    No data available for analytics
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -273,7 +349,7 @@ export default function ExpensesManagementPage() {
           expense={editingExpense}
           messId={messId}
           open={isExpenseDialogOpen}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setIsExpenseDialogOpen(open)
             if (!open) setEditingExpense(null)
           }}

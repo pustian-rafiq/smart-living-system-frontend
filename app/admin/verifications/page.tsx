@@ -4,16 +4,25 @@ import { useState, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { VerificationRequestCard } from '@/components/admin/VerificationRequestCard'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { mockVerificationRequests } from '@/data/mockAdmin'
 import type { VerificationStatus } from '@/types/admin'
 
 function VerificationsContent() {
   const searchParams = useSearchParams()
-  const initialStatus = (searchParams.get('status') as VerificationStatus) || 'all'
-  
+  const initialStatus =
+    (searchParams.get('status') as VerificationStatus) || 'all'
+
   const [requests, setRequests] = useState(mockVerificationRequests)
-  const [statusFilter, setStatusFilter] = useState<VerificationStatus | 'all'>(initialStatus)
+  const [statusFilter, setStatusFilter] = useState<VerificationStatus | 'all'>(
+    initialStatus
+  )
 
   const filteredRequests = useMemo(() => {
     if (statusFilter === 'all') return requests
@@ -77,16 +86,27 @@ function VerificationsContent() {
 
         {/* Status Filter */}
         <div className="mb-6 flex items-center gap-4">
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+          <Select
+            value={statusFilter}
+            onValueChange={value => setStatusFilter(value as any)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All ({statusCounts.all})</SelectItem>
-              <SelectItem value="pending">Pending ({statusCounts.pending})</SelectItem>
-              <SelectItem value="approved">Approved ({statusCounts.approved})</SelectItem>
-              <SelectItem value="rejected">Rejected ({statusCounts.rejected})</SelectItem>
-              <SelectItem value="expired">Expired ({statusCounts.expired})</SelectItem>
+              <SelectItem value="pending">
+                Pending ({statusCounts.pending})
+              </SelectItem>
+              <SelectItem value="approved">
+                Approved ({statusCounts.approved})
+              </SelectItem>
+              <SelectItem value="rejected">
+                Rejected ({statusCounts.rejected})
+              </SelectItem>
+              <SelectItem value="expired">
+                Expired ({statusCounts.expired})
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

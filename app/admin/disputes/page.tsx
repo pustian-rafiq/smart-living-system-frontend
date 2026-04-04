@@ -5,7 +5,13 @@ import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Search, Check, X, User, AlertTriangle } from 'lucide-react'
 import { mockDisputes } from '@/data/mockAdmin'
@@ -39,7 +45,10 @@ export default function AdminDisputesPage() {
                 ...d,
                 status: newStatus,
                 updatedAt: new Date().toISOString(),
-                resolvedAt: newStatus === 'resolved' ? new Date().toISOString() : undefined,
+                resolvedAt:
+                  newStatus === 'resolved'
+                    ? new Date().toISOString()
+                    : undefined,
               }
             : d
         )
@@ -86,11 +95,14 @@ export default function AdminDisputesPage() {
             <Input
               placeholder="Search disputes..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="pl-9"
             />
           </div>
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+          <Select
+            value={statusFilter}
+            onValueChange={value => setStatusFilter(value as any)}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -136,7 +148,9 @@ export default function AdminDisputesPage() {
                         <span>{dispute.createdByName}</span>
                       </div>
                       <span>•</span>
-                      <span>{format(new Date(dispute.createdAt), 'MMM dd, yyyy')}</span>
+                      <span>
+                        {format(new Date(dispute.createdAt), 'MMM dd, yyyy')}
+                      </span>
                       {dispute.assignedToName && (
                         <>
                           <span>•</span>
@@ -158,17 +172,25 @@ export default function AdminDisputesPage() {
                     {dispute.type}
                   </Badge>
                   {dispute.relatedBookingId && (
-                    <Badge variant="outline">Booking: {dispute.relatedBookingId}</Badge>
+                    <Badge variant="outline">
+                      Booking: {dispute.relatedBookingId}
+                    </Badge>
                   )}
                   {dispute.relatedPropertyId && (
-                    <Badge variant="outline">Property: {dispute.relatedPropertyId}</Badge>
+                    <Badge variant="outline">
+                      Property: {dispute.relatedPropertyId}
+                    </Badge>
                   )}
                 </div>
 
                 {dispute.resolution && (
                   <div className="mb-4 rounded bg-green-50 p-3">
-                    <p className="text-sm font-semibold text-green-800 mb-1">Resolution:</p>
-                    <p className="text-sm text-green-700">{dispute.resolution}</p>
+                    <p className="text-sm font-semibold text-green-800 mb-1">
+                      Resolution:
+                    </p>
+                    <p className="text-sm text-green-700">
+                      {dispute.resolution}
+                    </p>
                   </div>
                 )}
 
@@ -181,7 +203,9 @@ export default function AdminDisputesPage() {
                   {dispute.status === 'assigned' && (
                     <Button
                       size="sm"
-                      onClick={() => handleStatusChange(dispute.id, 'in_progress')}
+                      onClick={() =>
+                        handleStatusChange(dispute.id, 'in_progress')
+                      }
                     >
                       Mark In Progress
                     </Button>

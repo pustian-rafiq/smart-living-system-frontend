@@ -9,7 +9,10 @@ interface NotificationBadgeProps {
   className?: string
 }
 
-export function NotificationBadge({ userId, className }: NotificationBadgeProps) {
+export function NotificationBadge({
+  userId,
+  className,
+}: NotificationBadgeProps) {
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {

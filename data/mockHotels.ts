@@ -20,8 +20,20 @@ export const mockHotels: Hotel[] = [
       'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800',
       'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800',
     ],
-    description: 'Luxury hotel in the heart of Gulshan with modern amenities and excellent service. Perfect for business and leisure travelers.',
-    amenities: ['WiFi', 'AC', 'Parking', 'Restaurant', 'Gym', 'Swimming Pool', 'Spa', 'Room Service', 'Laundry', 'Airport Shuttle'],
+    description:
+      'Luxury hotel in the heart of Gulshan with modern amenities and excellent service. Perfect for business and leisure travelers.',
+    amenities: [
+      'WiFi',
+      'AC',
+      'Parking',
+      'Restaurant',
+      'Gym',
+      'Swimming Pool',
+      'Spa',
+      'Room Service',
+      'Laundry',
+      'Airport Shuttle',
+    ],
     checkInTime: '14:00',
     checkOutTime: '12:00',
     minimumStay: 1,
@@ -48,12 +60,13 @@ export const mockHotels: Hotel[] = [
     area: 'Dhanmondi',
     city: 'Dhaka',
     latitude: 23.7465,
-    longitude: 90.3760,
+    longitude: 90.376,
     images: [
       'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800',
       'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800',
     ],
-    description: 'Cozy guest house in Dhanmondi area. Affordable accommodation with clean rooms and friendly staff.',
+    description:
+      'Cozy guest house in Dhanmondi area. Affordable accommodation with clean rooms and friendly staff.',
     amenities: ['WiFi', 'AC', 'Parking', 'Restaurant', 'Laundry'],
     checkInTime: '13:00',
     checkOutTime: '11:00',
@@ -76,9 +89,9 @@ export const mockHotels: Hotel[] = [
     ownerName: 'Karim Uddin',
     ownerPhone: '+8801712345003',
     ownerEmail: 'karim@seasideresort.com',
-    address: 'Beach Road, Cox\'s Bazar',
-    area: 'Cox\'s Bazar',
-    city: 'Cox\'s Bazar',
+    address: "Beach Road, Cox's Bazar",
+    area: "Cox's Bazar",
+    city: "Cox's Bazar",
     latitude: 21.4272,
     longitude: 92.0058,
     images: [
@@ -86,8 +99,20 @@ export const mockHotels: Hotel[] = [
       'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800',
       'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800',
     ],
-    description: 'Premium beachfront resort with stunning ocean views. Perfect for a relaxing vacation.',
-    amenities: ['WiFi', 'AC', 'Parking', 'Restaurant', 'Bar', 'Swimming Pool', 'Beach Access', 'Spa', 'Gym', 'Water Sports'],
+    description:
+      'Premium beachfront resort with stunning ocean views. Perfect for a relaxing vacation.',
+    amenities: [
+      'WiFi',
+      'AC',
+      'Parking',
+      'Restaurant',
+      'Bar',
+      'Swimming Pool',
+      'Beach Access',
+      'Spa',
+      'Gym',
+      'Water Sports',
+    ],
     checkInTime: '15:00',
     checkOutTime: '11:00',
     minimumStay: 2,
@@ -116,7 +141,8 @@ export const mockHotels: Hotel[] = [
     images: [
       'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800',
     ],
-    description: 'Affordable guest house for budget travelers. Clean and comfortable rooms.',
+    description:
+      'Affordable guest house for budget travelers. Clean and comfortable rooms.',
     amenities: ['WiFi', 'AC', 'Parking'],
     checkInTime: '12:00',
     checkOutTime: '10:00',
@@ -148,8 +174,18 @@ export const mockHotels: Hotel[] = [
       'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
       'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800',
     ],
-    description: 'Modern business hotel with conference facilities. Ideal for corporate travelers.',
-    amenities: ['WiFi', 'AC', 'Parking', 'Restaurant', 'Conference Room', 'Business Center', 'Gym', 'Room Service'],
+    description:
+      'Modern business hotel with conference facilities. Ideal for corporate travelers.',
+    amenities: [
+      'WiFi',
+      'AC',
+      'Parking',
+      'Restaurant',
+      'Conference Room',
+      'Business Center',
+      'Gym',
+      'Room Service',
+    ],
     checkInTime: '14:00',
     checkOutTime: '12:00',
     minimumStay: 1,
@@ -166,19 +202,145 @@ export const mockHotels: Hotel[] = [
 
 export const mockRooms: Room[] = [
   // Grand Plaza Hotel rooms
-  { id: 'r1', hotelId: 'h1', roomNumber: '101', type: 'single', floor: 1, capacity: 1, basePrice: 3000, amenities: ['WiFi', 'AC', 'TV', 'Mini Bar'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Comfortable single room with city view', available: true },
-  { id: 'r2', hotelId: 'h1', roomNumber: '102', type: 'double', floor: 1, capacity: 2, basePrice: 4500, amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Balcony'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Spacious double room with balcony', available: true },
-  { id: 'r3', hotelId: 'h1', roomNumber: '201', type: 'suite', floor: 2, capacity: 4, basePrice: 8000, amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Living Room', 'Jacuzzi'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Luxury suite with separate living area', available: false },
-  { id: 'r4', hotelId: 'h1', roomNumber: '301', type: 'family', floor: 3, capacity: 6, basePrice: 10000, amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Kitchenette', 'Balcony'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Family room with kitchenette', available: true },
-  
+  {
+    id: 'r1',
+    hotelId: 'h1',
+    roomNumber: '101',
+    type: 'single',
+    floor: 1,
+    capacity: 1,
+    basePrice: 3000,
+    amenities: ['WiFi', 'AC', 'TV', 'Mini Bar'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Comfortable single room with city view',
+    available: true,
+  },
+  {
+    id: 'r2',
+    hotelId: 'h1',
+    roomNumber: '102',
+    type: 'double',
+    floor: 1,
+    capacity: 2,
+    basePrice: 4500,
+    amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Balcony'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Spacious double room with balcony',
+    available: true,
+  },
+  {
+    id: 'r3',
+    hotelId: 'h1',
+    roomNumber: '201',
+    type: 'suite',
+    floor: 2,
+    capacity: 4,
+    basePrice: 8000,
+    amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Living Room', 'Jacuzzi'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Luxury suite with separate living area',
+    available: false,
+  },
+  {
+    id: 'r4',
+    hotelId: 'h1',
+    roomNumber: '301',
+    type: 'family',
+    floor: 3,
+    capacity: 6,
+    basePrice: 10000,
+    amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Kitchenette', 'Balcony'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Family room with kitchenette',
+    available: true,
+  },
+
   // Comfort Guest House rooms
-  { id: 'r5', hotelId: 'h2', roomNumber: '1', type: 'single', floor: 1, capacity: 1, basePrice: 1500, amenities: ['WiFi', 'AC', 'TV'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Basic single room', available: true },
-  { id: 'r6', hotelId: 'h2', roomNumber: '2', type: 'double', floor: 1, capacity: 2, basePrice: 2500, amenities: ['WiFi', 'AC', 'TV'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Comfortable double room', available: true },
-  
+  {
+    id: 'r5',
+    hotelId: 'h2',
+    roomNumber: '1',
+    type: 'single',
+    floor: 1,
+    capacity: 1,
+    basePrice: 1500,
+    amenities: ['WiFi', 'AC', 'TV'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Basic single room',
+    available: true,
+  },
+  {
+    id: 'r6',
+    hotelId: 'h2',
+    roomNumber: '2',
+    type: 'double',
+    floor: 1,
+    capacity: 2,
+    basePrice: 2500,
+    amenities: ['WiFi', 'AC', 'TV'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Comfortable double room',
+    available: true,
+  },
+
   // Seaside Resort rooms
-  { id: 'r7', hotelId: 'h3', roomNumber: '101', type: 'double', floor: 1, capacity: 2, basePrice: 6000, amenities: ['WiFi', 'AC', 'TV', 'Ocean View', 'Balcony'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Ocean view double room', available: true },
-  { id: 'r8', hotelId: 'h3', roomNumber: '201', type: 'suite', floor: 2, capacity: 4, basePrice: 12000, amenities: ['WiFi', 'AC', 'TV', 'Ocean View', 'Living Room', 'Jacuzzi'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Premium ocean view suite', available: true },
-  { id: 'r9', hotelId: 'h3', roomNumber: '301', type: 'family', floor: 3, capacity: 6, basePrice: 15000, amenities: ['WiFi', 'AC', 'TV', 'Ocean View', 'Kitchenette', 'Balcony'], images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800'], description: 'Family suite with ocean view', available: false },
+  {
+    id: 'r7',
+    hotelId: 'h3',
+    roomNumber: '101',
+    type: 'double',
+    floor: 1,
+    capacity: 2,
+    basePrice: 6000,
+    amenities: ['WiFi', 'AC', 'TV', 'Ocean View', 'Balcony'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Ocean view double room',
+    available: true,
+  },
+  {
+    id: 'r8',
+    hotelId: 'h3',
+    roomNumber: '201',
+    type: 'suite',
+    floor: 2,
+    capacity: 4,
+    basePrice: 12000,
+    amenities: ['WiFi', 'AC', 'TV', 'Ocean View', 'Living Room', 'Jacuzzi'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Premium ocean view suite',
+    available: true,
+  },
+  {
+    id: 'r9',
+    hotelId: 'h3',
+    roomNumber: '301',
+    type: 'family',
+    floor: 3,
+    capacity: 6,
+    basePrice: 15000,
+    amenities: ['WiFi', 'AC', 'TV', 'Ocean View', 'Kitchenette', 'Balcony'],
+    images: [
+      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800',
+    ],
+    description: 'Family suite with ocean view',
+    available: false,
+  },
 ]
 
 export const mockBookings: Booking[] = [
@@ -236,8 +398,11 @@ export const mockReviews: Review[] = [
     userId: 'user1',
     userName: 'John Doe',
     rating: 5,
-    comment: 'Excellent hotel with great service. Rooms are clean and staff is very helpful.',
-    images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400'],
+    comment:
+      'Excellent hotel with great service. Rooms are clean and staff is very helpful.',
+    images: [
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400',
+    ],
     createdAt: '2024-01-18',
   },
   {
@@ -249,7 +414,8 @@ export const mockReviews: Review[] = [
     rating: 4,
     comment: 'Good hotel, but could improve the breakfast quality.',
     createdAt: '2024-01-15',
-    ownerResponse: 'Thank you for your feedback. We are working on improving our breakfast menu.',
+    ownerResponse:
+      'Thank you for your feedback. We are working on improving our breakfast menu.',
     ownerResponseDate: '2024-01-16',
   },
   {
@@ -259,17 +425,42 @@ export const mockReviews: Review[] = [
     userId: 'user3',
     userName: 'Mike Johnson',
     rating: 5,
-    comment: 'Amazing resort! The ocean view is breathtaking. Highly recommended!',
+    comment:
+      'Amazing resort! The ocean view is breathtaking. Highly recommended!',
     createdAt: '2024-01-10',
   },
 ]
 
 export const mockRoomPricing: RoomPricing[] = [
   // Weekend pricing examples
-  { roomId: 'r1', date: '2024-02-17', price: 3000, isWeekend: true, isSpecialOffer: false },
-  { roomId: 'r1', date: '2024-02-18', price: 3000, isWeekend: false, isSpecialOffer: false },
-  { roomId: 'r2', date: '2024-02-17', price: 5000, isWeekend: true, isSpecialOffer: false },
-  { roomId: 'r2', date: '2024-02-18', price: 4500, isWeekend: false, isSpecialOffer: false },
+  {
+    roomId: 'r1',
+    date: '2024-02-17',
+    price: 3000,
+    isWeekend: true,
+    isSpecialOffer: false,
+  },
+  {
+    roomId: 'r1',
+    date: '2024-02-18',
+    price: 3000,
+    isWeekend: false,
+    isSpecialOffer: false,
+  },
+  {
+    roomId: 'r2',
+    date: '2024-02-17',
+    price: 5000,
+    isWeekend: true,
+    isSpecialOffer: false,
+  },
+  {
+    roomId: 'r2',
+    date: '2024-02-18',
+    price: 4500,
+    isWeekend: false,
+    isSpecialOffer: false,
+  },
 ]
 
 // Helper functions
@@ -289,6 +480,9 @@ export function getReviewsByHotelId(hotelId: string): Review[] {
   return mockReviews.filter(review => review.hotelId === hotelId)
 }
 
-export function getRoomPricing(roomId: string, date: string): RoomPricing | undefined {
+export function getRoomPricing(
+  roomId: string,
+  date: string
+): RoomPricing | undefined {
   return mockRoomPricing.find(p => p.roomId === roomId && p.date === date)
 }

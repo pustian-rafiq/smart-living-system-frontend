@@ -45,7 +45,9 @@ export function PropertyModerationCard({
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4" />
-              <span>{property.area}, {property.city}</span>
+              <span>
+                {property.area}, {property.city}
+              </span>
             </div>
           </div>
           <Badge className={statusColors[property.status]}>
@@ -61,12 +63,16 @@ export function PropertyModerationCard({
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Submitted:</span>
-            <span>{format(new Date(property.submittedAt), 'MMM dd, yyyy')}</span>
+            <span>
+              {format(new Date(property.submittedAt), 'MMM dd, yyyy')}
+            </span>
           </div>
           {property.reviewedAt && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Reviewed:</span>
-              <span>{format(new Date(property.reviewedAt), 'MMM dd, yyyy')}</span>
+              <span>
+                {format(new Date(property.reviewedAt), 'MMM dd, yyyy')}
+              </span>
             </div>
           )}
         </div>

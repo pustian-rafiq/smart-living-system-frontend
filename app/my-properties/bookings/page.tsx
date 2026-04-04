@@ -3,14 +3,19 @@
 import { useState, useMemo } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BookingCard } from '@/components/booking/BookingCard'
 import { mockBookings, getBookingsByOwner } from '@/data/mockBookings'
 import type { Booking, BookingStatus } from '@/types/booking'
 import { Calendar, Filter, CheckCircle2, XCircle, Clock } from 'lucide-react'
 import { BookingCalendar } from '@/components/booking/BookingCalendar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog,
   DialogContent,
@@ -23,7 +28,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 
 export default function OwnerBookingsPage() {
-  const [selectedStatus, setSelectedStatus] = useState<BookingStatus | 'all'>('all')
+  const [selectedStatus, setSelectedStatus] = useState<BookingStatus | 'all'>(
+    'all'
+  )
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
@@ -53,7 +60,9 @@ export default function OwnerBookingsPage() {
   const handleRejectConfirm = () => {
     if (selectedBooking && rejectionReason.trim()) {
       // In real app, this would call an API
-      alert(`Reject booking ${selectedBooking.id} with reason: ${rejectionReason}`)
+      alert(
+        `Reject booking ${selectedBooking.id} with reason: ${rejectionReason}`
+      )
       setShowRejectDialog(false)
       setRejectionReason('')
       setSelectedBooking(null)
@@ -92,7 +101,9 @@ export default function OwnerBookingsPage() {
               <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{approvedBookings.length}</div>
+              <div className="text-2xl font-bold">
+                {approvedBookings.length}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -117,7 +128,12 @@ export default function OwnerBookingsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as BookingStatus | 'all')}>
+            <Select
+              value={selectedStatus}
+              onValueChange={value =>
+                setSelectedStatus(value as BookingStatus | 'all')
+              }
+            >
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -169,7 +185,7 @@ export default function OwnerBookingsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {pendingBookings.map((booking) => (
+                {pendingBookings.map(booking => (
                   <BookingCard
                     key={booking.id}
                     booking={booking}
@@ -194,7 +210,7 @@ export default function OwnerBookingsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {approvedBookings.map((booking) => (
+                {approvedBookings.map(booking => (
                   <BookingCard
                     key={booking.id}
                     booking={booking}
@@ -229,7 +245,7 @@ export default function OwnerBookingsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {allBookings.map((booking) => (
+                {allBookings.map(booking => (
                   <BookingCard
                     key={booking.id}
                     booking={booking}
@@ -259,7 +275,7 @@ export default function OwnerBookingsPage() {
                   id="reason"
                   placeholder="e.g., Property is no longer available, dates not suitable..."
                   value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
+                  onChange={e => setRejectionReason(e.target.value)}
                   rows={4}
                   className="mt-2"
                 />

@@ -14,17 +14,20 @@ interface NoticeBoardProps {
 const priorityConfig = {
   high: {
     icon: AlertCircle,
-    className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+    className:
+      'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
     label: 'High',
   },
   medium: {
     icon: AlertTriangle,
-    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
+    className:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
     label: 'Medium',
   },
   low: {
     icon: Info,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+    className:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800',
     label: 'Low',
   },
 }
@@ -52,7 +55,7 @@ export function NoticeBoard({ notices }: NoticeBoardProps) {
         ) : (
           <ScrollArea className="h-[400px] pr-4">
             <div className="space-y-4">
-              {sortedNotices.map((notice) => {
+              {sortedNotices.map(notice => {
                 const priority = priorityConfig[notice.priority]
                 const PriorityIcon = priority.icon
                 return (

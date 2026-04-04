@@ -16,23 +16,30 @@ interface NotificationCardProps {
 const typeConfig = {
   complaint: {
     icon: FileText,
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+    className:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
   },
   bill: {
     icon: DollarSign,
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    className:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
   },
   system: {
     icon: Settings,
-    className: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+    className:
+      'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
   },
   other: {
     icon: Info,
-    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+    className:
+      'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
   },
 }
 
-export function NotificationCard({ notification, onToggleRead }: NotificationCardProps) {
+export function NotificationCard({
+  notification,
+  onToggleRead,
+}: NotificationCardProps) {
   const type = typeConfig[notification.type]
   const Icon = type.icon
 
@@ -52,20 +59,28 @@ export function NotificationCard({ notification, onToggleRead }: NotificationCar
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <h4 className={cn('font-semibold', !notification.read && 'text-primary')}>
+                <h4
+                  className={cn(
+                    'font-semibold',
+                    !notification.read && 'text-primary'
+                  )}
+                >
                   {notification.title}
                 </h4>
                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
                   {notification.message}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {new Date(notification.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {new Date(notification.createdAt).toLocaleDateString(
+                    'en-US',
+                    {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }
+                  )}
                 </p>
               </div>
               {!notification.read && (

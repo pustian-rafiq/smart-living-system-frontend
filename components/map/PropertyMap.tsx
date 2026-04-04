@@ -1,7 +1,12 @@
 'use client'
 
 import { useMemo, useState, useCallback } from 'react'
-import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api'
+import {
+  GoogleMap,
+  Marker,
+  InfoWindow,
+  useJsApiLoader,
+} from '@react-google-maps/api'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,7 +22,9 @@ interface PropertyMapProps {
   height?: string
 }
 
-const libraries: ('places' | 'drawing' | 'geometry' | 'visualization')[] = ['places']
+const libraries: ('places' | 'drawing' | 'geometry' | 'visualization')[] = [
+  'places',
+]
 
 // Default center (Dhaka, Bangladesh)
 const defaultCenter = { lat: 23.8103, lng: 90.4125 }
@@ -30,7 +37,9 @@ export function PropertyMap({
   zoom = defaultZoom,
   height = '600px',
 }: PropertyMapProps) {
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null
+  )
   const [mapCenter, setMapCenter] = useState(center)
   const [mapZoom, setMapZoom] = useState(zoom)
 
@@ -61,17 +70,20 @@ export function PropertyMap({
     }
   }, [propertiesWithCoords])
 
-  const handleMarkerClick = useCallback((property: Property) => {
-    setSelectedProperty(property)
-    if (onPropertyClick) {
-      onPropertyClick(property)
-    }
-  }, [onPropertyClick])
+  const handleMarkerClick = useCallback(
+    (property: Property) => {
+      setSelectedProperty(property)
+      if (onPropertyClick) {
+        onPropertyClick(property)
+      }
+    },
+    [onPropertyClick]
+  )
 
   const handleUseCurrentLocation = useCallback(async () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        position => {
           const newCenter = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
@@ -115,7 +127,9 @@ export function PropertyMap({
               {propertiesWithCoords.map(property => (
                 <div key={property.id} className="rounded border p-2">
                   <p className="font-medium">{property.name}</p>
-                  <p className="text-xs">{property.area}, {property.city}</p>
+                  <p className="text-xs">
+                    {property.area}, {property.city}
+                  </p>
                   {property.latitude && property.longitude && (
                     <a
                       href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
@@ -179,7 +193,7 @@ export function PropertyMap({
         }}
       >
         {/* Property Markers */}
-        {propertiesWithCoords.map((property) => (
+        {propertiesWithCoords.map(property => (
           <Marker
             key={property.id}
             position={{
@@ -189,13 +203,15 @@ export function PropertyMap({
             onClick={() => handleMarkerClick(property)}
             icon={{
               url: property.available
-                ? 'data:image/svg+xml;base64,' + btoa(`
+                ? 'data:image/svg+xml;base64,' +
+                  btoa(`
                   <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M16 0C7.163 0 0 7.163 0 16C0 28 16 40 16 40C16 40 32 28 32 16C32 7.163 24.837 0 16 0Z" fill="#3B82F6"/>
                     <circle cx="16" cy="16" r="6" fill="white"/>
                   </svg>
                 `)
-                : 'data:image/svg+xml;base64,' + btoa(`
+                : 'data:image/svg+xml;base64,' +
+                  btoa(`
                   <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M16 0C7.163 0 0 7.163 0 16C0 28 16 40 16 40C16 40 32 28 32 16C32 7.163 24.837 0 16 0Z" fill="#9CA3AF"/>
                     <circle cx="16" cy="16" r="6" fill="white"/>
@@ -208,67 +224,79 @@ export function PropertyMap({
         ))}
 
         {/* Info Window */}
-        {selectedProperty && selectedProperty.latitude && selectedProperty.longitude && (
-          <InfoWindow
-            position={{
-              lat: selectedProperty.latitude,
-              lng: selectedProperty.longitude,
-            }}
-            onCloseClick={() => setSelectedProperty(null)}
-          >
-            <div className="w-64 p-2">
-              <div className="mb-2">
-                {selectedProperty.images[0] && (
-                  <div className="relative mb-2 h-32 w-full overflow-hidden rounded">
-                    <Image
-                      src={selectedProperty.images[0]}
-                      alt={selectedProperty.name}
-                      fill
-                      className="object-cover"
-                      sizes="256px"
-                    />
-                  </div>
-                )}
-                <h3 className="font-semibold text-sm">{selectedProperty.name}</h3>
-                <p className="text-xs text-muted-foreground capitalize">{selectedProperty.type}</p>
-              </div>
-              <div className="mb-2 flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                <span>{selectedProperty.area}, {selectedProperty.city}</span>
-              </div>
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-bold text-primary">
-                  ৳{selectedProperty.rent.toLocaleString()}/month
-                </span>
-                <Badge variant={selectedProperty.available ? 'default' : 'secondary'}>
-                  {selectedProperty.available ? 'Available' : 'Occupied'}
-                </Badge>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 text-xs"
-                  onClick={() => {
-                    if (onPropertyClick) {
-                      onPropertyClick(selectedProperty)
+        {selectedProperty &&
+          selectedProperty.latitude &&
+          selectedProperty.longitude && (
+            <InfoWindow
+              position={{
+                lat: selectedProperty.latitude,
+                lng: selectedProperty.longitude,
+              }}
+              onCloseClick={() => setSelectedProperty(null)}
+            >
+              <div className="w-64 p-2">
+                <div className="mb-2">
+                  {selectedProperty.images[0] && (
+                    <div className="relative mb-2 h-32 w-full overflow-hidden rounded">
+                      <Image
+                        src={selectedProperty.images[0]}
+                        alt={selectedProperty.name}
+                        fill
+                        className="object-cover"
+                        sizes="256px"
+                      />
+                    </div>
+                  )}
+                  <h3 className="font-semibold text-sm">
+                    {selectedProperty.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {selectedProperty.type}
+                  </p>
+                </div>
+                <div className="mb-2 flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3" />
+                  <span>
+                    {selectedProperty.area}, {selectedProperty.city}
+                  </span>
+                </div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-bold text-primary">
+                    ৳{selectedProperty.rent.toLocaleString()}/month
+                  </span>
+                  <Badge
+                    variant={
+                      selectedProperty.available ? 'default' : 'secondary'
                     }
-                  }}
-                >
-                  View Details
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs"
-                  onClick={() => handleGetDirections(selectedProperty)}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
+                  >
+                    {selectedProperty.available ? 'Available' : 'Occupied'}
+                  </Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs"
+                    onClick={() => {
+                      if (onPropertyClick) {
+                        onPropertyClick(selectedProperty)
+                      }
+                    }}
+                  >
+                    View Details
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => handleGetDirections(selectedProperty)}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          </InfoWindow>
-        )}
+            </InfoWindow>
+          )}
       </GoogleMap>
     </div>
   )

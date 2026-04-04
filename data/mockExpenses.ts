@@ -1,4 +1,11 @@
-import type { ExpenseAnalytics, MonthlyExpense, YearlyExpense, ExpenseTrend, Budget, ExpenseCategory } from '@/types/expense'
+import type {
+  ExpenseAnalytics,
+  MonthlyExpense,
+  YearlyExpense,
+  ExpenseTrend,
+  Budget,
+  ExpenseCategory,
+} from '@/types/expense'
 import { mockBills } from './mockBills'
 
 export const expenseCategories: ExpenseCategory[] = [
@@ -13,7 +20,20 @@ export const expenseCategories: ExpenseCategory[] = [
 
 // Generate monthly expenses from bills
 function generateMonthlyExpenses(): MonthlyExpense[] {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ]
   const expenses: MonthlyExpense[] = []
   const currentYear = new Date().getFullYear()
 
@@ -24,10 +44,8 @@ function generateMonthlyExpenses(): MonthlyExpense[] {
     const year = date.getFullYear()
 
     // Get bills for this month
-    const monthBills = mockBills.filter(b => 
-      b.month === month && 
-      b.year === year && 
-      b.tenantId === 'r1'
+    const monthBills = mockBills.filter(
+      b => b.month === month && b.year === year && b.tenantId === 'r1'
     )
 
     const categoryMap = new Map<string, { name: string; amount: number }>()
@@ -41,7 +59,10 @@ function generateMonthlyExpenses(): MonthlyExpense[] {
         if (item.description.toLowerCase().includes('rent')) {
           categoryId = 'cat1'
           categoryName = 'Rent'
-        } else if (item.description.toLowerCase().includes('electricity') || item.description.toLowerCase().includes('electric')) {
+        } else if (
+          item.description.toLowerCase().includes('electricity') ||
+          item.description.toLowerCase().includes('electric')
+        ) {
           categoryId = 'cat2'
           categoryName = 'Electricity'
         } else if (item.description.toLowerCase().includes('gas')) {
@@ -58,19 +79,24 @@ function generateMonthlyExpenses(): MonthlyExpense[] {
           categoryName = 'Maintenance'
         }
 
-        const existing = categoryMap.get(categoryId) || { name: categoryName, amount: 0 }
+        const existing = categoryMap.get(categoryId) || {
+          name: categoryName,
+          amount: 0,
+        }
         existing.amount += item.amount
         categoryMap.set(categoryId, existing)
         total += item.amount
       })
     })
 
-    const categories = Array.from(categoryMap.entries()).map(([categoryId, data]) => ({
-      categoryId,
-      categoryName: data.name,
-      amount: data.amount,
-      percentage: total > 0 ? (data.amount / total) * 100 : 0,
-    }))
+    const categories = Array.from(categoryMap.entries()).map(
+      ([categoryId, data]) => ({
+        categoryId,
+        categoryName: data.name,
+        amount: data.amount,
+        percentage: total > 0 ? (data.amount / total) * 100 : 0,
+      })
+    )
 
     expenses.push({
       month,
@@ -84,7 +110,9 @@ function generateMonthlyExpenses(): MonthlyExpense[] {
   return expenses
 }
 
-function generateYearlyExpenses(monthlyExpenses: MonthlyExpense[]): YearlyExpense[] {
+function generateYearlyExpenses(
+  monthlyExpenses: MonthlyExpense[]
+): YearlyExpense[] {
   const years = new Set(monthlyExpenses.map(e => e.year))
   const yearlyExpenses: YearlyExpense[] = []
 
@@ -100,22 +128,40 @@ function generateYearlyExpenses(monthlyExpenses: MonthlyExpense[]): YearlyExpens
     const categoryMap = new Map<string, { name: string; total: number }>()
     yearExpenses.forEach(expense => {
       expense.categories.forEach(cat => {
-        const existing = categoryMap.get(cat.categoryId) || { name: cat.categoryName, total: 0 }
+        const existing = categoryMap.get(cat.categoryId) || {
+          name: cat.categoryName,
+          total: 0,
+        }
         existing.total += cat.amount
         categoryMap.set(cat.categoryId, existing)
       })
     })
 
-    const categoryTotals = Array.from(categoryMap.entries()).map(([categoryId, data]) => ({
-      categoryId,
-      categoryName: data.name,
-      total: data.total,
-      percentage: total > 0 ? (data.total / total) * 100 : 0,
-    }))
+    const categoryTotals = Array.from(categoryMap.entries()).map(
+      ([categoryId, data]) => ({
+        categoryId,
+        categoryName: data.name,
+        total: data.total,
+        percentage: total > 0 ? (data.total / total) * 100 : 0,
+      })
+    )
 
     // Calculate trend
     const sorted = yearExpenses.sort((a, b) => {
-      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+      const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ]
       return months.indexOf(a.month) - months.indexOf(b.month)
     })
 
@@ -125,11 +171,13 @@ function generateYearlyExpenses(monthlyExpenses: MonthlyExpense[]): YearlyExpens
     if (sorted.length >= 2) {
       const firstHalf = sorted.slice(0, Math.floor(sorted.length / 2))
       const secondHalf = sorted.slice(Math.floor(sorted.length / 2))
-      const firstAvg = firstHalf.reduce((sum, e) => sum + e.total, 0) / firstHalf.length
-      const secondAvg = secondHalf.reduce((sum, e) => sum + e.total, 0) / secondHalf.length
-      
+      const firstAvg =
+        firstHalf.reduce((sum, e) => sum + e.total, 0) / firstHalf.length
+      const secondAvg =
+        secondHalf.reduce((sum, e) => sum + e.total, 0) / secondHalf.length
+
       growthRate = firstAvg > 0 ? ((secondAvg - firstAvg) / firstAvg) * 100 : 0
-      
+
       if (growthRate > 5) trend = 'increasing'
       else if (growthRate < -5) trend = 'decreasing'
       else trend = 'stable'
@@ -218,15 +266,22 @@ export const mockExpenseAnalytics: ExpenseAnalytics = {
   categories: expenseCategories,
 }
 
-mockExpenseAnalytics.yearlyExpenses = generateYearlyExpenses(mockExpenseAnalytics.monthlyExpenses)
-mockExpenseAnalytics.trends = generateTrends(mockExpenseAnalytics.monthlyExpenses)
+mockExpenseAnalytics.yearlyExpenses = generateYearlyExpenses(
+  mockExpenseAnalytics.monthlyExpenses
+)
+mockExpenseAnalytics.trends = generateTrends(
+  mockExpenseAnalytics.monthlyExpenses
+)
 
 // Helper functions
 export function getExpenseAnalytics(userId: string): ExpenseAnalytics {
   return mockExpenseAnalytics
 }
 
-export function getMonthlyExpenses(userId: string, year?: number): MonthlyExpense[] {
+export function getMonthlyExpenses(
+  userId: string,
+  year?: number
+): MonthlyExpense[] {
   let expenses = mockExpenseAnalytics.monthlyExpenses
   if (year) {
     expenses = expenses.filter(e => e.year === year)
@@ -242,7 +297,11 @@ export function getBudgets(userId: string): Budget[] {
   return mockExpenseAnalytics.budgets
 }
 
-export function updateBudget(userId: string, budgetId: string, updates: Partial<Budget>): Budget | undefined {
+export function updateBudget(
+  userId: string,
+  budgetId: string,
+  updates: Partial<Budget>
+): Budget | undefined {
   const budget = mockExpenseAnalytics.budgets.find(b => b.id === budgetId)
   if (!budget) return undefined
 

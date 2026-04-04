@@ -3,7 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MessageSquare, Users, CheckCircle2, XCircle, Clock, DollarSign } from 'lucide-react'
+import {
+  MessageSquare,
+  Users,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  DollarSign,
+} from 'lucide-react'
 import type { SMSMessage } from '@/types/sms'
 import { format } from 'date-fns'
 
@@ -13,10 +20,13 @@ interface SMSHistoryCardProps {
 }
 
 const statusColors = {
-  pending: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+  pending:
+    'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
   sent: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
-  failed: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
-  delivered: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+  failed:
+    'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
+  delivered:
+    'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
 }
 
 const statusIcons = {
@@ -36,12 +46,18 @@ export function SMSHistoryCard({ message, onView }: SMSHistoryCardProps) {
           <div className="flex-1 min-w-0">
             <CardTitle className="text-base md:text-lg flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary" />
-              <span className="truncate">{message.content.substring(0, 50)}...</span>
+              <span className="truncate">
+                {message.content.substring(0, 50)}...
+              </span>
             </CardTitle>
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="outline" className={`text-xs ${statusColors[message.status]}`}>
+              <Badge
+                variant="outline"
+                className={`text-xs ${statusColors[message.status]}`}
+              >
                 <StatusIcon className="h-3 w-3 mr-1" />
-                {message.status.charAt(0).toUpperCase() + message.status.slice(1)}
+                {message.status.charAt(0).toUpperCase() +
+                  message.status.slice(1)}
               </Badge>
               <Badge variant="outline" className="text-xs">
                 {message.recipientType}
@@ -74,7 +90,9 @@ export function SMSHistoryCard({ message, onView }: SMSHistoryCardProps) {
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <div>
               <p className="text-muted-foreground">Successful</p>
-              <p className="font-semibold text-green-600">{message.successful}</p>
+              <p className="font-semibold text-green-600">
+                {message.successful}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -115,7 +133,11 @@ export function SMSHistoryCard({ message, onView }: SMSHistoryCardProps) {
 
         {/* Actions */}
         {onView && (
-          <Button variant="outline" className="w-full" onClick={() => onView(message)}>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => onView(message)}
+          >
             View Details
           </Button>
         )}

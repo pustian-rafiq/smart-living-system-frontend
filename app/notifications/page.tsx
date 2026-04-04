@@ -38,9 +38,9 @@ export default function NotificationsPage() {
   }, [userNotifications])
 
   const handleToggleRead = (id: string) => {
-    setNotifications(notifications.map(n =>
-      n.id === id ? { ...n, read: !n.read } : n
-    ))
+    setNotifications(
+      notifications.map(n => (n.id === id ? { ...n, read: !n.read } : n))
+    )
   }
 
   const handleMarkAllRead = () => {
@@ -94,7 +94,7 @@ export default function NotificationsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {sortedNotifications.map((notification) => (
+            {sortedNotifications.map(notification => (
               <NotificationCard
                 key={notification.id}
                 notification={notification}

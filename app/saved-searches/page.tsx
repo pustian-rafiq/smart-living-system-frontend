@@ -6,7 +6,13 @@ import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { SavedSearchCard } from '@/components/search/SavedSearchCard'
 import { SaveSearchDialog } from '@/components/search/SaveSearchDialog'
 import {
@@ -28,7 +34,9 @@ import { Search, Bell, BellOff, Plus } from 'lucide-react'
 
 export default function SavedSearchesPage() {
   const router = useRouter()
-  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'inactive'>('all')
+  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'inactive'>(
+    'all'
+  )
   const [editingSearch, setEditingSearch] = useState<SavedSearch | null>(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editName, setEditName] = useState('')
@@ -87,7 +95,10 @@ export default function SavedSearchesPage() {
   const handleSearch = (savedSearch: SavedSearch) => {
     // Navigate to search page with filters
     const params = new URLSearchParams()
-    if (savedSearch.filters.propertyType && savedSearch.filters.propertyType !== 'all') {
+    if (
+      savedSearch.filters.propertyType &&
+      savedSearch.filters.propertyType !== 'all'
+    ) {
       params.set('type', savedSearch.filters.propertyType)
     }
     if (savedSearch.filters.city) {
@@ -129,7 +140,8 @@ export default function SavedSearchesPage() {
             <div>
               <h1 className="text-2xl font-bold sm:text-3xl">Saved Searches</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Manage your saved search criteria and get notified of new matches
+                Manage your saved search criteria and get notified of new
+                matches
               </p>
             </div>
             <Button onClick={() => router.push('/search')}>
@@ -145,7 +157,9 @@ export default function SavedSearchesPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Searches</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total Searches
+                  </p>
                   <p className="text-2xl font-bold">{allSearches.length}</p>
                 </div>
                 <Search className="h-8 w-8 text-muted-foreground" />
@@ -156,7 +170,9 @@ export default function SavedSearchesPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Active
+                  </p>
                   <p className="text-2xl font-bold">{activeSearches.length}</p>
                 </div>
                 <Bell className="h-8 w-8 text-green-500" />
@@ -167,8 +183,12 @@ export default function SavedSearchesPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Inactive</p>
-                  <p className="text-2xl font-bold">{inactiveSearches.length}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Inactive
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {inactiveSearches.length}
+                  </p>
                 </div>
                 <BellOff className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -177,7 +197,12 @@ export default function SavedSearchesPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'all' | 'active' | 'inactive')}>
+        <Tabs
+          value={selectedTab}
+          onValueChange={value =>
+            setSelectedTab(value as 'all' | 'active' | 'inactive')
+          }
+        >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
@@ -202,9 +227,13 @@ export default function SavedSearchesPage() {
                     No saved searches
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground text-center">
-                    Save your search criteria to get notified when new properties match
+                    Save your search criteria to get notified when new
+                    properties match
                   </p>
-                  <Button className="mt-4" onClick={() => router.push('/search')}>
+                  <Button
+                    className="mt-4"
+                    onClick={() => router.push('/search')}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Create Saved Search
                   </Button>
@@ -212,7 +241,7 @@ export default function SavedSearchesPage() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {allSearches.map((search) => (
+                {allSearches.map(search => (
                   <SavedSearchCard
                     key={search.id}
                     savedSearch={search}
@@ -241,7 +270,7 @@ export default function SavedSearchesPage() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {activeSearches.map((search) => (
+                {activeSearches.map(search => (
                   <SavedSearchCard
                     key={search.id}
                     savedSearch={search}
@@ -267,7 +296,7 @@ export default function SavedSearchesPage() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {inactiveSearches.map((search) => (
+                {inactiveSearches.map(search => (
                   <SavedSearchCard
                     key={search.id}
                     savedSearch={search}
@@ -297,7 +326,7 @@ export default function SavedSearchesPage() {
                 <Input
                   id="name"
                   value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
+                  onChange={e => setEditName(e.target.value)}
                   placeholder="Enter search name"
                   className="mt-2"
                 />

@@ -4,7 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
-import { Bell, BellOff, Search, Trash2, Edit, MapPin, DollarSign } from 'lucide-react'
+import {
+  Bell,
+  BellOff,
+  Search,
+  Trash2,
+  Edit,
+  MapPin,
+  DollarSign,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import type { SavedSearch } from '@/types/savedSearch'
 
@@ -34,7 +42,10 @@ export function SavedSearchCard({
 
   const getFilterSummary = () => {
     const parts: string[] = []
-    if (savedSearch.filters.propertyType && savedSearch.filters.propertyType !== 'all') {
+    if (
+      savedSearch.filters.propertyType &&
+      savedSearch.filters.propertyType !== 'all'
+    ) {
       parts.push(savedSearch.filters.propertyType)
     }
     if (savedSearch.filters.city) {
@@ -78,7 +89,8 @@ export function SavedSearchCard({
             <DollarSign className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Rent Range:</span>
             <span className="font-medium">
-              ৳{savedSearch.filters.rentRange[0].toLocaleString()} - ৳{savedSearch.filters.rentRange[1].toLocaleString()}
+              ৳{savedSearch.filters.rentRange[0].toLocaleString()} - ৳
+              {savedSearch.filters.rentRange[1].toLocaleString()}
             </span>
           </div>
           {savedSearch.filters.city && (
@@ -86,7 +98,9 @@ export function SavedSearchCard({
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">Location:</span>
               <span className="font-medium">
-                {savedSearch.filters.area ? `${savedSearch.filters.area}, ` : ''}
+                {savedSearch.filters.area
+                  ? `${savedSearch.filters.area}, `
+                  : ''}
                 {savedSearch.filters.city}
               </span>
             </div>
@@ -95,7 +109,9 @@ export function SavedSearchCard({
             <div className="flex items-center gap-2">
               <Search className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">Matches:</span>
-              <span className="font-medium">{savedSearch.matchCount} properties</span>
+              <span className="font-medium">
+                {savedSearch.matchCount} properties
+              </span>
             </div>
           )}
         </div>
@@ -103,10 +119,14 @@ export function SavedSearchCard({
         {/* Additional Filters */}
         <div className="flex flex-wrap gap-1.5">
           {savedSearch.filters.availableOnly && (
-            <Badge variant="outline" className="text-xs">Available Only</Badge>
+            <Badge variant="outline" className="text-xs">
+              Available Only
+            </Badge>
           )}
           {savedSearch.filters.verifiedOnly && (
-            <Badge variant="outline" className="text-xs">Verified Only</Badge>
+            <Badge variant="outline" className="text-xs">
+              Verified Only
+            </Badge>
           )}
           {savedSearch.filters.gender && (
             <Badge variant="outline" className="text-xs capitalize">
@@ -119,10 +139,14 @@ export function SavedSearchCard({
             </Badge>
           )}
           {savedSearch.filters.parking && (
-            <Badge variant="outline" className="text-xs">Parking</Badge>
+            <Badge variant="outline" className="text-xs">
+              Parking
+            </Badge>
           )}
           {savedSearch.filters.security && (
-            <Badge variant="outline" className="text-xs">Security</Badge>
+            <Badge variant="outline" className="text-xs">
+              Security
+            </Badge>
           )}
         </div>
 
@@ -134,10 +158,12 @@ export function SavedSearchCard({
         {/* Actions */}
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Notifications:</span>
+            <span className="text-sm text-muted-foreground">
+              Notifications:
+            </span>
             <Switch
               checked={savedSearch.isActive}
-              onCheckedChange={(checked) => onToggle(savedSearch.id, checked)}
+              onCheckedChange={checked => onToggle(savedSearch.id, checked)}
             />
           </div>
           <div className="flex gap-2">

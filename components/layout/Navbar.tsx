@@ -11,9 +11,18 @@ interface NavbarProps {
 
 const navLinks: NavLink[] = [
   { label: 'Home', href: '/', roles: ['renter', 'owner', 'admin'] },
-  { label: 'Dashboard', href: '/dashboard', roles: ['renter', 'owner', 'admin'] },
   {
-    label: 'Properties',
+    label: 'Dashboard',
+    href: '/dashboard',
+    roles: ['renter', 'owner', 'admin'],
+  },
+  {
+    label: 'Search',
+    href: '/search',
+    roles: ['renter', 'owner', 'admin'],
+  },
+  {
+    label: 'Browse',
     href: '/properties',
     roles: ['renter', 'owner', 'admin'],
   },
@@ -29,7 +38,7 @@ export const Navbar = ({ userRole = 'renter' }: NavbarProps) => {
   const pathname = usePathname()
 
   const filteredLinks = navLinks.filter(
-    (link) => !link.roles || link.roles.includes(userRole)
+    link => !link.roles || link.roles.includes(userRole)
   )
 
   const isActive = (href: string) => pathname === href
@@ -50,7 +59,7 @@ export const Navbar = ({ userRole = 'renter' }: NavbarProps) => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:space-x-4 lg:space-x-8">
-            {filteredLinks.map((link) => (
+            {filteredLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -113,7 +122,7 @@ export const Navbar = ({ userRole = 'renter' }: NavbarProps) => {
       {isOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200 dark:border-gray-700">
-            {filteredLinks.map((link) => (
+            {filteredLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}

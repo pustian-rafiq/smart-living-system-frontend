@@ -15,23 +15,43 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const bookingSchema = z.object({
   guestName: z.string().min(2, 'Name must be at least 2 characters'),
-  guestPhone: z.string().regex(/^\+8801[3-9]\d{8}$/, 'Invalid phone number (must be +8801XXXXXXXXX)'),
-  guestEmail: z.string().email('Invalid email address').optional().or(z.literal('')),
-  guests: z.number().min(1, 'At least 1 guest required').max(10, 'Maximum 10 guests'),
+  guestPhone: z
+    .string()
+    .regex(
+      /^\+8801[3-9]\d{8}$/,
+      'Invalid phone number (must be +8801XXXXXXXXX)'
+    ),
+  guestEmail: z
+    .string()
+    .email('Invalid email address')
+    .optional()
+    .or(z.literal('')),
+  guests: z
+    .number()
+    .min(1, 'At least 1 guest required')
+    .max(10, 'Maximum 10 guests'),
   checkIn: z.string().min(1, 'Check-in date is required'),
   checkOut: z.string().min(1, 'Check-out date is required'),
   checkInTime: z.string().optional(),
   checkOutTime: z.string().optional(),
   specialRequests: z.string().optional(),
-  paymentMethod: z.enum(['bkash', 'nagad', 'rocket', 'card', 'cash']).optional(),
+  paymentMethod: z
+    .enum(['bkash', 'nagad', 'rocket', 'card', 'cash'])
+    .optional(),
 })
 
-type BookingFormData = z.infer<typeof bookingSchema>
+export type BookingFormData = z.infer<typeof bookingSchema>
 
 interface BookingFormProps {
   onSubmit: (data: BookingFormData) => void
@@ -41,12 +61,12 @@ interface BookingFormProps {
   loading?: boolean
 }
 
-export function BookingForm({ 
-  onSubmit, 
+export function BookingForm({
+  onSubmit,
   defaultCheckIn,
   defaultCheckOut,
   defaultGuests = 1,
-  loading = false 
+  loading = false,
 }: BookingFormProps) {
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -75,7 +95,10 @@ export function BookingForm({
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="guestName"
@@ -111,7 +134,11 @@ export function BookingForm({
                 <FormItem>
                   <FormLabel>Email (Optional)</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="your@email.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="your@email.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,12 +182,14 @@ export function BookingForm({
                 <FormItem>
                   <FormLabel>Number of Guests *</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      min="1" 
-                      max="10" 
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      onChange={e =>
+                        field.onChange(parseInt(e.target.value) || 1)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -175,7 +204,7 @@ export function BookingForm({
                 <FormItem>
                   <FormLabel>Special Requests (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Any special requests or requirements..."
                       className="min-h-[100px]"
                       {...field}

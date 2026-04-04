@@ -22,12 +22,28 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, Upload, X, FileText, Image as ImageIcon } from 'lucide-react'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  CalendarIcon,
+  Upload,
+  X,
+  FileText,
+  Image as ImageIcon,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import type { Notice } from '@/types/mess'
@@ -36,7 +52,15 @@ const noticeSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
   content: z.string().min(1, 'Content is required'),
   priority: z.enum(['high', 'medium', 'low']),
-  category: z.enum(['general', 'payment', 'maintenance', 'event', 'announcement', 'rule', 'other']),
+  category: z.enum([
+    'general',
+    'payment',
+    'maintenance',
+    'event',
+    'announcement',
+    'rule',
+    'other',
+  ]),
   expiryDate: z.date().optional(),
 })
 
@@ -46,7 +70,9 @@ interface CreateNoticeDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   messId: string
-  onSubmit: (data: NoticeFormData & { pdfFile?: File; imageFiles?: File[] }) => void
+  onSubmit: (
+    data: NoticeFormData & { pdfFile?: File; imageFiles?: File[] }
+  ) => void
 }
 
 const categoryOptions = [
@@ -94,17 +120,17 @@ export function CreateNoticeDialog({
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
-    
+
     if (imageFiles.length !== files.length) {
       alert('Some files are not images and were skipped')
     }
 
     setImageFiles(prev => [...prev, ...imageFiles])
-    
+
     // Create previews
     imageFiles.forEach(file => {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = e => {
         setImagePreviews(prev => [...prev, e.target?.result as string])
       }
       reader.readAsDataURL(file)
@@ -145,7 +171,10 @@ export function CreateNoticeDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -185,7 +214,10 @@ export function CreateNoticeDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -208,14 +240,17 @@ export function CreateNoticeDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categoryOptions.map((option) => (
+                        {categoryOptions.map(option => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
@@ -258,7 +293,7 @@ export function CreateNoticeDialog({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
+                        disabled={date => date < new Date()}
                         initialFocus
                       />
                     </PopoverContent>
@@ -320,7 +355,10 @@ export function CreateNoticeDialog({
               {imagePreviews.length > 0 && (
                 <div className="grid grid-cols-2 gap-3 mt-3">
                   {imagePreviews.map((preview, index) => (
-                    <div key={index} className="relative rounded-lg border overflow-hidden">
+                    <div
+                      key={index}
+                      className="relative rounded-lg border overflow-hidden"
+                    >
                       <img
                         src={preview}
                         alt={`Preview ${index + 1}`}

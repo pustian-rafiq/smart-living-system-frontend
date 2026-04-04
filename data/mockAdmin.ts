@@ -47,7 +47,8 @@ export const mockVerificationRequests: VerificationRequest[] = [
     verificationType: 'nid',
     documentType: 'nid',
     documentNumber: '1234567890123',
-    documentImage: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
+    documentImage:
+      'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
     status: 'pending',
     submittedAt: '2024-03-18T10:00:00',
   },
@@ -60,7 +61,8 @@ export const mockVerificationRequests: VerificationRequest[] = [
     verificationType: 'property',
     documentType: 'license',
     documentNumber: 'PROP-2024-001',
-    documentImage: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
+    documentImage:
+      'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
     status: 'approved',
     submittedAt: '2024-03-15T14:00:00',
     reviewedAt: '2024-03-16T10:00:00',
@@ -75,7 +77,8 @@ export const mockVerificationRequests: VerificationRequest[] = [
     verificationType: 'nid',
     documentType: 'nid',
     documentNumber: '9876543210987',
-    documentImage: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
+    documentImage:
+      'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800',
     status: 'rejected',
     submittedAt: '2024-03-10T09:00:00',
     reviewedAt: '2024-03-11T15:00:00',
@@ -88,7 +91,8 @@ export const mockDisputes: Dispute[] = [
   {
     id: 'd1',
     title: 'Payment Dispute - Booking #B001',
-    description: 'Guest claims payment was made but booking shows as unpaid. Transaction ID: BK123456789',
+    description:
+      'Guest claims payment was made but booking shows as unpaid. Transaction ID: BK123456789',
     type: 'payment',
     status: 'open',
     createdBy: 'user1',
@@ -101,7 +105,8 @@ export const mockDisputes: Dispute[] = [
   {
     id: 'd2',
     title: 'Property Misrepresentation',
-    description: 'Renter claims the property does not match the description. Missing amenities listed.',
+    description:
+      'Renter claims the property does not match the description. Missing amenities listed.',
     type: 'property',
     status: 'assigned',
     createdBy: 'user2',
@@ -116,7 +121,8 @@ export const mockDisputes: Dispute[] = [
   {
     id: 'd3',
     title: 'Booking Cancellation Refund',
-    description: 'Guest cancelled booking but did not receive refund as per cancellation policy.',
+    description:
+      'Guest cancelled booking but did not receive refund as per cancellation policy.',
     type: 'booking',
     status: 'in_progress',
     createdBy: 'user3',
@@ -253,12 +259,12 @@ export const mockAnalytics: AnalyticsData = {
     { city: 'Chattogram', properties: 85, bookings: 650, revenue: 2500000 },
     { city: 'Sylhet', properties: 45, bookings: 280, revenue: 1000000 },
     { city: 'Rajshahi', properties: 30, bookings: 150, revenue: 500000 },
-    { city: 'Cox\'s Bazar', properties: 10, bookings: 20, revenue: 0 },
+    { city: "Cox's Bazar", properties: 10, bookings: 20, revenue: 0 },
   ],
 }
 
 export const mockSystemSettings: SystemSettings = {
-  platformName: 'Smart Living Ecosystem',
+  platformName: 'Smart Living System',
   platformEmail: 'support@smartliving.com',
   platformPhone: '+8801712345678',
   commissionRate: 5,
@@ -275,7 +281,12 @@ export const mockSystemSettings: SystemSettings = {
     premium: {
       price: 2000,
       maxFlats: -1, // unlimited
-      features: ['All basic features', 'White-label option', 'API access', 'Dedicated support'],
+      features: [
+        'All basic features',
+        'White-label option',
+        'API access',
+        'Dedicated support',
+      ],
     },
   },
   featureFlags: {
@@ -301,7 +312,8 @@ export const mockFraudReports: FraudReport[] = [
     userId: 'user4',
     userName: 'Suspicious User',
     reportType: 'fake_listing',
-    description: 'Property images appear to be stolen from another website. Address verification needed.',
+    description:
+      'Property images appear to be stolen from another website. Address verification needed.',
     status: 'investigating',
     reportedAt: '2024-03-19T12:00:00',
     investigatedBy: 'admin2',
@@ -312,7 +324,8 @@ export const mockFraudReports: FraudReport[] = [
     userId: 'user5',
     userName: 'Another User',
     reportType: 'payment_fraud',
-    description: 'Multiple failed payment attempts with different cards. Possible fraud.',
+    description:
+      'Multiple failed payment attempts with different cards. Possible fraud.',
     status: 'pending',
     reportedAt: '2024-03-20T09:00:00',
     priority: 'urgent',
@@ -345,7 +358,9 @@ export const mockActivityLogs: ActivityLog[] = [
 ]
 
 // Helper functions
-export function getVerificationRequestsByStatus(status: VerificationRequest['status']) {
+export function getVerificationRequestsByStatus(
+  status: VerificationRequest['status']
+) {
   return mockVerificationRequests.filter(v => v.status === status)
 }
 

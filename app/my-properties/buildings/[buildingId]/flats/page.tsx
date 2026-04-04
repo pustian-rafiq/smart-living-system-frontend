@@ -6,7 +6,13 @@ import { Layout } from '@/components/layout/Layout'
 import { FlatCard } from '@/components/flat/FlatCard'
 import { FlatDetailDialog } from '@/components/flat/FlatDetailDialog'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ArrowLeft, Filter } from 'lucide-react'
 import { mockBuildings, mockFlats } from '@/data/mockBuildings'
 import type { Flat, FlatStatus } from '@/types/building'
@@ -87,7 +93,9 @@ export default function FlatsPage() {
           </Button>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold sm:text-3xl">{building.name}</h1>
+              <h1 className="text-2xl font-bold sm:text-3xl">
+                {building.name}
+              </h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 {building.address}
               </p>
@@ -101,14 +109,17 @@ export default function FlatsPage() {
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filter by Status:</span>
           </div>
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as FlatStatus | 'all')}>
+          <Select
+            value={statusFilter}
+            onValueChange={value =>
+              setStatusFilter(value as FlatStatus | 'all')
+            }
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">
-                All ({statusCounts.all})
-              </SelectItem>
+              <SelectItem value="all">All ({statusCounts.all})</SelectItem>
               <SelectItem value="available">
                 Available ({statusCounts.available})
               </SelectItem>
@@ -136,7 +147,7 @@ export default function FlatsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredFlats.map((flat) => (
+            {filteredFlats.map(flat => (
               <FlatCard
                 key={flat.id}
                 flat={flat}

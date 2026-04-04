@@ -3,7 +3,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Download, Calendar, Home, User, Zap, Calculator, Clock } from 'lucide-react'
+import {
+  Download,
+  Calendar,
+  Home,
+  User,
+  Zap,
+  Calculator,
+  Clock,
+} from 'lucide-react'
 import type { Bill } from '@/types/bill'
 import { cn } from '@/lib/utils'
 
@@ -18,21 +26,32 @@ interface BillCardProps {
 const statusConfig = {
   paid: {
     label: 'Paid',
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
+    className:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800',
   },
   unpaid: {
     label: 'Unpaid',
-    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
+    className:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
   },
   overdue: {
     label: 'Overdue',
-    className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+    className:
+      'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
   },
 }
 
-export function BillCard({ bill, onDownload, onMarkPaid, onSchedulePayment, showTenantName = false }: BillCardProps) {
+export function BillCard({
+  bill,
+  onDownload,
+  onMarkPaid,
+  onSchedulePayment,
+  showTenantName = false,
+}: BillCardProps) {
   const status = statusConfig[bill.status]
-  const isOverdue = bill.status === 'overdue' || (bill.status === 'unpaid' && new Date(bill.dueDate) < new Date())
+  const isOverdue =
+    bill.status === 'overdue' ||
+    (bill.status === 'unpaid' && new Date(bill.dueDate) < new Date())
 
   return (
     <Card className="transition-all hover:shadow-md">
@@ -79,36 +98,48 @@ export function BillCard({ bill, onDownload, onMarkPaid, onSchedulePayment, show
         {bill.templateId && (
           <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 p-2">
             <Zap className="h-4 w-4 text-primary" />
-            <span className="text-xs font-medium text-primary">Generated from Template</span>
+            <span className="text-xs font-medium text-primary">
+              Generated from Template
+            </span>
           </div>
         )}
 
         {/* Bill Items */}
         {bill.items.length > 0 && (
           <div className="space-y-2 rounded-lg border p-3">
-            <p className="text-xs font-medium text-muted-foreground">Bill Items</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Bill Items
+            </p>
             <div className="space-y-2">
-              {bill.items.map((item) => (
+              {bill.items.map(item => (
                 <div key={item.id} className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{item.description}</span>
-                    <span className="font-medium">৳{item.amount.toLocaleString()}</span>
+                    <span className="text-muted-foreground">
+                      {item.description}
+                    </span>
+                    <span className="font-medium">
+                      ৳{item.amount.toLocaleString()}
+                    </span>
                   </div>
                   {/* Show calculation details for meter-based items */}
-                  {item.calculationType === 'meter-based' && item.consumption !== undefined && item.unitRate && (
-                    <div className="ml-2 rounded bg-muted/50 px-2 py-1 text-xs text-muted-foreground">
-                      {item.previousReading !== undefined && item.currentReading !== undefined && (
-                        <span>
-                          {item.previousReading} → {item.currentReading} = {item.consumption} units
-                        </span>
-                      )}
-                      {item.unitRate && (
-                        <span className="ml-1">
-                          × ৳{item.unitRate} = ৳{item.amount.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  {item.calculationType === 'meter-based' &&
+                    item.consumption !== undefined &&
+                    item.unitRate && (
+                      <div className="ml-2 rounded bg-muted/50 px-2 py-1 text-xs text-muted-foreground">
+                        {item.previousReading !== undefined &&
+                          item.currentReading !== undefined && (
+                            <span>
+                              {item.previousReading} → {item.currentReading} ={' '}
+                              {item.consumption} units
+                            </span>
+                          )}
+                        {item.unitRate && (
+                          <span className="ml-1">
+                            × ৳{item.unitRate} = ৳{item.amount.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
                 </div>
               ))}
             </div>
@@ -120,7 +151,9 @@ export function BillCard({ bill, onDownload, onMarkPaid, onSchedulePayment, show
           <div className="space-y-2 rounded-lg border p-3">
             <div className="flex items-center gap-2">
               <Calculator className="h-4 w-4 text-muted-foreground" />
-              <p className="text-xs font-medium text-muted-foreground">Meter Readings</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Meter Readings
+              </p>
             </div>
             <div className="space-y-1.5 text-xs">
               {bill.meterReadings.electricity !== undefined && (
@@ -132,7 +165,9 @@ export function BillCard({ bill, onDownload, onMarkPaid, onSchedulePayment, show
                         {bill.meterReadings.previousElectricity} →
                       </span>
                     )}
-                    <span className="font-medium">{bill.meterReadings.electricity} units</span>
+                    <span className="font-medium">
+                      {bill.meterReadings.electricity} units
+                    </span>
                     {bill.meterReadings.electricityConsumption && (
                       <Badge variant="outline" className="text-xs">
                         +{bill.meterReadings.electricityConsumption}
@@ -150,7 +185,9 @@ export function BillCard({ bill, onDownload, onMarkPaid, onSchedulePayment, show
                         {bill.meterReadings.previousGas} →
                       </span>
                     )}
-                    <span className="font-medium">{bill.meterReadings.gas} units</span>
+                    <span className="font-medium">
+                      {bill.meterReadings.gas} units
+                    </span>
                     {bill.meterReadings.gasConsumption && (
                       <Badge variant="outline" className="text-xs">
                         +{bill.meterReadings.gasConsumption}
@@ -168,7 +205,9 @@ export function BillCard({ bill, onDownload, onMarkPaid, onSchedulePayment, show
                         {bill.meterReadings.previousWater} →
                       </span>
                     )}
-                    <span className="font-medium">{bill.meterReadings.water} units</span>
+                    <span className="font-medium">
+                      {bill.meterReadings.water} units
+                    </span>
                     {bill.meterReadings.waterConsumption && (
                       <Badge variant="outline" className="text-xs">
                         +{bill.meterReadings.waterConsumption}
@@ -187,7 +226,12 @@ export function BillCard({ bill, onDownload, onMarkPaid, onSchedulePayment, show
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground">Due Date</p>
-              <p className={cn('font-medium', isOverdue && 'text-red-600 dark:text-red-400')}>
+              <p
+                className={cn(
+                  'font-medium',
+                  isOverdue && 'text-red-600 dark:text-red-400'
+                )}
+              >
                 {new Date(bill.dueDate).toLocaleDateString()}
               </p>
             </div>
@@ -219,10 +263,7 @@ export function BillCard({ bill, onDownload, onMarkPaid, onSchedulePayment, show
               </Button>
             )}
             {onMarkPaid && bill.status !== 'paid' && (
-              <Button
-                className="flex-1"
-                onClick={() => onMarkPaid(bill)}
-              >
+              <Button className="flex-1" onClick={() => onMarkPaid(bill)}>
                 Mark as Paid
               </Button>
             )}

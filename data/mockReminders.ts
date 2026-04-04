@@ -1,4 +1,8 @@
-import type { ReminderSettings, Reminder, ReminderHistory } from '@/types/reminder'
+import type {
+  ReminderSettings,
+  Reminder,
+  ReminderHistory,
+} from '@/types/reminder'
 
 export const mockReminderSettings: ReminderSettings = {
   userId: 'r1',
@@ -108,16 +112,22 @@ export function getReminderSettings(userId: string): ReminderSettings {
   return mockReminderSettings
 }
 
-export function updateReminderSettings(userId: string, updates: Partial<ReminderSettings>): ReminderSettings {
+export function updateReminderSettings(
+  userId: string,
+  updates: Partial<ReminderSettings>
+): ReminderSettings {
   Object.assign(mockReminderSettings, updates)
   return mockReminderSettings
 }
 
-export function getReminders(userId: string, filters?: {
-  type?: string
-  status?: string
-  limit?: number
-}): Reminder[] {
+export function getReminders(
+  userId: string,
+  filters?: {
+    type?: string
+    status?: string
+    limit?: number
+  }
+): Reminder[] {
   let reminders = mockReminders.filter(r => r.userId === userId)
 
   if (filters?.type) {
@@ -129,7 +139,10 @@ export function getReminders(userId: string, filters?: {
   }
 
   // Sort by scheduled date (newest first)
-  reminders.sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime())
+  reminders.sort(
+    (a, b) =>
+      new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime()
+  )
 
   if (filters?.limit) {
     reminders = reminders.slice(0, filters.limit)

@@ -1,7 +1,14 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from 'recharts'
 import type { ExpenseCategory } from '@/types/expense'
 
 interface CategoryBreakdownProps {
@@ -26,7 +33,9 @@ export function CategoryBreakdown({
     percentage: cat.percentage,
   }))
 
-  const COLORS = categories.map(cat => categoryColors.get(cat.categoryId) || '#6b7280')
+  const COLORS = categories.map(
+    cat => categoryColors.get(cat.categoryId) || '#6b7280'
+  )
 
   return (
     <Card>
@@ -41,7 +50,9 @@ export function CategoryBreakdown({
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percentage }) => `${name}: ${percentage.toFixed(1)}%`}
+              label={({ name, percent }: { name?: string; percent?: number }) =>
+                `${name ?? ''}: ${((percent ?? 0) * 100).toFixed(1)}%`
+              }
               outerRadius={80}
               fill="#8884d8"
               dataKey="value"
@@ -51,7 +62,16 @@ export function CategoryBreakdown({
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [`৳${value.toLocaleString()}`, 'Amount']}
+              formatter={(value: number | string | undefined) => [
+                `৳${
+                  value === undefined
+                    ? '0'
+                    : typeof value === 'number'
+                      ? value.toLocaleString()
+                      : value
+                }`,
+                'Amount',
+              ]}
               labelStyle={{ color: 'hsl(var(--foreground))' }}
               contentStyle={{
                 backgroundColor: 'hsl(var(--background))',
@@ -63,7 +83,10 @@ export function CategoryBreakdown({
         </ResponsiveContainer>
         <div className="mt-4 space-y-2">
           {categories.map((cat, index) => (
-            <div key={cat.categoryId} className="flex items-center justify-between text-sm">
+            <div
+              key={cat.categoryId}
+              className="flex items-center justify-between text-sm"
+            >
               <div className="flex items-center gap-2">
                 <div
                   className="h-3 w-3 rounded-full"
@@ -72,8 +95,12 @@ export function CategoryBreakdown({
                 <span>{cat.categoryName}</span>
               </div>
               <div className="text-right">
-                <span className="font-medium">৳{cat.amount.toLocaleString()}</span>
-                <span className="text-muted-foreground ml-2">({cat.percentage.toFixed(1)}%)</span>
+                <span className="font-medium">
+                  ৳{cat.amount.toLocaleString()}
+                </span>
+                <span className="text-muted-foreground ml-2">
+                  ({cat.percentage.toFixed(1)}%)
+                </span>
               </div>
             </div>
           ))}

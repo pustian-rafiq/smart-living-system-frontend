@@ -12,7 +12,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { MoreVertical, Search, Ban, CheckCircle, XCircle } from 'lucide-react'
 import {
   DropdownMenu,
@@ -65,7 +71,7 @@ export function UserManagementTable({
           <Input
             placeholder="Search users..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -110,7 +116,10 @@ export function UserManagementTable({
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No users found
                 </TableCell>
               </TableRow>
@@ -120,8 +129,12 @@ export function UserManagementTable({
                   <TableCell>
                     <div>
                       <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                      <p className="text-xs text-muted-foreground">{user.phone}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {user.email}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.phone}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -149,9 +162,7 @@ export function UserManagementTable({
                       {user.totalBookings && (
                         <p>Bookings: {user.totalBookings}</p>
                       )}
-                      {user.activityScore && (
-                        <p>Score: {user.activityScore}</p>
-                      )}
+                      {user.activityScore && <p>Score: {user.activityScore}</p>}
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
@@ -165,7 +176,9 @@ export function UserManagementTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onViewDetails?.(user.id)}>
+                        <DropdownMenuItem
+                          onClick={() => onViewDetails?.(user.id)}
+                        >
                           View Details
                         </DropdownMenuItem>
                         {!user.verified && (
@@ -175,7 +188,9 @@ export function UserManagementTable({
                         )}
                         {user.status === 'active' && (
                           <DropdownMenuItem
-                            onClick={() => onStatusChange?.(user.id, 'suspended')}
+                            onClick={() =>
+                              onStatusChange?.(user.id, 'suspended')
+                            }
                           >
                             Suspend User
                           </DropdownMenuItem>

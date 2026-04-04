@@ -6,7 +6,13 @@ import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { RuleCard } from '@/components/rules/RuleCard'
 import { RuleDialog } from '@/components/rules/RuleDialog'
 import { ViolationCard } from '@/components/rules/ViolationCard'
@@ -126,10 +132,12 @@ export default function RulesManagementPage() {
             <p className="text-muted-foreground">{mess.name}</p>
           </div>
           {isOwner && (
-            <Button onClick={() => {
-              setEditingRule(null)
-              setIsRuleDialogOpen(true)
-            }}>
+            <Button
+              onClick={() => {
+                setEditingRule(null)
+                setIsRuleDialogOpen(true)
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Create Rule
             </Button>
@@ -175,7 +183,9 @@ export default function RulesManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No rules defined yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    No rules defined yet
+                  </p>
                   {isOwner && (
                     <Button onClick={() => setIsRuleDialogOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
@@ -205,7 +215,10 @@ export default function RulesManagementPage() {
                       <SelectItem value="dismissed">Dismissed</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select value={severityFilter} onValueChange={setSeverityFilter}>
+                  <Select
+                    value={severityFilter}
+                    onValueChange={setSeverityFilter}
+                  >
                     <SelectTrigger className="w-[150px]">
                       <SelectValue />
                     </SelectTrigger>
@@ -244,19 +257,26 @@ export default function RulesManagementPage() {
           {/* My Violations Tab (Renter) */}
           {isRenter && (
             <TabsContent value="my-violations" className="space-y-4">
-              {violations.filter(v => v.studentId === currentStudentId).length > 0 ? (
+              {violations.filter(v => v.studentId === currentStudentId).length >
+              0 ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {violations
                     .filter(v => v.studentId === currentStudentId)
                     .map(violation => (
-                      <ViolationCard key={violation.id} violation={violation} showActions={false} />
+                      <ViolationCard
+                        key={violation.id}
+                        violation={violation}
+                        showActions={false}
+                      />
                     ))}
                 </div>
               ) : (
                 <Card>
                   <CardContent className="py-12 text-center">
                     <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                    <p className="text-muted-foreground">No violations recorded</p>
+                    <p className="text-muted-foreground">
+                      No violations recorded
+                    </p>
                   </CardContent>
                 </Card>
               )}
@@ -270,7 +290,7 @@ export default function RulesManagementPage() {
             rule={editingRule}
             messId={messId}
             open={isRuleDialogOpen}
-            onOpenChange={(open) => {
+            onOpenChange={open => {
               setIsRuleDialogOpen(open)
               if (!open) setEditingRule(null)
             }}

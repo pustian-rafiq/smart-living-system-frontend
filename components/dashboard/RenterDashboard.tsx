@@ -72,7 +72,10 @@ export function RenterDashboard({
   const currentBuilding = currentFlat
     ? mockBuildings.find(b => b.id === currentFlat.buildingId)
     : undefined
-  const renterBills = useMemo(() => mockBills.filter(b => b.tenantId === renterId), [renterId])
+  const renterBills = useMemo(
+    () => mockBills.filter(b => b.tenantId === renterId),
+    [renterId]
+  )
   const renterProfile = useMemo(() => getRenterProfile('user1'), [])
   const renterHistory = useMemo(() => getRenterHistory(renterId), [renterId])
 
@@ -82,10 +85,16 @@ export function RenterDashboard({
     let completed = 0
     let total = 6
 
-    if (renterProfile.documents && renterProfile.documents.length > 0) completed++
+    if (renterProfile.documents && renterProfile.documents.length > 0)
+      completed++
     if (renterProfile.jobInfo) completed++
-    if (renterProfile.familyMembers && renterProfile.familyMembers.length > 0) completed++
-    if (renterProfile.emergencyContacts && renterProfile.emergencyContacts.length > 0) completed++
+    if (renterProfile.familyMembers && renterProfile.familyMembers.length > 0)
+      completed++
+    if (
+      renterProfile.emergencyContacts &&
+      renterProfile.emergencyContacts.length > 0
+    )
+      completed++
     if (currentRenter?.email) completed++
     if (currentRenter?.nid) completed++
 
@@ -106,7 +115,9 @@ export function RenterDashboard({
         title: 'Find Apartment',
         subtitle: 'Family & bachelor-friendly listings',
         href: '/search?type=apartment',
-        icon: <Icon path="M3 10l9-7 9 7v10a2 2 0 01-2 2h-4V12H9v10H5a2 2 0 01-2-2V10z" />,
+        icon: (
+          <Icon path="M3 10l9-7 9 7v10a2 2 0 01-2 2h-4V12H9v10H5a2 2 0 01-2-2V10z" />
+        ),
         photoToneClass:
           'bg-gradient-to-r from-sky-200/70 via-cyan-200/60 to-emerald-200/70 dark:from-sky-900/30 dark:via-cyan-900/20 dark:to-emerald-900/30',
       },
@@ -122,7 +133,9 @@ export function RenterDashboard({
         title: 'Expense Analytics',
         subtitle: 'Track and analyze your expenses',
         href: '/expenses',
-        icon: <Icon path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
+        icon: (
+          <Icon path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        ),
         photoToneClass:
           'bg-gradient-to-r from-blue-200/70 via-indigo-200/60 to-purple-200/70 dark:from-blue-900/30 dark:via-indigo-900/20 dark:to-purple-900/30',
       },
@@ -130,7 +143,9 @@ export function RenterDashboard({
         title: 'Reminders',
         subtitle: 'Manage your automatic reminders',
         href: '/reminders',
-        icon: <Icon path="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />,
+        icon: (
+          <Icon path="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        ),
         photoToneClass:
           'bg-gradient-to-r from-green-200/70 via-emerald-200/60 to-teal-200/70 dark:from-green-900/30 dark:via-emerald-900/20 dark:to-teal-900/30',
       },
@@ -138,7 +153,9 @@ export function RenterDashboard({
         title: 'Documents',
         subtitle: 'Agreements and checklists',
         href: '/documents',
-        icon: <Icon path="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
+        icon: (
+          <Icon path="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        ),
         photoToneClass:
           'bg-gradient-to-r from-indigo-200/70 via-purple-200/60 to-pink-200/70 dark:from-indigo-900/30 dark:via-purple-900/20 dark:to-pink-900/30',
       },
@@ -146,7 +163,9 @@ export function RenterDashboard({
         title: 'Payment Scheduling',
         subtitle: 'Schedule future payments',
         href: '/payments',
-        icon: <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />,
+        icon: (
+          <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        ),
         photoToneClass:
           'bg-gradient-to-r from-blue-200/70 via-cyan-200/60 to-teal-200/70 dark:from-blue-900/30 dark:via-cyan-900/20 dark:to-teal-900/30',
       },
@@ -154,7 +173,9 @@ export function RenterDashboard({
         title: 'Expense Reports',
         subtitle: 'Generate and export reports',
         href: '/reports',
-        icon: <Icon path="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
+        icon: (
+          <Icon path="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        ),
         photoToneClass:
           'bg-gradient-to-r from-purple-200/70 via-pink-200/60 to-rose-200/70 dark:from-purple-900/30 dark:via-pink-900/20 dark:to-rose-900/30',
       },

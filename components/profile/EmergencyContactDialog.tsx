@@ -73,13 +73,14 @@ export function EmergencyContactDialog({
           <DialogTitle>
             {initialData ? 'Edit Emergency Contact' : 'Add Emergency Contact'}
           </DialogTitle>
-          <DialogDescription>
-            Add an emergency contact person
-          </DialogDescription>
+          <DialogDescription>Add an emergency contact person</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             {/* Name */}
             <FormField
               control={form.control}
@@ -103,7 +104,10 @@ export function EmergencyContactDialog({
                 <FormItem>
                   <FormLabel>Relation</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Spouse, Brother, Friend" {...field} />
+                    <Input
+                      placeholder="e.g., Spouse, Brother, Friend"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,11 +1,23 @@
 'use client'
 
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface LocationSearchProps {
   city: string
@@ -61,7 +73,9 @@ export function LocationSearch({
         {/* Location selectors */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2 sm:col-span-1">
-            <Label htmlFor="city" className="text-sm md:text-base">City</Label>
+            <Label htmlFor="city" className="text-sm md:text-base">
+              City
+            </Label>
             <Select value={city} onValueChange={onCityChange}>
               <SelectTrigger id="city" className="h-10 md:h-11">
                 <SelectValue />
@@ -76,7 +90,9 @@ export function LocationSearch({
             </Select>
           </div>
           <div className="space-y-2 sm:col-span-1">
-            <Label htmlFor="area" className="text-sm md:text-base">Area</Label>
+            <Label htmlFor="area" className="text-sm md:text-base">
+              Area
+            </Label>
             <Select value={area} onValueChange={onAreaChange}>
               <SelectTrigger id="area" className="h-10 md:h-11">
                 <SelectValue />
@@ -91,9 +107,14 @@ export function LocationSearch({
             </Select>
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="search" className="text-sm md:text-base">Search</Label>
+            <Label htmlFor="search" className="text-sm md:text-base">
+              Search
+            </Label>
             <div className="relative">
-              <Icon path="M11 19a8 8 0 100-16 8 8 0 000 16zm10 2l-4.35-4.35" className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Icon
+                path="M11 19a8 8 0 100-16 8 8 0 000 16zm10 2l-4.35-4.35"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+              />
               <Input
                 id="search"
                 value={search}
@@ -111,7 +132,9 @@ export function LocationSearch({
             <Link href="/search">Explore All</Link>
           </Button>
           <Button asChild className="w-full sm:w-auto">
-            <Link href={`/search?city=${encodeURIComponent(city)}&area=${encodeURIComponent(area)}&q=${encodeURIComponent(search)}`}>
+            <Link
+              href={`/search?city=${encodeURIComponent(city)}&area=${encodeURIComponent(area)}&q=${encodeURIComponent(search)}`}
+            >
               Search Now
             </Link>
           </Button>

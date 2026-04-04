@@ -48,7 +48,10 @@ export function ExpenseCard({
               {expense.description}
             </CardTitle>
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="outline" className={`text-xs ${categoryColors[expense.category]}`}>
+              <Badge
+                variant="outline"
+                className={`text-xs ${categoryColors[expense.category]}`}
+              >
                 {categoryLabels[expense.category]}
               </Badge>
             </div>
@@ -58,7 +61,9 @@ export function ExpenseCard({
       <CardContent className="space-y-4">
         {/* Amount */}
         <div>
-          <p className="text-2xl font-bold text-primary">৳{expense.amount.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-primary">
+            ৳{expense.amount.toLocaleString()}
+          </p>
         </div>
 
         {/* Details */}
@@ -89,7 +94,11 @@ export function ExpenseCard({
         {/* Receipt */}
         {expense.receiptUrl && (
           <Button variant="outline" size="sm" className="w-full" asChild>
-            <a href={expense.receiptUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={expense.receiptUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <FileText className="h-4 w-4 mr-2" />
               View Receipt
             </a>
@@ -100,7 +109,12 @@ export function ExpenseCard({
         {showActions && (
           <div className="flex gap-2 pt-2 border-t">
             {onEdit && (
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => onEdit(expense)}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => onEdit(expense)}
+              >
                 Edit
               </Button>
             )}

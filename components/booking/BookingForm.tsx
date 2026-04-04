@@ -37,14 +37,18 @@ import type { Property } from '@/types/property'
 import type { BookingFormData } from '@/types/booking'
 
 const bookingSchema = z.object({
-  moveInDate: z.date({
-    required_error: 'Move-in date is required',
-  }),
+  moveInDate: z.date({ message: 'Move-in date is required' }),
   moveOutDate: z.date().optional(),
   duration: z.number().min(1, 'Duration must be at least 1 month').optional(),
-  message: z.string().max(500, 'Message must be less than 500 characters').optional(),
-  specialRequests: z.string().max(500, 'Special requests must be less than 500 characters').optional(),
-  agreeToTerms: z.boolean().refine((val) => val === true, {
+  message: z
+    .string()
+    .max(500, 'Message must be less than 500 characters')
+    .optional(),
+  specialRequests: z
+    .string()
+    .max(500, 'Special requests must be less than 500 characters')
+    .optional(),
+  agreeToTerms: z.boolean().refine(val => val === true, {
     message: 'You must agree to the terms and conditions',
   }),
 })
@@ -53,10 +57,17 @@ interface BookingFormProps {
   property: Property
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (data: BookingFormData & { moveInDate: string; moveOutDate?: string }) => void
+  onSubmit: (
+    data: BookingFormData & { moveInDate: string; moveOutDate?: string }
+  ) => void
 }
 
-export function BookingForm({ property, open, onOpenChange, onSubmit }: BookingFormProps) {
+export function BookingForm({
+  property,
+  open,
+  onOpenChange,
+  onSubmit,
+}: BookingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof bookingSchema>>({
@@ -98,7 +109,8 @@ export function BookingForm({ property, open, onOpenChange, onSubmit }: BookingF
   const calculateDuration = () => {
     if (moveInDate && moveOutDate) {
       const months = Math.ceil(
-        (moveOutDate.getTime() - moveInDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+        (moveOutDate.getTime() - moveInDate.getTime()) /
+          (1000 * 60 * 60 * 24 * 30)
       )
       if (months > 0) {
         form.setValue('duration', months)
@@ -117,7 +129,10 @@ export function BookingForm({ property, open, onOpenChange, onSubmit }: BookingF
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             {/* Property Summary */}
             <div className="rounded-lg border p-4 bg-muted/50">
               <div className="flex items-center justify-between">
@@ -170,13 +185,13 @@ export function BookingForm({ property, open, onOpenChange, onSubmit }: BookingF
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={(date) => {
+                        onSelect={date => {
                           field.onChange(date)
                           if (date && moveOutDate && date > moveOutDate) {
                             form.setValue('moveOutDate', undefined)
                           }
                         }}
-                        disabled={(date) => date < new Date()}
+                        disabled={date => date < new Date()}
                         initialFocus
                       />
                     </PopoverContent>
@@ -219,11 +234,11 @@ export function BookingForm({ property, open, onOpenChange, onSubmit }: BookingF
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={(date) => {
+                        onSelect={date => {
                           field.onChange(date)
                           calculateDuration()
                         }}
-                        disabled={(date) => {
+                        disabled={date => {
                           if (!moveInDate) return true
                           return date < moveInDate
                         }}
@@ -253,7 +268,13 @@ export function BookingForm({ property, open, onOpenChange, onSubmit }: BookingF
                         min="1"
                         placeholder="e.g., 6"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        onChange={e =>
+                          field.onChange(
+                            e.target.value
+                              ? parseInt(e.target.value)
+                              : undefined
+                          )
+                        }
                       />
                     </FormControl>
                     <FormDescription>
@@ -324,11 +345,10 @@ export function BookingForm({ property, open, onOpenChange, onSubmit }: BookingF
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      I agree to the terms and conditions
-                    </FormLabel>
+                    <FormLabel>I agree to the terms and conditions</FormLabel>
                     <FormDescription>
-                      By submitting this booking request, I confirm that all information provided is accurate.
+                      By submitting this booking request, I confirm that all
+                      information provided is accurate.
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -346,11 +366,7 @@ export function BookingForm({ property, open, onOpenChange, onSubmit }: BookingF
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" className="flex-1" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

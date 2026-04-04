@@ -10,12 +10,20 @@ export const mockMess: Mess[] = [
     availableSeats: 8,
     monthlyFee: 3500,
     gender: 'male',
-    facilities: ['WiFi', 'AC', 'Generator', 'Security', 'Parking', 'Common Kitchen'],
+    facilities: [
+      'WiFi',
+      'AC',
+      'Generator',
+      'Security',
+      'Parking',
+      'Common Kitchen',
+    ],
     images: [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
     ],
-    description: 'Clean and spacious mess with modern amenities. Perfect for students and working professionals.',
+    description:
+      'Clean and spacious mess with modern amenities. Perfect for students and working professionals.',
     ownerName: 'Abdul Karim',
     ownerPhone: '+8801712345678',
     createdAt: '2024-01-15',
@@ -34,7 +42,8 @@ export const mockMess: Mess[] = [
       'https://images.unsplash.com/photo-1556912172-45b7abe8b7c8?w=800',
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
     ],
-    description: 'Affordable mess for students. Close to universities and public transport.',
+    description:
+      'Affordable mess for students. Close to universities and public transport.',
     ownerName: 'Rashid Ahmed',
     ownerPhone: '+8801712345680',
     createdAt: '2024-01-18',
@@ -53,7 +62,8 @@ export const mockMess: Mess[] = [
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
       'https://images.unsplash.com/photo-1556912172-45b7abe8b7c8?w=800',
     ],
-    description: 'Safe and secure ladies hostel with 24/7 security. All modern amenities available.',
+    description:
+      'Safe and secure ladies hostel with 24/7 security. All modern amenities available.',
     ownerName: 'Nazma Khatun',
     ownerPhone: '+8801712345681',
     createdAt: '2024-01-22',
@@ -100,13 +110,15 @@ export const mockNotices: Notice[] = [
   {
     id: 'n1',
     title: 'Monthly Fee Payment Reminder',
-    content: 'Please pay your monthly fee by 5th of every month. Late payment will incur a fine of ৳200.',
+    content:
+      'Please pay your monthly fee by 5th of every month. Late payment will incur a fine of ৳200.',
     date: '2024-03-01',
     priority: 'high',
     messId: 'm1',
     category: 'payment',
     expiryDate: '2024-04-01',
-    pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    pdfUrl:
+      'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
     createdBy: 'owner1',
     createdAt: '2024-03-01T10:00:00Z',
     acknowledgments: [
@@ -125,7 +137,8 @@ export const mockNotices: Notice[] = [
   {
     id: 'n2',
     title: 'Mess Meeting Scheduled',
-    content: 'A general meeting will be held on 15th March at 7 PM. All students are requested to attend.',
+    content:
+      'A general meeting will be held on 15th March at 7 PM. All students are requested to attend.',
     date: '2024-03-05',
     priority: 'medium',
     messId: 'm1',
@@ -142,7 +155,8 @@ export const mockNotices: Notice[] = [
   {
     id: 'n3',
     title: 'Generator Maintenance',
-    content: 'Generator maintenance scheduled for 20th March. There may be power cuts during 2 PM - 4 PM.',
+    content:
+      'Generator maintenance scheduled for 20th March. There may be power cuts during 2 PM - 4 PM.',
     date: '2024-03-10',
     priority: 'medium',
     messId: 'm1',
@@ -161,7 +175,8 @@ export const mockNotices: Notice[] = [
   {
     id: 'n4',
     title: 'New WiFi Password',
-    content: 'The WiFi password has been changed. Please contact the mess manager for the new password.',
+    content:
+      'The WiFi password has been changed. Please contact the mess manager for the new password.',
     date: '2024-03-12',
     priority: 'low',
     messId: 'm1',
@@ -173,7 +188,8 @@ export const mockNotices: Notice[] = [
   {
     id: 'n5',
     title: 'Holiday Notice',
-    content: 'Mess will be closed on 26th March (Independence Day). No meals will be served.',
+    content:
+      'Mess will be closed on 26th March (Independence Day). No meals will be served.',
     date: '2024-03-15',
     priority: 'high',
     messId: 'm1',
@@ -237,10 +253,48 @@ export function acknowledgeNotice(
 }
 
 export const mockSeats: Seat[] = [
-  { id: 'seat1', seatNumber: 'A-01', roomNumber: 'Room 1', status: 'occupied', studentId: 's1', messId: 'm1' },
-  { id: 'seat2', seatNumber: 'A-02', roomNumber: 'Room 1', status: 'occupied', studentId: 's2', messId: 'm1' },
-  { id: 'seat3', seatNumber: 'A-03', roomNumber: 'Room 1', status: 'available', messId: 'm1' },
-  { id: 'seat4', seatNumber: 'A-04', roomNumber: 'Room 1', status: 'available', messId: 'm1' },
-  { id: 'seat5', seatNumber: 'B-01', roomNumber: 'Room 2', status: 'occupied', messId: 'm1' },
-  { id: 'seat6', seatNumber: 'B-02', roomNumber: 'Room 2', status: 'available', messId: 'm1' },
+  {
+    id: 'seat1',
+    seatNumber: 'A-01',
+    roomNumber: 'Room 1',
+    status: 'occupied',
+    studentId: 's1',
+    messId: 'm1',
+  },
+  {
+    id: 'seat2',
+    seatNumber: 'A-02',
+    roomNumber: 'Room 1',
+    status: 'occupied',
+    studentId: 's2',
+    messId: 'm1',
+  },
+  {
+    id: 'seat3',
+    seatNumber: 'A-03',
+    roomNumber: 'Room 1',
+    status: 'available',
+    messId: 'm1',
+  },
+  {
+    id: 'seat4',
+    seatNumber: 'A-04',
+    roomNumber: 'Room 1',
+    status: 'available',
+    messId: 'm1',
+  },
+  {
+    id: 'seat5',
+    seatNumber: 'B-01',
+    roomNumber: 'Room 2',
+    status: 'occupied',
+    messId: 'm1',
+  },
+  {
+    id: 'seat6',
+    seatNumber: 'B-02',
+    roomNumber: 'Room 2',
+    status: 'available',
+    messId: 'm1',
+  },
 ]

@@ -24,27 +24,33 @@ interface AttendanceTableProps {
 const statusConfig = {
   present: {
     label: 'Present',
-    className: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+    className:
+      'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
   },
   absent: {
     label: 'Absent',
-    className: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
+    className:
+      'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400',
   },
   late: {
     label: 'Late',
-    className: 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+    className:
+      'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
   },
   excused: {
     label: 'Excused',
-    className: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
+    className:
+      'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400',
   },
   meal_attended: {
     label: 'Meal Attended',
-    className: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+    className:
+      'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400',
   },
   meal_absent: {
     label: 'Meal Absent',
-    className: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
+    className:
+      'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400',
   },
 }
 
@@ -89,7 +95,9 @@ export function AttendanceTable({
                 return (
                   <TableRow key={record.id}>
                     {showStudentName && (
-                      <TableCell className="font-medium">{record.studentName}</TableCell>
+                      <TableCell className="font-medium">
+                        {record.studentName}
+                      </TableCell>
                     )}
                     <TableCell>
                       {format(new Date(record.date), 'MMM dd, yyyy')}
@@ -101,7 +109,11 @@ export function AttendanceTable({
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
-                        {record.type === 'general' ? 'General' : record.type === 'meal' ? 'Meal' : 'Both'}
+                        {record.type === 'general'
+                          ? 'General'
+                          : record.type === 'meal'
+                            ? 'Meal'
+                            : 'Both'}
                       </Badge>
                       {record.mealCategory && (
                         <span className="ml-2 text-xs text-muted-foreground capitalize">

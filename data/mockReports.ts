@@ -16,7 +16,12 @@ export const mockExpenseReports: ExpenseReport[] = [
     data: {
       totalExpenses: 180000,
       categoryBreakdown: [
-        { categoryId: 'cat1', categoryName: 'Rent', amount: 180000, percentage: 100 },
+        {
+          categoryId: 'cat1',
+          categoryName: 'Rent',
+          amount: 180000,
+          percentage: 100,
+        },
       ],
       monthlyBreakdown: [
         { month: 'January', year: 2024, amount: 15000 },
@@ -94,13 +99,19 @@ export const mockTaxDocuments: TaxDocument[] = [
 export function getExpenseReportsByUserId(userId: string): ExpenseReport[] {
   return mockExpenseReports
     .filter(report => report.userId === userId)
-    .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
+    )
 }
 
 export function getTaxDocumentsByUserId(userId: string): TaxDocument[] {
   return mockTaxDocuments
     .filter(doc => doc.userId === userId)
-    .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
+    )
 }
 
 export function generateExpenseReport(
@@ -112,31 +123,45 @@ export function generateExpenseReport(
   const analytics = getExpenseAnalytics(userId)
   const filteredMonths = analytics.last12Months.filter(e => {
     const expenseDate = new Date(`${e.month} 1, ${e.year}`)
-    return expenseDate >= new Date(startDate) && expenseDate <= new Date(endDate)
+    return (
+      expenseDate >= new Date(startDate) && expenseDate <= new Date(endDate)
+    )
   })
 
-  const totalExpenses = filteredMonths.reduce((sum, e) => sum + e.totalAmount, 0)
+  const totalExpenses = filteredMonths.reduce(
+    (sum, e) => sum + e.totalAmount,
+    0
+  )
   const categoryMap = new Map<string, { name: string; amount: number }>()
 
   filteredMonths.forEach(expense => {
     Object.entries(expense.categories).forEach(([categoryName, amount]) => {
-      const existing = categoryMap.get(categoryName) || { name: categoryName, amount: 0 }
+      const existing = categoryMap.get(categoryName) || {
+        name: categoryName,
+        amount: 0,
+      }
       existing.amount += amount
       categoryMap.set(categoryName, existing)
     })
   })
 
-  const categoryBreakdown = Array.from(categoryMap.entries()).map(([categoryName, data]) => ({
-    categoryId: categoryName.toLowerCase().replace(/\s+/g, '_'),
-    categoryName: data.name,
-    amount: data.amount,
-    percentage: totalExpenses > 0 ? (data.amount / totalExpenses) * 100 : 0,
-  }))
+  const categoryBreakdown = Array.from(categoryMap.entries()).map(
+    ([categoryName, data]) => ({
+      categoryId: categoryName.toLowerCase().replace(/\s+/g, '_'),
+      categoryName: data.name,
+      amount: data.amount,
+      percentage: totalExpenses > 0 ? (data.amount / totalExpenses) * 100 : 0,
+    })
+  )
 
   const bills = mockBills
     .filter(b => {
       const billDate = new Date(`${b.month} 1, ${b.year}`)
-      return billDate >= new Date(startDate) && billDate <= new Date(endDate) && b.tenantId === userId
+      return (
+        billDate >= new Date(startDate) &&
+        billDate <= new Date(endDate) &&
+        b.tenantId === userId
+      )
     })
     .map(b => b.id)
 
@@ -176,7 +201,11 @@ export function generateTaxDocument(
   const analytics = getExpenseAnalytics(userId)
   const filteredMonths = analytics.last12Months.filter(e => {
     const expenseDate = new Date(`${e.month} 1, ${e.year}`)
-    return expenseDate >= new Date(startDate) && expenseDate <= new Date(endDate) && e.year === taxYear
+    return (
+      expenseDate >= new Date(startDate) &&
+      expenseDate <= new Date(endDate) &&
+      e.year === taxYear
+    )
   })
 
   const totalAmount = filteredMonths.reduce((sum, e) => sum + e.totalAmount, 0)
@@ -184,18 +213,23 @@ export function generateTaxDocument(
 
   filteredMonths.forEach(expense => {
     Object.entries(expense.categories).forEach(([categoryName, amount]) => {
-      const existing = categoryMap.get(categoryName) || { amount: 0, description: '' }
+      const existing = categoryMap.get(categoryName) || {
+        amount: 0,
+        description: '',
+      }
       existing.amount += amount
       existing.description = `${categoryName} payments`
       categoryMap.set(categoryName, existing)
     })
   })
 
-  const breakdown = Array.from(categoryMap.entries()).map(([categoryName, data]) => ({
-    category: categoryName,
-    amount: data.amount,
-    description: data.description,
-  }))
+  const breakdown = Array.from(categoryMap.entries()).map(
+    ([categoryName, data]) => ({
+      category: categoryName,
+      amount: data.amount,
+      description: data.description,
+    })
+  )
 
   const newDocument: TaxDocument = {
     id: `tax${mockTaxDocuments.length + 1}`,

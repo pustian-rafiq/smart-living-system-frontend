@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -23,7 +23,13 @@ import {
   FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -63,6 +69,15 @@ export function AgreementUploadDialog({
   const [file, setFile] = useState<File | null>(null)
   const [filePreview, setFilePreview] = useState<string | null>(null)
   const [specialCondition, setSpecialCondition] = useState('')
+  const [selectedPropertyId, setSelectedPropertyId] = useState('')
+
+  const availableFlats = useMemo(
+    () =>
+      selectedPropertyId
+        ? mockFlats.filter(f => f.buildingId === selectedPropertyId)
+        : [],
+    [selectedPropertyId]
+  )
 
   const form = useForm({
     resolver: zodResolver(agreementUploadSchema),
@@ -77,6 +92,7 @@ export function AgreementUploadDialog({
 
   useEffect(() => {
     if (agreement && open) {
+      setSelectedPropertyId(agreement.propertyId)
       form.reset({
         propertyId: agreement.propertyId,
         flatId: agreement.flatId,
@@ -147,7 +163,10 @@ export function AgreementUploadDialog({
 
   const removeSpecialCondition = (index: number) => {
     const current = form.getValues('specialConditions') || []
-    form.setValue('specialConditions', current.filter((_, i) => i !== index))
+    form.setValue(
+      'specialConditions',
+      current.filter((_, i) => i !== index)
+    )
   }
 
   const reminderDays = [1, 2, 3, 5, 7, 14, 30, 60]
@@ -156,7 +175,9 @@ export function AgreementUploadDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>{agreement ? 'Update Agreement' : 'Upload Agreement'}</DialogTitle>
+          <DialogTitle>
+            {agreement ? 'Update Agreement' : 'Upload Agreement'}
+          </DialogTitle>
           <DialogDescription>
             {agreement
               ? 'Update your rental agreement details'
@@ -165,7 +186,10 @@ export function AgreementUploadDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Property Selection */}
@@ -209,7 +233,10 @@ export function AgreementUploadDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Flat (Optional)</FormLabel>
-                        <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value || ''}
+                          onValueChange={field.onChange}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a flat" />
@@ -246,7 +273,9 @@ export function AgreementUploadDialog({
                           <div className="flex items-center gap-2">
                             <FileText className="h-5 w-5 text-primary" />
                             <span className="text-sm font-medium">
-                              {file?.name || agreement?.documentName || 'agreement.pdf'}
+                              {file?.name ||
+                                agreement?.documentName ||
+                                'agreement.pdf'}
                             </span>
                           </div>
                           {!agreement && (
@@ -278,7 +307,10 @@ export function AgreementUploadDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Agreement Type</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -350,7 +382,9 @@ export function AgreementUploadDialog({
                           <Input
                             type="number"
                             {...field}
-                            onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                            onChange={e =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -367,7 +401,9 @@ export function AgreementUploadDialog({
                           <Input
                             type="number"
                             {...field}
-                            onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                            onChange={e =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -385,14 +421,19 @@ export function AgreementUploadDialog({
                       <FormLabel>Renewal Reminder Days</FormLabel>
                       <div className="grid grid-cols-4 gap-2">
                         {reminderDays.map(day => (
-                          <div key={day} className="flex items-center space-x-2">
+                          <div
+                            key={day}
+                            className="flex items-center space-x-2"
+                          >
                             <Checkbox
                               id={`reminder-${day}`}
                               checked={field.value?.includes(day)}
                               onCheckedChange={checked => {
                                 const current = field.value || []
                                 if (checked) {
-                                  field.onChange([...current, day].sort((a, b) => b - a))
+                                  field.onChange(
+                                    [...current, day].sort((a, b) => b - a)
+                                  )
                                 } else {
                                   field.onChange(current.filter(d => d !== day))
                                 }
@@ -418,7 +459,7 @@ export function AgreementUploadDialog({
                 {/* Terms */}
                 <div className="space-y-4 pt-4 border-t">
                   <h3 className="font-semibold">Terms & Conditions</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -430,7 +471,11 @@ export function AgreementUploadDialog({
                             <Input
                               type="number"
                               {...field}
-                              onChange={e => field.onChange(parseInt(e.target.value) || undefined)}
+                              onChange={e =>
+                                field.onChange(
+                                  parseInt(e.target.value) || undefined
+                                )
+                              }
                               value={field.value || ''}
                             />
                           </FormControl>
@@ -448,7 +493,11 @@ export function AgreementUploadDialog({
                             <Input
                               type="number"
                               {...field}
-                              onChange={e => field.onChange(parseInt(e.target.value) || undefined)}
+                              onChange={e =>
+                                field.onChange(
+                                  parseInt(e.target.value) || undefined
+                                )
+                              }
                               value={field.value || ''}
                             />
                           </FormControl>
@@ -488,7 +537,9 @@ export function AgreementUploadDialog({
                             <Input
                               placeholder="Add a condition..."
                               value={specialCondition}
-                              onChange={e => setSpecialCondition(e.target.value)}
+                              onChange={e =>
+                                setSpecialCondition(e.target.value)
+                              }
                               onKeyPress={e => {
                                 if (e.key === 'Enter') {
                                   e.preventDefault()
@@ -512,7 +563,9 @@ export function AgreementUploadDialog({
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => removeSpecialCondition(index)}
+                                    onClick={() =>
+                                      removeSpecialCondition(index)
+                                    }
                                   >
                                     <X className="h-4 w-4" />
                                   </Button>
@@ -530,7 +583,11 @@ export function AgreementUploadDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">{agreement ? 'Update' : 'Upload'}</Button>

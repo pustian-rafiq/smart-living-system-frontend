@@ -1,7 +1,19 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { Language, getLanguage, setLanguage, toggleLanguage, translations } from '@/utils/language'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react'
+import {
+  Language,
+  getLanguage,
+  setLanguage,
+  toggleLanguage,
+  translations,
+} from '@/utils/language'
 
 interface LanguageContextType {
   language: Language
@@ -10,7 +22,9 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined
+)
 
 export const useLanguage = () => {
   const context = useContext(LanguageContext)

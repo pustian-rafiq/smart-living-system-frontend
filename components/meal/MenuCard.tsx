@@ -59,11 +59,15 @@ export function MenuCard({ menu, mealTiming }: MenuCardProps) {
                   )}
                 </div>
                 {item.description && (
-                  <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {item.description}
+                  </p>
                 )}
               </div>
               {item.price && (
-                <p className="text-sm font-semibold text-primary">৳{item.price}</p>
+                <p className="text-sm font-semibold text-primary">
+                  ৳{item.price}
+                </p>
               )}
             </div>
           ))}

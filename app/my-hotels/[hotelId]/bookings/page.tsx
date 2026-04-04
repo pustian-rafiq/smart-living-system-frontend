@@ -6,7 +6,13 @@ import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Calendar, Users, Phone, Mail, Check, X } from 'lucide-react'
 import { mockHotels, getBookingsByHotelId } from '@/data/mockHotels'
 import { format } from 'date-fns'
@@ -32,13 +38,14 @@ export default function BookingManagementPage() {
 
   const bookings = useMemo(() => {
     let filtered = [...allBookings]
-    
+
     if (statusFilter !== 'all') {
       filtered = filtered.filter(b => b.status === statusFilter)
     }
-    
-    return filtered.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+
+    return filtered.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
   }, [statusFilter, allBookings])
 
@@ -64,8 +71,14 @@ export default function BookingManagementPage() {
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-lg font-semibold text-muted-foreground">Hotel not found</p>
-              <Button variant="outline" onClick={() => router.push('/my-hotels')} className="mt-4">
+              <p className="text-lg font-semibold text-muted-foreground">
+                Hotel not found
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/my-hotels')}
+                className="mt-4"
+              >
                 Back to Hotels
               </Button>
             </CardContent>
@@ -80,7 +93,11 @@ export default function BookingManagementPage() {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => router.back()} className="mb-2">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="mb-2"
+          >
             ← Back
           </Button>
           <h1 className="text-2xl font-bold mb-2">Booking Management</h1>
@@ -89,7 +106,10 @@ export default function BookingManagementPage() {
 
         {/* Filters */}
         <div className="mb-6 flex items-center gap-4">
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+          <Select
+            value={statusFilter}
+            onValueChange={value => setStatusFilter(value as any)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -113,10 +133,9 @@ export default function BookingManagementPage() {
                 No bookings found
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                {statusFilter === 'all' 
+                {statusFilter === 'all'
                   ? 'No bookings yet'
-                  : `No ${statusFilter} bookings`
-                }
+                  : `No ${statusFilter} bookings`}
               </p>
             </CardContent>
           </Card>
@@ -147,7 +166,9 @@ export default function BookingManagementPage() {
                         <TableCell>
                           <div>
                             <p className="font-medium">{booking.guestName}</p>
-                            <p className="text-xs text-muted-foreground">{booking.guestPhone}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {booking.guestPhone}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>Room {booking.roomId}</TableCell>
@@ -173,7 +194,9 @@ export default function BookingManagementPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleStatusChange(booking.id, 'confirmed')}
+                                  onClick={() =>
+                                    handleStatusChange(booking.id, 'confirmed')
+                                  }
                                 >
                                   <Check className="h-3 w-3 mr-1" />
                                   Confirm
@@ -181,7 +204,9 @@ export default function BookingManagementPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleStatusChange(booking.id, 'cancelled')}
+                                  onClick={() =>
+                                    handleStatusChange(booking.id, 'cancelled')
+                                  }
                                 >
                                   <X className="h-3 w-3 mr-1" />
                                   Cancel
@@ -192,7 +217,9 @@ export default function BookingManagementPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleStatusChange(booking.id, 'checked-in')}
+                                onClick={() =>
+                                  handleStatusChange(booking.id, 'checked-in')
+                                }
                               >
                                 Check In
                               </Button>
@@ -201,7 +228,9 @@ export default function BookingManagementPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleStatusChange(booking.id, 'checked-out')}
+                                onClick={() =>
+                                  handleStatusChange(booking.id, 'checked-out')
+                                }
                               >
                                 Check Out
                               </Button>

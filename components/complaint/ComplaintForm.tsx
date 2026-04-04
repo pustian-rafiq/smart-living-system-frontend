@@ -20,8 +20,14 @@ import { Upload, X, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
 
 const complaintSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(1000, 'Description must be less than 1000 characters'),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters'),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(1000, 'Description must be less than 1000 characters'),
   image: z.instanceof(File).optional(),
 })
 
@@ -72,7 +78,10 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -134,7 +143,9 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
                   <div className="flex flex-col items-center gap-2">
                     <Upload className="h-8 w-8 text-muted-foreground" />
                     <div className="text-center">
-                      <p className="text-sm font-medium">Click to upload image</p>
+                      <p className="text-sm font-medium">
+                        Click to upload image
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         PNG, JPG up to 5MB
                       </p>

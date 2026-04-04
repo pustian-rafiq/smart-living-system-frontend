@@ -1,12 +1,18 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { AttendanceCalendar } from '@/components/attendance/AttendanceCalendar'
 import { AttendanceTable } from '@/components/attendance/AttendanceTable'
 import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummaryCard'
@@ -33,17 +39,26 @@ export default function AttendanceManagementPage() {
   const messId = params.messId as string
 
   const mess = mockMess.find(m => m.id === messId)
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [selectedDate, setSelectedDate] = useState(
+    format(new Date(), 'yyyy-MM-dd')
+  )
   const [selectedStudent, setSelectedStudent] = useState<string>('all')
   const [attendanceRecords, setAttendanceRecords] = useState(
     getAttendanceByMess(messId)
   )
   const [isMarkDialogOpen, setIsMarkDialogOpen] = useState(false)
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
-  const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null)
+  const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(
+    null
+  )
+
+  useEffect(() => {
+    if (role !== 'owner') {
+      router.replace('/dashboard')
+    }
+  }, [role, router])
 
   if (role !== 'owner') {
-    router.replace('/dashboard')
     return null
   }
 
@@ -86,13 +101,18 @@ export default function AttendanceManagementPage() {
   const handleMarkAttendance = (data: any) => {
     const records = data.studentIds.map((studentId: string) => ({
       studentId,
-      studentName: messStudents.find(s => s.id === studentId)?.name || 'Unknown',
+      studentName:
+        messStudents.find(s => s.id === studentId)?.name || 'Unknown',
       messId,
       date: data.date,
       status: data.status,
       type: data.type,
-      checkInTime: data.checkInTime ? new Date(`${data.date}T${data.checkInTime}`).toISOString() : undefined,
-      checkOutTime: data.checkOutTime ? new Date(`${data.date}T${data.checkOutTime}`).toISOString() : undefined,
+      checkInTime: data.checkInTime
+        ? new Date(`${data.date}T${data.checkInTime}`).toISOString()
+        : undefined,
+      checkOutTime: data.checkOutTime
+        ? new Date(`${data.date}T${data.checkOutTime}`).toISOString()
+        : undefined,
       mealCategory: data.mealCategory,
       notes: data.notes,
       markedBy: 'owner1',
@@ -129,7 +149,10 @@ export default function AttendanceManagementPage() {
             <p className="text-muted-foreground">{mess.name}</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsReportDialogOpen(true)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsReportDialogOpen(true)}
+            >
               <FileText className="h-4 w-4 mr-2" />
               Generate Report
             </Button>
@@ -220,7 +243,9 @@ export default function AttendanceManagementPage() {
             <AttendanceCalendar
               records={filteredRecords}
               onDateClick={handleDateClick}
-              studentId={selectedStudent !== 'all' ? selectedStudent : undefined}
+              studentId={
+                selectedStudent !== 'all' ? selectedStudent : undefined
+              }
             />
           </TabsContent>
 
@@ -228,7 +253,7 @@ export default function AttendanceManagementPage() {
           <TabsContent value="records" className="space-y-4">
             <AttendanceTable
               records={filteredRecords}
-              onEdit={(record) => {
+              onEdit={record => {
                 setEditingRecord(record)
                 setSelectedDate(record.date)
                 setIsMarkDialogOpen(true)
@@ -242,13 +267,18 @@ export default function AttendanceManagementPage() {
             {studentSummaries.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {studentSummaries.map(summary => (
-                  <AttendanceSummaryCard key={summary.studentId} summary={summary} />
+                  <AttendanceSummaryCard
+                    key={summary.studentId}
+                    summary={summary}
+                  />
                 ))}
               </div>
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No attendance summaries available</p>
+                  <p className="text-muted-foreground">
+                    No attendance summaries available
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -260,7 +290,7 @@ export default function AttendanceManagementPage() {
           messId={messId}
           date={selectedDate}
           open={isMarkDialogOpen}
-          onOpenChange={(open) => {
+          onOpenChange={open => {
             setIsMarkDialogOpen(open)
             if (!open) {
               setEditingRecord(null)

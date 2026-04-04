@@ -3,7 +3,13 @@
 import { useState, useMemo } from 'react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { PropertyModerationCard } from '@/components/admin/PropertyModerationCard'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 import { mockPropertyModerations } from '@/data/mockAdmin'
@@ -11,7 +17,9 @@ import type { PropertyModeration, PropertyStatus } from '@/types/admin'
 
 export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState(mockPropertyModerations)
-  const [statusFilter, setStatusFilter] = useState<PropertyStatus | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<PropertyStatus | 'all'>(
+    'all'
+  )
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -32,7 +40,11 @@ export default function AdminPropertiesPage() {
       setProperties(
         properties.map(p =>
           p.propertyId === propertyId
-            ? { ...p, status: 'approved' as PropertyStatus, reviewedAt: new Date().toISOString() }
+            ? {
+                ...p,
+                status: 'approved' as PropertyStatus,
+                reviewedAt: new Date().toISOString(),
+              }
             : p
         )
       )
@@ -101,11 +113,14 @@ export default function AdminPropertiesPage() {
             <Input
               placeholder="Search properties..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="pl-9"
             />
           </div>
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+          <Select
+            value={statusFilter}
+            onValueChange={value => setStatusFilter(value as any)}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>

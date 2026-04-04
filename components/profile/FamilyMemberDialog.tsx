@@ -20,7 +20,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Upload, X } from 'lucide-react'
@@ -53,7 +59,9 @@ export function FamilyMemberDialog({
   onSubmit,
 }: FamilyMemberDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(initialData?.photoUrl || null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    initialData?.photoUrl || null
+  )
 
   const form = useForm<FamilyMemberFormData>({
     resolver: zodResolver(familyMemberSchema),
@@ -108,7 +116,10 @@ export function FamilyMemberDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             {/* Photo Upload */}
             <div className="space-y-2">
               <FormLabel>Photo</FormLabel>
@@ -174,7 +185,10 @@ export function FamilyMemberDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Relation</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select relation" />
@@ -206,7 +220,9 @@ export function FamilyMemberDialog({
                         type="number"
                         placeholder="Enter age"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        onChange={e =>
+                          field.onChange(parseInt(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -221,7 +237,10 @@ export function FamilyMemberDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gender</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select gender" />
@@ -276,7 +295,9 @@ export function FamilyMemberDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Emergency Contact</FormLabel>
+                    <FormLabel className="text-base">
+                      Emergency Contact
+                    </FormLabel>
                     <p className="text-xs text-muted-foreground">
                       Mark as emergency contact
                     </p>

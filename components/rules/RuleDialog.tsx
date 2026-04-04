@@ -23,14 +23,28 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import type { MessRule } from '@/types/messRules'
 
 const ruleSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
-  category: z.enum(['general', 'payment', 'attendance', 'meal', 'behavior', 'facility', 'other']),
+  category: z.enum([
+    'general',
+    'payment',
+    'attendance',
+    'meal',
+    'behavior',
+    'facility',
+    'other',
+  ]),
   severity: z.enum(['minor', 'moderate', 'major', 'critical']),
   penalty: z.string().optional(),
   requiresAcceptance: z.boolean(),
@@ -114,7 +128,10 @@ export function RuleDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <div className="space-y-4">
               {/* Title */}
               <FormField
@@ -124,7 +141,10 @@ export function RuleDialog({
                   <FormItem>
                     <FormLabel>Rule Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Monthly Fee Payment" {...field} />
+                      <Input
+                        placeholder="e.g., Monthly Fee Payment"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,7 +178,10 @@ export function RuleDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -184,7 +207,10 @@ export function RuleDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Severity</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -211,10 +237,7 @@ export function RuleDialog({
                   <FormItem>
                     <FormLabel>Penalty (Optional)</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="e.g., Fine: ৳500"
-                        {...field}
-                      />
+                      <Input placeholder="e.g., Fine: ৳500" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -234,7 +257,10 @@ export function RuleDialog({
                       </p>
                     </div>
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -272,7 +298,11 @@ export function RuleDialog({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">{rule ? 'Update' : 'Create'} Rule</Button>

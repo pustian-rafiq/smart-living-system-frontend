@@ -11,7 +11,7 @@ export default function AdminUsersPage() {
 
   const handleStatusChange = (userId: string, status: UserStatus) => {
     if (confirm(`Are you sure you want to ${status} this user?`)) {
-      setUsers(users.map(u => u.id === userId ? { ...u, status } : u))
+      setUsers(users.map(u => (u.id === userId ? { ...u, status } : u)))
       // TODO: API call
       alert(`User status updated to ${status}`)
     }
@@ -19,7 +19,7 @@ export default function AdminUsersPage() {
 
   const handleVerify = (userId: string) => {
     if (confirm('Verify this user?')) {
-      setUsers(users.map(u => u.id === userId ? { ...u, verified: true } : u))
+      setUsers(users.map(u => (u.id === userId ? { ...u, verified: true } : u)))
       // TODO: API call
       alert('User verified')
     }

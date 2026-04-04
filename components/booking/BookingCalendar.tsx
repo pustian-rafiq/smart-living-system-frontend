@@ -4,8 +4,21 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar } from '@/components/ui/calendar'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval } from 'date-fns'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameDay,
+  isWithinInterval,
+} from 'date-fns'
 import type { Booking } from '@/types/booking'
 
 interface BookingCalendarProps {
@@ -32,7 +45,7 @@ export function BookingCalendar({
 
   // Get bookings for a specific date
   const getBookingsForDate = (date: Date): Booking[] => {
-    return filteredBookings.filter((booking) => {
+    return filteredBookings.filter(booking => {
       if (!booking.moveInDate) return false
       const moveIn = new Date(booking.moveInDate)
       const moveOut = booking.moveOutDate ? new Date(booking.moveOutDate) : null
@@ -60,9 +73,9 @@ export function BookingCalendar({
     const end = endOfMonth(selectedMonth)
     const days = eachDayOfInterval({ start, end })
 
-    days.forEach((day) => {
+    days.forEach(day => {
       const dayBookings = getBookingsForDate(day)
-      dayBookings.forEach((booking) => {
+      dayBookings.forEach(booking => {
         if (booking.status === 'approved' || booking.status === 'completed') {
           modifiers.booked.push(day)
         } else if (booking.status === 'pending') {
@@ -90,7 +103,7 @@ export function BookingCalendar({
   // Group bookings by month for list view
   const bookingsByMonth = useMemo(() => {
     const grouped: Record<string, Booking[]> = {}
-    filteredBookings.forEach((booking) => {
+    filteredBookings.forEach(booking => {
       if (booking.moveInDate) {
         const monthKey = format(new Date(booking.moveInDate), 'yyyy-MM')
         if (!grouped[monthKey]) {
@@ -107,7 +120,10 @@ export function BookingCalendar({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Booking Calendar</CardTitle>
-          <Select value={viewMode} onValueChange={(value) => setViewMode(value as 'month' | 'list')}>
+          <Select
+            value={viewMode}
+            onValueChange={value => setViewMode(value as 'month' | 'list')}
+          >
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
@@ -124,11 +140,11 @@ export function BookingCalendar({
             <Calendar
               mode="single"
               selected={selectedMonth}
-              onSelect={(date) => date && setSelectedMonth(date)}
+              onSelect={date => date && setSelectedMonth(date)}
               month={selectedMonth}
               onMonthChange={setSelectedMonth}
               modifiers={dateModifiers}
-              modifierClassNames={dateModifierClassNames}
+              modifiersClassNames={dateModifierClassNames}
               onDayClick={handleDateSelect}
               className="rounded-md border"
             />
@@ -155,7 +171,7 @@ export function BookingCalendar({
                     {format(new Date(monthKey + '-01'), 'MMMM yyyy')}
                   </h3>
                   <div className="space-y-2">
-                    {monthBookings.map((booking) => (
+                    {monthBookings.map(booking => (
                       <div
                         key={booking.id}
                         className="rounded-lg border p-3 hover:bg-muted/50 cursor-pointer"
@@ -167,10 +183,15 @@ export function BookingCalendar({
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">{booking.propertyName}</p>
+                            <p className="font-medium">
+                              {booking.propertyName}
+                            </p>
                             <p className="text-sm text-muted-foreground">
                               {booking.moveInDate &&
-                                format(new Date(booking.moveInDate), 'MMM dd, yyyy')}
+                                format(
+                                  new Date(booking.moveInDate),
+                                  'MMM dd, yyyy'
+                                )}
                               {booking.moveOutDate &&
                                 ` - ${format(new Date(booking.moveOutDate), 'MMM dd, yyyy')}`}
                             </p>
@@ -180,8 +201,8 @@ export function BookingCalendar({
                               booking.status === 'approved'
                                 ? 'default'
                                 : booking.status === 'pending'
-                                ? 'secondary'
-                                : 'destructive'
+                                  ? 'secondary'
+                                  : 'destructive'
                             }
                           >
                             {booking.status}

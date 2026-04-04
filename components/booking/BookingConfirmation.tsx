@@ -97,7 +97,9 @@ export function BookingConfirmation({
                 </div>
                 {booking.deposit && (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Security Deposit:</span>
+                    <span className="text-muted-foreground">
+                      Security Deposit:
+                    </span>
                     <span className="font-semibold">
                       ৳{booking.deposit.toLocaleString()}
                     </span>
@@ -128,8 +130,8 @@ export function BookingConfirmation({
           <div className="rounded-lg border-l-4 border-yellow-500 bg-yellow-50 p-4">
             <p className="text-sm">
               <strong>Status:</strong> Your booking request is{' '}
-              <span className="font-semibold text-yellow-700">pending</span>. The
-              owner will review your request and respond within 24-48 hours.
+              <span className="font-semibold text-yellow-700">pending</span>.
+              The owner will review your request and respond within 24-48 hours.
             </p>
           </div>
 

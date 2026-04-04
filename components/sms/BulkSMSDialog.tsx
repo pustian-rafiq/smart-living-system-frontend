@@ -24,7 +24,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -58,7 +64,9 @@ export function BulkSMSDialog({
   onSubmit,
 }: BulkSMSDialogProps) {
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
-  const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({})
+  const [templateVariables, setTemplateVariables] = useState<
+    Record<string, string>
+  >({})
 
   const templates = getSMSTemplatesByMess(messId)
   const groups = getSMSGroupsByMess(messId)
@@ -116,7 +124,10 @@ export function BulkSMSDialog({
     if (selectedTemplate && selectedTemplate.variables) {
       selectedTemplate.variables.forEach(variable => {
         const value = templateVariables[variable] || `{${variable}}`
-        finalContent = finalContent.replace(new RegExp(`\\{${variable}\\}`, 'g'), value)
+        finalContent = finalContent.replace(
+          new RegExp(`\\{${variable}\\}`, 'g'),
+          value
+        )
       })
     }
 
@@ -129,9 +140,15 @@ export function BulkSMSDialog({
       if (group) {
         recipients = messStudents.filter(s => group.memberIds.includes(s.id))
       }
-    } else if (data.recipientType === 'custom' && selectedRecipients.length > 0) {
+    } else if (
+      data.recipientType === 'custom' &&
+      selectedRecipients.length > 0
+    ) {
       recipients = messStudents.filter(s => selectedRecipients.includes(s.id))
-    } else if (data.recipientType === 'individual' && selectedRecipients.length > 0) {
+    } else if (
+      data.recipientType === 'individual' &&
+      selectedRecipients.length > 0
+    ) {
       recipients = messStudents.filter(s => selectedRecipients.includes(s.id))
     }
 
@@ -170,7 +187,13 @@ export function BulkSMSDialog({
       return selectedRecipients.length
     }
     return 0
-  }, [recipientType, form.watch('groupId'), selectedRecipients, groups, messStudents.length])
+  }, [
+    recipientType,
+    form.watch('groupId'),
+    selectedRecipients,
+    groups,
+    messStudents.length,
+  ])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -186,7 +209,10 @@ export function BulkSMSDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
             <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
               <div className="space-y-4">
                 {/* Recipient Type */}
@@ -204,19 +230,33 @@ export function BulkSMSDialog({
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="all" id="all" />
-                            <label htmlFor="all" className="cursor-pointer">All Students</label>
+                            <label htmlFor="all" className="cursor-pointer">
+                              All Students
+                            </label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="group" id="group" />
-                            <label htmlFor="group" className="cursor-pointer">Group</label>
+                            <label htmlFor="group" className="cursor-pointer">
+                              Group
+                            </label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="individual" id="individual" />
-                            <label htmlFor="individual" className="cursor-pointer">Individual</label>
+                            <RadioGroupItem
+                              value="individual"
+                              id="individual"
+                            />
+                            <label
+                              htmlFor="individual"
+                              className="cursor-pointer"
+                            >
+                              Individual
+                            </label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="custom" id="custom" />
-                            <label htmlFor="custom" className="cursor-pointer">Custom</label>
+                            <label htmlFor="custom" className="cursor-pointer">
+                              Custom
+                            </label>
                           </div>
                         </RadioGroup>
                       </FormControl>
@@ -233,7 +273,10 @@ export function BulkSMSDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Select Group</FormLabel>
-                        <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value || ''}
+                          onValueChange={field.onChange}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a group" />
@@ -254,7 +297,8 @@ export function BulkSMSDialog({
                 )}
 
                 {/* Individual/Custom Recipient Selection */}
-                {(recipientType === 'individual' || recipientType === 'custom') && (
+                {(recipientType === 'individual' ||
+                  recipientType === 'custom') && (
                   <FormItem>
                     <FormLabel>Select Recipients</FormLabel>
                     <div className="rounded-lg border p-4 max-h-48 overflow-y-auto space-y-2">
@@ -267,7 +311,9 @@ export function BulkSMSDialog({
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => setSelectedRecipients(messStudents.map(s => s.id))}
+                            onClick={() =>
+                              setSelectedRecipients(messStudents.map(s => s.id))
+                            }
                           >
                             Select All
                           </Button>
@@ -311,7 +357,10 @@ export function BulkSMSDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Use Template (Optional)</FormLabel>
-                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value || ''}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a template or write custom message" />
@@ -332,26 +381,30 @@ export function BulkSMSDialog({
                 />
 
                 {/* Template Variables */}
-                {selectedTemplate && selectedTemplate.variables && selectedTemplate.variables.length > 0 && (
-                  <div className="space-y-2 rounded-lg border p-4 bg-muted/30">
-                    <p className="text-sm font-medium">Template Variables</p>
-                    {selectedTemplate.variables.map(variable => (
-                      <FormItem key={variable}>
-                        <FormLabel className="capitalize">{variable.replace(/_/g, ' ')}</FormLabel>
-                        <Input
-                          value={templateVariables[variable] || ''}
-                          onChange={e =>
-                            setTemplateVariables(prev => ({
-                              ...prev,
-                              [variable]: e.target.value,
-                            }))
-                          }
-                          placeholder={`Enter ${variable}`}
-                        />
-                      </FormItem>
-                    ))}
-                  </div>
-                )}
+                {selectedTemplate &&
+                  selectedTemplate.variables &&
+                  selectedTemplate.variables.length > 0 && (
+                    <div className="space-y-2 rounded-lg border p-4 bg-muted/30">
+                      <p className="text-sm font-medium">Template Variables</p>
+                      {selectedTemplate.variables.map(variable => (
+                        <FormItem key={variable}>
+                          <FormLabel className="capitalize">
+                            {variable.replace(/_/g, ' ')}
+                          </FormLabel>
+                          <Input
+                            value={templateVariables[variable] || ''}
+                            onChange={e =>
+                              setTemplateVariables(prev => ({
+                                ...prev,
+                                [variable]: e.target.value,
+                              }))
+                            }
+                            placeholder={`Enter ${variable}`}
+                          />
+                        </FormItem>
+                      ))}
+                    </div>
+                  )}
 
                 {/* SMS Content */}
                 <FormField
@@ -387,7 +440,10 @@ export function BulkSMSDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>SMS Gateway</FormLabel>
-                      <Select value={field.value || 'bKash'} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value || 'bKash'}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -440,9 +496,13 @@ export function BulkSMSDialog({
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">Estimated Cost</span>
+                      <span className="text-sm font-medium">
+                        Estimated Cost
+                      </span>
                     </div>
-                    <span className="font-bold">৳{(recipientCount * 0.5).toFixed(2)}</span>
+                    <span className="font-bold">
+                      ৳{(recipientCount * 0.5).toFixed(2)}
+                    </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
                     * Cost: ৳0.50 per SMS
@@ -452,12 +512,18 @@ export function BulkSMSDialog({
             </ScrollArea>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={recipientCount === 0 || form.watch('content').length === 0}
+                disabled={
+                  recipientCount === 0 || form.watch('content').length === 0
+                }
               >
                 <Send className="h-4 w-4 mr-2" />
                 Send SMS ({recipientCount} recipients)
