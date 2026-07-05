@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   Card,
   CardContent,
@@ -15,6 +16,7 @@ import { isLoggedIn } from '@/utils/auth'
 
 export function CTASection() {
   const router = useRouter()
+  const t = useTranslations('home')
   const [loggedIn, setLoggedIn] = useState(false)
 
   useEffect(() => {
@@ -27,11 +29,10 @@ export function CTASection() {
         <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-primary/5">
           <CardHeader className="text-center">
             <CardTitle className="mb-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
-              Ready to Get Started?
+              {t('cta.title')}
             </CardTitle>
             <CardDescription className="mx-auto max-w-2xl text-lg">
-              Join thousands of users who are already using Smart Living System
-              to find and manage properties in Bangladesh.
+              {t('cta.subtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -41,7 +42,7 @@ export function CTASection() {
               onClick={() => router.push(loggedIn ? '/search' : '/login')}
             >
               <Search className="mr-2 h-5 w-5" />
-              {loggedIn ? 'Browse Properties' : 'Find Accommodation'}
+              {loggedIn ? t('cta.browseProperties') : t('cta.findAccommodation')}
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
             <Button
@@ -51,27 +52,26 @@ export function CTASection() {
               onClick={() => router.push(loggedIn ? '/dashboard' : '/login')}
             >
               <Building2 className="mr-2 h-5 w-5" />
-              {loggedIn ? 'Manage Properties' : 'List Your Property'}
+              {loggedIn ? t('cta.manageProperties') : t('cta.listProperty')}
             </Button>
           </CardContent>
 
-          {/* Benefits List */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 px-6 pb-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Free to browse</span>
+              <span>{t('cta.benefitFree')}</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>No hidden fees</span>
+              <span>{t('cta.benefitNoFees')}</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>Verified listings</span>
+              <span>{t('cta.benefitVerified')}</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>24/7 support</span>
+              <span>{t('cta.benefitSupport')}</span>
             </div>
           </div>
         </Card>

@@ -1,7 +1,8 @@
 'use client'
 
-import { Suspense, useState, useMemo, useEffect } from 'react'
+import { Suspense, useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -21,19 +22,34 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ArrowLeft, Filter, Layers } from 'lucide-react'
-import { mockBuildings, mockFlats } from '@/data/mockBuildings'
+import { fetchBuildingById, fetchFlatsByBuilding } from '@/lib/api/buildings'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { Flat, FlatStatus, Renter } from '@/types/building'
 
 function FlatsPageContent() {
+  const t = useTranslations('portfolio.flats')
+  const tb = useTranslations('portfolio.buildings')
+  const tc = useTranslations('common')
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
   const buildingId = params.buildingId as string
   const floorFromQuery = searchParams.get('floor')
 
-  const [flats, setFlats] = useState(() =>
-    mockFlats.filter(f => f.buildingId === buildingId)
+  const loadBuilding = useCallback(
+    () => fetchBuildingById(buildingId),
+    [buildingId]
   )
+  const { data: building } = useMockQuery(loadBuilding)
+
+  const loadFlats = useCallback(
+    () => fetchFlatsByBuilding(buildingId),
+    [buildingId]
+  )
+  const { data: fetchedFlats } = useMockQuery(loadFlats)
+
+  const [localFlats, setLocalFlats] = useState<Flat[] | null>(null)
+  const flats = localFlats ?? fetchedFlats ?? []
   const [selectedFlat, setSelectedFlat] = useState<Flat | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [assignFlat, setAssignFlat] = useState<Flat | null>(null)
@@ -45,8 +61,6 @@ function FlatsPageContent() {
   useEffect(() => {
     if (floorFromQuery) setFloorFilter(floorFromQuery)
   }, [floorFromQuery])
-
-  const building = mockBuildings.find(b => b.id === buildingId)
 
   const floors = useMemo(
     () => Array.from(new Set(flats.map(f => f.floor))).sort((a, b) => a - b),
@@ -83,8 +97,8 @@ function FlatsPageContent() {
   }
 
   const handleAssignSubmit = (flat: Flat, renter: Renter) => {
-    setFlats(prev =>
-      prev.map(f =>
+    setLocalFlats(prev =>
+      (prev ?? fetchedFlats ?? []).map(f =>
         f.id === flat.id ? { ...f, renter, status: 'occupied' as const } : f
       )
     )
@@ -94,7 +108,7 @@ function FlatsPageContent() {
         : prev
     )
     setSuccessMessage(
-      `${renter.name} assigned to Flat ${flat.flatNumber}. NID on file.`
+      t('assignSuccess', { renter: renter.name, flat: flat.flatNumber })
     )
   }
 
@@ -108,14 +122,14 @@ function FlatsPageContent() {
   if (!building) {
     return (
       <EmptyState
-        title="Building not found"
-        description="This building may have been removed."
+        title={tb('notFoundTitle')}
+        description={tb('notFoundDesc')}
       >
         <Button
           variant="outline"
           onClick={() => router.push('/my-properties')}
         >
-          Back to buildings
+          {tb('backToBuildings')}
         </Button>
       </EmptyState>
     )
@@ -129,7 +143,7 @@ function FlatsPageContent() {
         className="mb-4 -ml-2"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to buildings
+        {tb('backToBuildings')}
       </Button>
 
       <PageHeader
@@ -143,7 +157,7 @@ function FlatsPageContent() {
             }
           >
             <Layers className="mr-2 h-4 w-4" />
-            Manage floors
+            {t('manageFloors')}
           </Button>
         }
       />
@@ -157,37 +171,39 @@ function FlatsPageContent() {
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filters</span>
+          <span className="text-sm font-medium">{t('filters')}</span>
         </div>
         <Select
           value={statusFilter}
           onValueChange={value => setStatusFilter(value as FlatStatus | 'all')}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t('statusPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All ({statusCounts.all})</SelectItem>
+            <SelectItem value="all">
+              {tc('status.all')} ({statusCounts.all})
+            </SelectItem>
             <SelectItem value="available">
-              Available ({statusCounts.available})
+              {t('available')} ({statusCounts.available})
             </SelectItem>
             <SelectItem value="occupied">
-              Occupied ({statusCounts.occupied})
+              {t('occupied')} ({statusCounts.occupied})
             </SelectItem>
             <SelectItem value="maintenance">
-              Maintenance ({statusCounts.maintenance})
+              {t('maintenance')} ({statusCounts.maintenance})
             </SelectItem>
           </SelectContent>
         </Select>
         <Select value={floorFilter} onValueChange={setFloorFilter}>
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Floor" />
+            <SelectValue placeholder={t('floorPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All floors</SelectItem>
+            <SelectItem value="all">{t('allFloors')}</SelectItem>
             {floors.map(floor => (
               <SelectItem key={floor} value={String(floor)}>
-                Floor {floor}
+                {t('floorNumber', { number: floor })}
               </SelectItem>
             ))}
           </SelectContent>
@@ -196,11 +212,11 @@ function FlatsPageContent() {
 
       {filteredFlats.length === 0 ? (
         <EmptyState
-          title="No flats found"
+          title={t('emptyTitle')}
           description={
             statusFilter !== 'all' || floorFilter !== 'all'
-              ? 'Try changing filters.'
-              : 'No flats in this building yet.'
+              ? t('emptyFiltered')
+              : t('emptyBuilding')
           }
         />
       ) : (
@@ -234,10 +250,12 @@ function FlatsPageContent() {
 }
 
 export default function FlatsPage() {
+  const t = useTranslations('portfolio.flats')
+
   return (
     <Layout>
       <PageContainer>
-        <Suspense fallback={<LoadingState label="Loading flats…" />}>
+        <Suspense fallback={<LoadingState label={t('loading')} />}>
           <FlatsPageContent />
         </Suspense>
       </PageContainer>

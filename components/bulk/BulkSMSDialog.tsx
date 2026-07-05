@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -35,10 +35,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { mockBuildings } from '@/data/mockBuildings'
-import { getFloorsByBuilding } from '@/data/mockFloors'
-import { mockFlats } from '@/data/mockBuildings'
-import { mockMess } from '@/data/mockMess'
+import { fetchOwnerPortfolioSnapshot, fetchFloorsByBuilding } from '@/lib/api/buildings'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { BulkSMSData } from '@/types/bulk'
 import { MessageSquare, Clock } from 'lucide-react'
 
@@ -71,9 +70,29 @@ export function BulkSMSDialog({
   const [customRecipients, setCustomRecipients] = useState<string[]>([])
   const [customPhone, setCustomPhone] = useState('')
 
-  const floors = selectedBuilding ? getFloorsByBuilding(selectedBuilding) : []
+  const loadPortfolio = useCallback(
+    () =>
+      open
+        ? fetchOwnerPortfolioSnapshot()
+        : Promise.resolve(ok({ buildings: [], flats: [], messList: [] })),
+    [open]
+  )
+  const { data: portfolio } = useMockQuery(loadPortfolio)
+
+  const loadFloors = useCallback(
+    () =>
+      open && selectedBuilding
+        ? fetchFloorsByBuilding(selectedBuilding)
+        : Promise.resolve(ok([])),
+    [open, selectedBuilding]
+  )
+  const { data: floorsData } = useMockQuery(loadFloors)
+
+  const floors = floorsData ?? []
+  const buildings = portfolio?.buildings ?? []
+  const messList = portfolio?.messList ?? []
   const availableFlats = selectedBuilding
-    ? mockFlats.filter(f => f.buildingId === selectedBuilding)
+    ? (portfolio?.flats ?? []).filter(f => f.buildingId === selectedBuilding)
     : []
 
   const form = useForm<BulkSMSData>({
@@ -130,7 +149,7 @@ export function BulkSMSDialog({
   const selectedCount = useMemo(() => {
     if (recipientType === 'custom') return customRecipients.length
     if (selectedMess)
-      return mockMess.find(m => m.id === selectedMess)?.totalSeats || 0
+      return messList.find(m => m.id === selectedMess)?.totalSeats || 0
     if (selectedFlats.length > 0) return selectedFlats.length
     if (selectedFloors.length > 0) {
       return floors
@@ -148,6 +167,7 @@ export function BulkSMSDialog({
     selectedBuilding,
     floors,
     availableFlats,
+    messList,
   ])
 
   return (
@@ -285,7 +305,7 @@ export function BulkSMSDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {mockBuildings.map(building => (
+                              {buildings.map(building => (
                                 <SelectItem
                                   key={building.id}
                                   value={building.id}
@@ -323,7 +343,7 @@ export function BulkSMSDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {mockMess.map(mess => (
+                              {messList.map(mess => (
                                 <SelectItem key={mess.id} value={mess.id}>
                                   {mess.name}
                                 </SelectItem>

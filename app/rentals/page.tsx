@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -15,6 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { fetchRentalSummariesForRenter } from '@/lib/api/rentals'
 import { getDemoRenterId } from '@/lib/api/demoUser'
+import { useAppFormat } from '@/hooks/useAppFormat'
 import type { RentalSummary } from '@/lib/api/rentals'
 import {
   Building2,
@@ -26,25 +28,10 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 
-function phaseBadge(phase: RentalSummary['phase']) {
-  const map: Record<
-    RentalSummary['phase'],
-    {
-      label: string
-      variant: 'default' | 'secondary' | 'destructive' | 'outline'
-    }
-  > = {
-    active: { label: 'Active', variant: 'default' },
-    upcoming: { label: 'Upcoming', variant: 'secondary' },
-    pending: { label: 'Pending', variant: 'outline' },
-    past: { label: 'Past', variant: 'secondary' },
-    declined: { label: 'Closed', variant: 'destructive' },
-  }
-  const x = map[phase]
-  return <Badge variant={x.variant}>{x.label}</Badge>
-}
-
 export default function RentalsPage() {
+  const t = useTranslations('portfolio.rentals')
+  const tc = useTranslations('common')
+  const { formatCurrency, formatDate } = useAppFormat()
   const renterId = getDemoRenterId()
   const load = useCallback(
     () => fetchRentalSummariesForRenter(renterId),
@@ -52,45 +39,63 @@ export default function RentalsPage() {
   )
   const { data: summaries, loading, error, refetch } = useMockQuery(load)
 
+  const phaseBadge = (phase: RentalSummary['phase']) => {
+    const variants: Record<
+      RentalSummary['phase'],
+      'default' | 'secondary' | 'destructive' | 'outline'
+    > = {
+      active: 'default',
+      upcoming: 'secondary',
+      pending: 'outline',
+      past: 'secondary',
+      declined: 'destructive',
+    }
+    return (
+      <Badge variant={variants[phase]}>{t(`phases.${phase}`)}</Badge>
+    )
+  }
+
   return (
     <Layout>
       <PageContainer>
         <PageHeader
-          title="My rentals"
-          description="Booking requests and active stays tied to your demo account. Data loads through the mock API layer (replace with real endpoints later)."
+          title={t('title')}
+          description={t('descriptionDemo')}
           actions={
             <Button asChild>
               <Link href="/search">
                 <Search className="mr-2 h-4 w-4" />
-                Find a place
+                {t('findPlace')}
               </Link>
             </Button>
           }
         />
 
         <p className="mb-6 text-xs text-muted-foreground">
-          Demo renter ID:{' '}
+          {t('demoRenterId')}{' '}
           <code className="rounded bg-muted px-1.5 py-0.5">{renterId}</code>
         </p>
 
-        {loading && <LoadingState label="Loading your rentals…" />}
+        {loading && (
+          <LoadingState label={t('loading')} variant="skeleton" skeletonVariant="row" />
+        )}
         {error && (
           <EmptyState
-            title="Something went wrong"
+            title={t('errorTitle')}
             description={error}
             icon={Building2}
           >
-            <Button onClick={() => refetch()}>Retry</Button>
+            <Button onClick={() => refetch()}>{tc('retry')}</Button>
           </EmptyState>
         )}
         {!loading && !error && summaries && summaries.length === 0 && (
           <EmptyState
-            title="No rentals yet"
-            description="When you request a mess, flat, or hostel seat, it will show up here."
+            title={t('emptyTitle')}
+            description={t('emptyDesc')}
             icon={Building2}
           >
             <Button asChild>
-              <Link href="/search">Browse listings</Link>
+              <Link href="/search">{tc('browseListings')}</Link>
             </Button>
           </EmptyState>
         )}
@@ -139,37 +144,34 @@ export default function RentalsPage() {
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>
-                          Move-in:{' '}
-                          {new Date(booking.moveInDate).toLocaleDateString(
-                            'en-BD',
-                            {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                            }
-                          )}
+                          {t('moveIn', {
+                            date: formatDate(booking.moveInDate, {
+                              style: 'medium',
+                            }),
+                          })}
                         </span>
                       </div>
                     )}
                     <div className="font-semibold text-primary">
-                      ৳{booking.rent.toLocaleString()}/mo
+                      {formatCurrency(booking.rent)}
+                      {t('perMonth')}
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 border-t pt-3">
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/messages?propertyId=${booking.propertyId}`}>
                         <MessageCircle className="mr-1.5 h-4 w-4" />
-                        Chat
+                        {t('chat')}
                       </Link>
                     </Button>
                     <Button variant="outline" size="sm" asChild>
                       <a href={`tel:${booking.ownerPhone}`}>
                         <Phone className="mr-1.5 h-4 w-4" />
-                        Owner
+                        {t('owner')}
                       </a>
                     </Button>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href="/my-bookings">Booking details</Link>
+                      <Link href="/my-bookings">{t('bookingDetails')}</Link>
                     </Button>
                   </div>
                 </CardContent>

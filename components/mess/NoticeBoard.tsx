@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { SafeText } from '@/components/security/SafeText'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Bell, AlertCircle, Info, AlertTriangle } from 'lucide-react'
@@ -84,9 +85,9 @@ export function NoticeBoard({ notices }: NoticeBoardProps) {
                         {priority.label}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <SafeText as="p" className="text-sm text-muted-foreground leading-relaxed">
                       {notice.content}
-                    </p>
+                    </SafeText>
                   </div>
                 )
               })}

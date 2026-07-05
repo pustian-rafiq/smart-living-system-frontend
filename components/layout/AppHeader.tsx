@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useTheme } from '@/components/theme/ThemeProvider'
+import { LanguageSwitcher } from '@/components/i18n'
 import { Button } from '@/components/ui/button'
 import { NotificationBadge } from '@/components/chat/NotificationBadge'
 import { SearchNotification } from '@/components/search/SearchNotification'
@@ -23,8 +25,10 @@ import {
   isLoggedIn,
 } from '@/utils/auth'
 import type { UserRole } from '@/types'
+import { getDemoUserId } from '@/lib/api/demoUser'
 
 export function AppHeader() {
+  const t = useTranslations('layout')
   const { theme, toggle: toggleTheme } = useTheme()
   const [userName, setUserName] = useState('Guest')
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
@@ -52,7 +56,7 @@ export function AppHeader() {
     return () => window.removeEventListener('profile-updated', syncUser)
   }, [])
 
-  const userId = role === 'owner' ? 'owner1' : 'user1'
+  const userId = getDemoUserId(role)
 
   const themeButton = (
     <Button
@@ -60,7 +64,7 @@ export function AppHeader() {
       size="icon"
       onClick={toggleTheme}
       className="h-9 w-9 shrink-0 md:h-10 md:w-10"
-      aria-label="Toggle theme"
+      aria-label={t('toggleTheme')}
     >
       {theme === 'dark' ? (
         <Sun className="h-4 w-4 md:h-5 md:w-5" />
@@ -76,7 +80,7 @@ export function AppHeader() {
       size="icon"
       asChild
       className="relative h-9 w-9 shrink-0 md:h-10 md:w-10"
-      title="Messages"
+      title={t('messages')}
     >
       <Link href="/messages">
         <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
@@ -94,7 +98,7 @@ export function AppHeader() {
               <span className="text-lg font-bold">SL</span>
             </div>
             <span className="hidden truncate text-lg font-bold sm:inline-block">
-              Smart Living
+              {t('brand')}
             </span>
           </Link>
 
@@ -111,7 +115,7 @@ export function AppHeader() {
                       variant="ghost"
                       size="icon"
                       asChild
-                      title="Favorites"
+                      title={t('favorites')}
                     >
                       <Link href="/favorites">
                         <Heart className="h-5 w-5" />
@@ -121,7 +125,7 @@ export function AppHeader() {
                       variant="ghost"
                       size="icon"
                       asChild
-                      title="Search History"
+                      title={t('searchHistory')}
                     >
                       <Link href="/search-history">
                         <Clock className="h-5 w-5" />
@@ -131,7 +135,7 @@ export function AppHeader() {
                       variant="ghost"
                       size="icon"
                       asChild
-                      title="Saved Searches"
+                      title={t('savedSearches')}
                     >
                       <Link href="/saved-searches">
                         <Bookmark className="h-5 w-5" />
@@ -140,7 +144,7 @@ export function AppHeader() {
                   </>
                 )}
                 {role === 'owner' && (
-                  <Button variant="ghost" size="icon" asChild title="Notices">
+                  <Button variant="ghost" size="icon" asChild title={t('notices')}>
                     <Link href="/notices">
                       <Bell className="h-5 w-5" />
                     </Link>
@@ -148,6 +152,7 @@ export function AppHeader() {
                 )}
                 {messagesButton}
                 {themeButton}
+                <LanguageSwitcher variant="ghost" size="sm" />
                 <UserAccountMenu
                   userName={userName}
                   isVerified={isVerified}
@@ -160,8 +165,9 @@ export function AppHeader() {
             ) : (
               <>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/login">Login</Link>
+                  <Link href="/login">{t('login')}</Link>
                 </Button>
+                <LanguageSwitcher variant="ghost" size="sm" />
                 {themeButton}
               </>
             )}
@@ -189,6 +195,7 @@ export function AppHeader() {
                 )}
                 {messagesButton}
                 {themeButton}
+                <LanguageSwitcher variant="ghost" size="sm" />
                 <UserAccountMenu
                   userName={userName}
                   isVerified={isVerified}
@@ -199,8 +206,9 @@ export function AppHeader() {
             ) : (
               <>
                 <Button variant="ghost" size="sm" asChild className="shrink-0">
-                  <Link href="/login">Login</Link>
+                  <Link href="/login">{t('login')}</Link>
                 </Button>
+                <LanguageSwitcher variant="ghost" size="sm" />
                 {themeButton}
               </>
             )}

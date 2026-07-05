@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatCard } from './StatCard'
@@ -13,54 +14,60 @@ import {
   FileCheck,
   MessageSquare,
   TrendingUp,
+  ShieldAlert,
 } from 'lucide-react'
-import {
-  mockAnalytics,
-  mockVerificationRequests,
-  mockDisputes,
-} from '@/data/mockAdmin'
-import { mockComplaints } from '@/data/mockComplaints'
-import {
-  getVerificationRequestsByStatus,
-  getDisputesByStatus,
-} from '@/data/mockAdmin'
+import { fetchAdminDashboardData } from '@/lib/api/admin'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 interface AdminDashboardProps {
   adminId: string
 }
 
 export function AdminDashboard({ adminId }: AdminDashboardProps) {
-  const pendingVerifications = getVerificationRequestsByStatus('pending')
-  const openDisputes = getDisputesByStatus('open')
-  const inProgressDisputes = getDisputesByStatus('in_progress')
+  const loadDashboard = useCallback(() => fetchAdminDashboardData(), [])
+  const { data } = useMockQuery(loadDashboard)
+
+  if (!data) {
+    return null
+  }
+
+  const {
+    analytics,
+    pendingVerifications,
+    openDisputes,
+    inProgressDisputes,
+    openComplaints,
+    pendingFraudReports,
+    investigatingFraudReports,
+  } = data
 
   const stats = [
     {
       title: 'Total Users',
-      value: mockAnalytics.totalUsers.toLocaleString(),
+      value: analytics.totalUsers.toLocaleString(),
       icon: Users,
-      growth: `+${mockAnalytics.growthMetrics.usersGrowth}%`,
+      growth: `+${analytics.growthMetrics.usersGrowth}%`,
       link: '/admin/users',
     },
     {
       title: 'Total Properties',
-      value: mockAnalytics.totalProperties.toLocaleString(),
+      value: analytics.totalProperties.toLocaleString(),
       icon: Building2,
-      growth: `+${mockAnalytics.growthMetrics.propertiesGrowth}%`,
+      growth: `+${analytics.growthMetrics.propertiesGrowth}%`,
       link: '/admin/properties',
     },
     {
-      title: 'Total Bookings',
-      value: mockAnalytics.totalBookings.toLocaleString(),
+      title: 'Active Bookings',
+      value: analytics.activeBookings.toLocaleString(),
       icon: Calendar,
-      growth: `+${mockAnalytics.growthMetrics.bookingsGrowth}%`,
+      growth: `+${analytics.growthMetrics.bookingsGrowth}%`,
       link: '/admin/bookings',
     },
     {
-      title: 'Total Revenue',
-      value: `৳${(mockAnalytics.totalRevenue / 1000000).toFixed(1)}M`,
+      title: 'Monthly Revenue',
+      value: `৳${analytics.monthlyRevenue.toLocaleString()}`,
       icon: DollarSign,
-      growth: `+${mockAnalytics.growthMetrics.revenueGrowth}%`,
+      growth: `+${analytics.growthMetrics.revenueGrowth}%`,
       link: '/admin/analytics',
     },
   ]
@@ -70,7 +77,7 @@ export function AdminDashboard({ adminId }: AdminDashboardProps) {
       title: 'Pending Verifications',
       count: pendingVerifications.length,
       icon: FileCheck,
-      link: '/admin/verifications?status=pending',
+      link: '/admin/verification',
     },
     {
       title: 'Open Disputes',
@@ -80,9 +87,15 @@ export function AdminDashboard({ adminId }: AdminDashboardProps) {
     },
     {
       title: 'Open Complaints',
-      count: mockComplaints.filter(c => c.status !== 'resolved').length,
+      count: openComplaints.length,
       icon: AlertCircle,
       link: '/admin/complaints',
+    },
+    {
+      title: 'Fraud Reports',
+      count: pendingFraudReports.length + investigatingFraudReports.length,
+      icon: ShieldAlert,
+      link: '/admin/fraud-reports',
     },
   ]
 
@@ -140,7 +153,7 @@ export function AdminDashboard({ adminId }: AdminDashboardProps) {
             <Link href="/admin">View All</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {quickActions.map((action, index) => {
             const Icon = action.icon
             return (

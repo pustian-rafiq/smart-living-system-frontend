@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,16 +14,29 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { Search, Check, X, User, AlertTriangle } from 'lucide-react'
-import { mockDisputes } from '@/data/mockAdmin'
+import { Search, Check, User } from 'lucide-react'
+import { fetchDisputes } from '@/lib/api/admin'
 import type { Dispute, DisputeStatus } from '@/types/admin'
 import { format } from 'date-fns'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 export default function AdminDisputesPage() {
-  const [disputes, setDisputes] = useState(mockDisputes)
+  const { confirm } = useConfirm()
+  const t = useTranslations('admin.disputes')
+  const tp = useTranslations('admin.properties')
+  const ta = useTranslations('admin.actions')
+  const tc = useTranslations('common')
+  const [disputes, setDisputes] = useState<Dispute[]>([])
   const [statusFilter, setStatusFilter] = useState<DisputeStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    fetchDisputes().then(result => {
+      if (result.ok) setDisputes(result.data)
+    })
+  }, [])
 
   const filteredDisputes = useMemo(() => {
     return disputes.filter(d => {
@@ -36,31 +50,34 @@ export default function AdminDisputesPage() {
     })
   }, [disputes, statusFilter, typeFilter, searchTerm])
 
-  const handleStatusChange = (disputeId: string, newStatus: DisputeStatus) => {
-    if (confirm(`Change dispute status to ${newStatus}?`)) {
-      setDisputes(
-        disputes.map(d =>
-          d.id === disputeId
-            ? {
-                ...d,
-                status: newStatus,
-                updatedAt: new Date().toISOString(),
-                resolvedAt:
-                  newStatus === 'resolved'
-                    ? new Date().toISOString()
-                    : undefined,
-              }
-            : d
-        )
+  const handleStatusChange = async (
+    disputeId: string,
+    newStatus: DisputeStatus
+  ) => {
+    const ok = await confirm({
+      title: t('statusChangeTitle', { status: newStatus }),
+    })
+    if (!ok) return
+    setDisputes(
+      disputes.map(d =>
+        d.id === disputeId
+          ? {
+              ...d,
+              status: newStatus,
+              updatedAt: new Date().toISOString(),
+              resolvedAt:
+                newStatus === 'resolved'
+                  ? new Date().toISOString()
+                  : undefined,
+            }
+          : d
       )
-      // TODO: API call
-      alert('Dispute status updated')
-    }
+    )
+    toast.success(t('statusUpdated'))
   }
 
   const handleAssign = (disputeId: string) => {
-    // TODO: Show assign dialog
-    alert('Assign dispute feature coming soon')
+    toast.info(t('assignComingSoon'))
   }
 
   const statusColors: Record<DisputeStatus, string> = {
@@ -82,18 +99,15 @@ export default function AdminDisputesPage() {
     <AdminLayout>
       <div className="max-w-7xl">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Dispute Management</h2>
-          <p className="text-muted-foreground">
-            Manage and resolve disputes between users
-          </p>
+          <h2 className="text-2xl font-bold mb-2">{t('managementTitle')}</h2>
+          <p className="text-muted-foreground">{t('managementDesc')}</p>
         </div>
 
-        {/* Filters */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search disputes..."
+              placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -101,35 +115,34 @@ export default function AdminDisputesPage() {
           </div>
           <Select
             value={statusFilter}
-            onValueChange={value => setStatusFilter(value as any)}
+            onValueChange={value => setStatusFilter(value as DisputeStatus | 'all')}
           >
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={tp('filterByStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="assigned">Assigned</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
+              <SelectItem value="all">{tc('allStatus')}</SelectItem>
+              <SelectItem value="open">{tc('status.open')}</SelectItem>
+              <SelectItem value="assigned">{t('statuses.assigned')}</SelectItem>
+              <SelectItem value="in_progress">{tc('status.inProgress')}</SelectItem>
+              <SelectItem value="resolved">{tc('status.resolved')}</SelectItem>
+              <SelectItem value="closed">{t('statuses.closed')}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by type" />
+              <SelectValue placeholder={tp('filterByType')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="payment">Payment</SelectItem>
-              <SelectItem value="property">Property</SelectItem>
-              <SelectItem value="booking">Booking</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="all">{tp('allTypes')}</SelectItem>
+              <SelectItem value="payment">{t('types.payment')}</SelectItem>
+              <SelectItem value="property">{t('types.property')}</SelectItem>
+              <SelectItem value="booking">{t('types.booking')}</SelectItem>
+              <SelectItem value="other">{t('types.other')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Disputes List */}
         <div className="space-y-4">
           {filteredDisputes.map(dispute => (
             <Card key={dispute.id}>
@@ -154,7 +167,7 @@ export default function AdminDisputesPage() {
                       {dispute.assignedToName && (
                         <>
                           <span>•</span>
-                          <span>Assigned to: {dispute.assignedToName}</span>
+                          <span>{t('assignedTo', { name: dispute.assignedToName })}</span>
                         </>
                       )}
                     </div>
@@ -173,12 +186,12 @@ export default function AdminDisputesPage() {
                   </Badge>
                   {dispute.relatedBookingId && (
                     <Badge variant="outline">
-                      Booking: {dispute.relatedBookingId}
+                      {t('bookingRef', { id: dispute.relatedBookingId })}
                     </Badge>
                   )}
                   {dispute.relatedPropertyId && (
                     <Badge variant="outline">
-                      Property: {dispute.relatedPropertyId}
+                      {t('propertyRef', { id: dispute.relatedPropertyId })}
                     </Badge>
                   )}
                 </div>
@@ -186,7 +199,7 @@ export default function AdminDisputesPage() {
                 {dispute.resolution && (
                   <div className="mb-4 rounded bg-green-50 p-3">
                     <p className="text-sm font-semibold text-green-800 mb-1">
-                      Resolution:
+                      {t('resolution')}
                     </p>
                     <p className="text-sm text-green-700">
                       {dispute.resolution}
@@ -197,7 +210,7 @@ export default function AdminDisputesPage() {
                 <div className="flex flex-wrap gap-2">
                   {dispute.status === 'open' && (
                     <Button size="sm" onClick={() => handleAssign(dispute.id)}>
-                      Assign to Me
+                      {t('assignToMe')}
                     </Button>
                   )}
                   {dispute.status === 'assigned' && (
@@ -207,7 +220,7 @@ export default function AdminDisputesPage() {
                         handleStatusChange(dispute.id, 'in_progress')
                       }
                     >
-                      Mark In Progress
+                      {t('markInProgress')}
                     </Button>
                   )}
                   {dispute.status === 'in_progress' && (
@@ -216,11 +229,11 @@ export default function AdminDisputesPage() {
                       onClick={() => handleStatusChange(dispute.id, 'resolved')}
                     >
                       <Check className="mr-2 h-4 w-4" />
-                      Resolve
+                      {ta('resolve')}
                     </Button>
                   )}
                   <Button size="sm" variant="outline">
-                    View Details
+                    {ta('viewDetails')}
                   </Button>
                 </div>
               </CardContent>
@@ -230,7 +243,7 @@ export default function AdminDisputesPage() {
 
         {filteredDisputes.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            No disputes found matching your filters
+            {t('emptyFiltered')}
           </div>
         )}
       </div>

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,8 +24,10 @@ import {
   updateSMSGroup,
   deleteSMSGroup,
   sendBulkSMS,
-} from '@/data/mockSMS'
-import { mockMess } from '@/data/mockMess'
+} from '@/lib/api/messDomain'
+import { fetchMessById } from '@/lib/api/mess'
+import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import {
   Plus,
@@ -38,14 +41,21 @@ import {
 } from 'lucide-react'
 import type { SMSTemplate, SMSGroup, SMSMessage } from '@/types/sms'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 export default function SMSManagementPage() {
+  const t = useTranslations('mess')
+  const tc = useTranslations('common')
+  const { confirm } = useConfirm()
   const params = useParams()
   const router = useRouter()
   const role = getStoredRole()
   const messId = params.messId as string
+  const ownerId = getDemoOwnerId()
 
-  const mess = mockMess.find(m => m.id === messId)
+  const loadMess = useCallback(() => fetchMessById(messId), [messId])
+  const { data: mess } = useMockQuery(loadMess)
   const [templates, setTemplates] = useState(getSMSTemplatesByMess(messId))
   const [groups, setGroups] = useState(getSMSGroupsByMess(messId))
   const [smsHistory, setSMSHistory] = useState(getSMSMessagesByMess(messId))
@@ -71,7 +81,7 @@ export default function SMSManagementPage() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p className="text-center">Mess not found</p>
+          <p className="text-center">{t('notFound')}</p>
         </div>
       </Layout>
     )
@@ -91,11 +101,15 @@ export default function SMSManagementPage() {
     setEditingTemplate(null)
   }
 
-  const handleTemplateDelete = (templateId: string) => {
-    if (confirm('Are you sure you want to delete this template?')) {
-      deleteSMSTemplate(templateId)
-      setTemplates(getSMSTemplatesByMess(messId))
-    }
+  const handleTemplateDelete = async (templateId: string) => {
+    const ok = await confirm({
+      title: t('sms.deleteTemplateTitle'),
+      description: t('sms.deleteTemplateDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    deleteSMSTemplate(templateId)
+    setTemplates(getSMSTemplatesByMess(messId))
   }
 
   const handleGroupSubmit = (data: any) => {
@@ -108,11 +122,15 @@ export default function SMSManagementPage() {
     setEditingGroup(null)
   }
 
-  const handleGroupDelete = (groupId: string) => {
-    if (confirm('Are you sure you want to delete this group?')) {
-      deleteSMSGroup(groupId)
-      setGroups(getSMSGroupsByMess(messId))
-    }
+  const handleGroupDelete = async (groupId: string) => {
+    const ok = await confirm({
+      title: t('sms.deleteGroupTitle'),
+      description: t('sms.deleteGroupDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    deleteSMSGroup(groupId)
+    setGroups(getSMSGroupsByMess(messId))
   }
 
   const handleBulkSMSSubmit = (data: any) => {
@@ -123,11 +141,13 @@ export default function SMSManagementPage() {
       recipientType: data.recipientType,
       recipients: data.recipients,
       totalRecipients: data.totalRecipients,
-      sentBy: 'owner1',
+      sentBy: ownerId,
       gateway: data.gateway || 'bKash',
     })
     setSMSHistory(getSMSMessagesByMess(messId))
-    alert(`SMS sent to ${message.successful} recipients successfully!`)
+    toast.success(
+      t('sms.sendSuccess', { count: message.successful })
+    )
   }
 
   return (
@@ -136,12 +156,14 @@ export default function SMSManagementPage() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">SMS Management</h1>
+            <h1 className="text-2xl font-bold mb-2">
+              {t('sms.managementTitle')}
+            </h1>
             <p className="text-muted-foreground">{mess.name}</p>
           </div>
           <Button onClick={() => setIsBulkSMSDialogOpen(true)}>
             <Send className="h-4 w-4 mr-2" />
-            Send Bulk SMS
+            {t('sms.sendBulk')}
           </Button>
         </div>
 
@@ -151,7 +173,7 @@ export default function SMSManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-blue-600" />
-                Total Sent
+                {t('sms.totalSent')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -162,7 +184,7 @@ export default function SMSManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-red-600" />
-                Failed
+                {t('sms.failed')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -173,7 +195,7 @@ export default function SMSManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-green-600" />
-                Total Cost
+                {t('sms.totalCost')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -186,7 +208,7 @@ export default function SMSManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <FileText className="h-5 w-5 text-purple-600" />
-                Templates
+                {t('sms.templates')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -198,9 +220,13 @@ export default function SMSManagementPage() {
         {/* Tabs */}
         <Tabs defaultValue="history" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="history">SMS History</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="groups">Groups</TabsTrigger>
+            <TabsTrigger value="history">
+              {t('sms.tabs.history')}
+            </TabsTrigger>
+            <TabsTrigger value="templates">
+              {t('sms.tabs.templates')}
+            </TabsTrigger>
+            <TabsTrigger value="groups">{t('sms.tabs.groups')}</TabsTrigger>
           </TabsList>
 
           {/* SMS History Tab */}
@@ -215,10 +241,12 @@ export default function SMSManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">No SMS sent yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    {t('sms.emptyHistory')}
+                  </p>
                   <Button onClick={() => setIsBulkSMSDialogOpen(true)}>
                     <Send className="h-4 w-4 mr-2" />
-                    Send First SMS
+                    {t('sms.sendFirstSms')}
                   </Button>
                 </CardContent>
               </Card>
@@ -229,9 +257,11 @@ export default function SMSManagementPage() {
           <TabsContent value="templates" className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold">SMS Templates</h2>
+                <h2 className="text-xl font-semibold">
+                  {t('sms.templatesTitle')}
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  Create reusable templates for common messages
+                  {t('sms.templatesDesc')}
                 </p>
               </div>
               <Button
@@ -241,7 +271,7 @@ export default function SMSManagementPage() {
                 }}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Template
+                {t('sms.createTemplate')}
               </Button>
             </div>
 
@@ -311,11 +341,11 @@ export default function SMSManagementPage() {
                 <CardContent className="py-12 text-center">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-muted-foreground mb-4">
-                    No templates created yet
+                    {t('sms.emptyTemplates')}
                   </p>
                   <Button onClick={() => setIsTemplateDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Template
+                    {t('sms.createTemplate')}
                   </Button>
                 </CardContent>
               </Card>
@@ -326,9 +356,11 @@ export default function SMSManagementPage() {
           <TabsContent value="groups" className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold">SMS Groups</h2>
+                <h2 className="text-xl font-semibold">
+                  {t('sms.groupsTitle')}
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  Organize students into groups for targeted messaging
+                  {t('sms.groupsDesc')}
                 </p>
               </div>
               <Button
@@ -338,7 +370,7 @@ export default function SMSManagementPage() {
                 }}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Group
+                {t('sms.createGroup')}
               </Button>
             </div>
 
@@ -386,8 +418,9 @@ export default function SMSManagementPage() {
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          {group.memberIds.length} member
-                          {group.memberIds.length !== 1 ? 's' : ''}
+                          {t('sms.members', {
+                            count: group.memberIds.length,
+                          })}
                         </span>
                       </div>
                     </CardContent>
@@ -399,11 +432,11 @@ export default function SMSManagementPage() {
                 <CardContent className="py-12 text-center">
                   <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-muted-foreground mb-4">
-                    No groups created yet
+                    {t('sms.emptyGroups')}
                   </p>
                   <Button onClick={() => setIsGroupDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Group
+                    {t('sms.createGroup')}
                   </Button>
                 </CardContent>
               </Card>

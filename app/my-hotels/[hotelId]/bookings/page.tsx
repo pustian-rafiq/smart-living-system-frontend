@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Calendar, Users, Phone, Mail, Check, X } from 'lucide-react'
-import { mockHotels, getBookingsByHotelId } from '@/data/mockHotels'
+import { fetchHotelById, fetchHotelBookings } from '@/lib/api/hotels'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { format } from 'date-fns'
 import type { Booking, BookingStatus } from '@/types/hotel'
 import {
@@ -25,19 +27,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 export default function BookingManagementPage() {
+  const t = useTranslations('hotels')
+  const tc = useTranslations('common')
+  const { confirm } = useConfirm()
   const params = useParams()
   const router = useRouter()
   const hotelId = params.hotelId as string
 
-  const hotel = mockHotels.find(h => h.id === hotelId)
-  const allBookings = hotel ? getBookingsByHotelId(hotelId) : []
+  const loadHotel = useCallback(() => fetchHotelById(hotelId), [hotelId])
+  const { data: hotel } = useMockQuery(loadHotel)
+
+  const loadBookings = useCallback(() => fetchHotelBookings(hotelId), [hotelId])
+  const { data: allBookings } = useMockQuery(loadBookings)
 
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all')
 
   const bookings = useMemo(() => {
-    let filtered = [...allBookings]
+    let filtered = [...(allBookings ?? [])]
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter(b => b.status === statusFilter)
@@ -49,11 +59,15 @@ export default function BookingManagementPage() {
     )
   }, [statusFilter, allBookings])
 
-  const handleStatusChange = (bookingId: string, newStatus: BookingStatus) => {
-    if (confirm(`Change booking status to ${newStatus}?`)) {
-      // TODO: Implement status update
-      alert('Booking status updated')
-    }
+  const handleStatusChange = async (
+    bookingId: string,
+    newStatus: BookingStatus
+  ) => {
+    const ok = await confirm({
+      title: t('bookings.changeStatusTitle', { status: newStatus }),
+    })
+    if (!ok) return
+    toast.success(t('bookings.statusUpdated'))
   }
 
   const statusColors: Record<BookingStatus, string> = {
@@ -72,14 +86,14 @@ export default function BookingManagementPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-lg font-semibold text-muted-foreground">
-                Hotel not found
+                {t('pricing.notFoundTitle')}
               </p>
               <Button
                 variant="outline"
                 onClick={() => router.push('/my-hotels')}
                 className="mt-4"
               >
-                Back to Hotels
+                {t('myHotels.backToHotels')}
               </Button>
             </CardContent>
           </Card>
@@ -98,9 +112,9 @@ export default function BookingManagementPage() {
             onClick={() => router.back()}
             className="mb-2"
           >
-            ← Back
+            ← {tc('back')}
           </Button>
-          <h1 className="text-2xl font-bold mb-2">Booking Management</h1>
+          <h1 className="text-2xl font-bold mb-2">{t('bookings.title')}</h1>
           <p className="text-muted-foreground">{hotel.name}</p>
         </div>
 
@@ -111,16 +125,20 @@ export default function BookingManagementPage() {
             onValueChange={value => setStatusFilter(value as any)}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={tc('filterByStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Bookings</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="checked-in">Checked In</SelectItem>
-              <SelectItem value="checked-out">Checked Out</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="all">{t('bookings.allBookings')}</SelectItem>
+              <SelectItem value="pending">{tc('status.pending')}</SelectItem>
+              <SelectItem value="confirmed">{tc('status.confirmed')}</SelectItem>
+              <SelectItem value="checked-in">{tc('status.checkedIn')}</SelectItem>
+              <SelectItem value="checked-out">
+                {t('bookings.statusCheckedOut')}
+              </SelectItem>
+              <SelectItem value="completed">
+                {t('bookings.statusCompleted')}
+              </SelectItem>
+              <SelectItem value="cancelled">{tc('status.cancelled')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -130,12 +148,12 @@ export default function BookingManagementPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-lg font-semibold text-muted-foreground">
-                No bookings found
+                {t('bookings.emptyTitle')}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
                 {statusFilter === 'all'
-                  ? 'No bookings yet'
-                  : `No ${statusFilter} bookings`}
+                  ? t('bookings.emptyAll')
+                  : t('bookings.emptyFiltered', { status: statusFilter })}
               </p>
             </CardContent>
           </Card>
@@ -146,15 +164,15 @@ export default function BookingManagementPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Booking ID</TableHead>
-                      <TableHead>Guest</TableHead>
-                      <TableHead>Room</TableHead>
-                      <TableHead>Check-in</TableHead>
-                      <TableHead>Check-out</TableHead>
-                      <TableHead>Guests</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t('bookings.columns.bookingId')}</TableHead>
+                      <TableHead>{t('bookings.columns.guest')}</TableHead>
+                      <TableHead>{t('bookings.columns.room')}</TableHead>
+                      <TableHead>{t('bookings.columns.checkIn')}</TableHead>
+                      <TableHead>{t('bookings.columns.checkOut')}</TableHead>
+                      <TableHead>{t('bookings.columns.guests')}</TableHead>
+                      <TableHead>{t('bookings.columns.amount')}</TableHead>
+                      <TableHead>{t('bookings.columns.status')}</TableHead>
+                      <TableHead>{t('bookings.columns.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -171,7 +189,9 @@ export default function BookingManagementPage() {
                             </p>
                           </div>
                         </TableCell>
-                        <TableCell>Room {booking.roomId}</TableCell>
+                        <TableCell>
+                          {t('bookings.roomLabel', { id: booking.roomId })}
+                        </TableCell>
                         <TableCell>
                           {format(new Date(booking.checkIn), 'MMM dd, yyyy')}
                         </TableCell>
@@ -199,7 +219,7 @@ export default function BookingManagementPage() {
                                   }
                                 >
                                   <Check className="h-3 w-3 mr-1" />
-                                  Confirm
+                                  {t('bookings.actions.confirm')}
                                 </Button>
                                 <Button
                                   size="sm"
@@ -209,7 +229,7 @@ export default function BookingManagementPage() {
                                   }
                                 >
                                   <X className="h-3 w-3 mr-1" />
-                                  Cancel
+                                  {tc('cancel')}
                                 </Button>
                               </>
                             )}
@@ -221,7 +241,7 @@ export default function BookingManagementPage() {
                                   handleStatusChange(booking.id, 'checked-in')
                                 }
                               >
-                                Check In
+                                {t('bookings.actions.checkIn')}
                               </Button>
                             )}
                             {booking.status === 'checked-in' && (
@@ -232,7 +252,7 @@ export default function BookingManagementPage() {
                                   handleStatusChange(booking.id, 'checked-out')
                                 }
                               >
-                                Check Out
+                                {t('bookings.actions.checkOut')}
                               </Button>
                             )}
                           </div>

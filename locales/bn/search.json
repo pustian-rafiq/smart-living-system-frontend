@@ -1,0 +1,170 @@
+{
+  "page": {
+    "title": "সম্পত্তি অনুসন্ধান",
+    "description": "বাংলাদেশ জুড়ে ফ্ল্যাট, মেস, হোস্টেল ও হোটেল ফিল্টার করুন।",
+    "loading": "অনুসন্ধান চলছে…",
+    "results": "{count, plural, one {#টি ফলাফল} other {#টি ফলাফল}}",
+    "noResultsTitle": "আপনার ফিল্টারে কোনো সম্পত্তি নেই",
+    "noResultsDesc": "অনুসন্ধান এলাকা প্রসার বা ফিল্টার পরিবর্তন করে দেখুন।",
+    "savedSearchesLink": "সংরক্ষিত অনুসন্ধান",
+    "locationError": "আপনার অবস্থান পাওয়া যায়নি। অনুগ্রহ করে লোকেশন সেবা চালু করুন।",
+    "withinRadius": "{distance} এর মধ্যে",
+    "viewMode": {
+      "list": "তালিকা",
+      "map": "মানচিত্র"
+    },
+    "filters": {
+      "title": "ফিল্টার",
+      "show": "ফিল্টার দেখান",
+      "hide": "ফিল্টার লুকান",
+      "advanced": "উন্নত ফিল্টার",
+      "propertyType": "সম্পত্তির ধরন",
+      "city": "শহর",
+      "area": "এলাকা",
+      "rentRange": "ভাড়ার পরিসীমা",
+      "availableOnly": "শুধু উপলব্ধ",
+      "availableOnlyHint": "শুধু উপলব্ধ সম্পত্তি দেখান",
+      "verifiedOnly": "শুধু যাচাইকৃত",
+      "verifiedOnlyHint": "শুধু যাচাইকৃত সম্পত্তি দেখান",
+      "nearMe": "আমার কাছে",
+      "gender": "লিঙ্গ",
+      "seatType": "সিটের ধরন",
+      "mealPlan": "খাবার পরিকল্পনা",
+      "mealIncluded": "খাবার অন্তর্ভুক্ত",
+      "furnishing": "আসবাবপত্র",
+      "parking": "পার্কিং",
+      "parkingAvailable": "পার্কিং উপলব্ধ",
+      "security": "নিরাপত্তা",
+      "nearbyFacilities": "কাছাকাছি সুবিধা",
+      "buildingAge": "ভবনের বয়স (সর্বোচ্চ: {value} বছর)",
+      "buildingAgeAny": "যেকোনো",
+      "floorLevel": "তলা (সর্বোচ্চ: {value})",
+      "locationSearch": "অবস্থান অনুসন্ধান",
+      "searchRadius": "অনুসন্ধান ব্যাসার্ধ:",
+      "filterByDistance": "দূরত্ব অনুযায়ী ফিল্টার",
+      "showingWithin": "আপনার অবস্থান থেকে {distance} এর মধ্যে সম্পত্তি দেখানো হচ্ছে",
+      "allCities": "সব শহর",
+      "allAreas": "সব এলাকা",
+      "selectCity": "শহর নির্বাচন",
+      "selectArea": "এলাকা নির্বাচন",
+      "selectGender": "লিঙ্গ নির্বাচন",
+      "selectSeatType": "সিটের ধরন নির্বাচন",
+      "selectMealPlan": "খাবার পরিকল্পনা নির্বাচন",
+      "selectFurnishing": "আসবাবপত্র নির্বাচন"
+    },
+    "actions": {
+      "search": "খুঁজুন",
+      "reset": "ফিল্টার রিসেট",
+      "saveSearch": "অনুসন্ধান সংরক্ষণ",
+      "searchSaved": "অনুসন্ধান সংরক্ষিত",
+      "saveSuccess": "অনুসন্ধান \"{name}\" সফলভাবে সংরক্ষিত!",
+      "compare": "তুলনা ({count})",
+      "book": "বুক",
+      "viewDetails": "বিস্তারিত দেখুন",
+      "gettingLocation": "অবস্থান পাওয়া হচ্ছে…",
+      "useMyLocation": "আমার অবস্থান ব্যবহার"
+    },
+    "propertyTypes": {
+      "all": "সব",
+      "mess": "মেস",
+      "apartment": "অ্যাপার্টমেন্ট",
+      "hostel": "হোস্টেল",
+      "hotel": "হোটেল"
+    },
+    "gender": {
+      "all": "সব",
+      "male": "পুরুষ",
+      "female": "মহিলা",
+      "mixed": "মিশ্র"
+    },
+    "seatTypes": {
+      "all": "সব",
+      "single": "একক",
+      "shared": "শেয়ার"
+    },
+    "mealPlans": {
+      "all": "সব খাবার",
+      "breakfast": "শুধু সকাল",
+      "lunch": "শুধু দুপুর",
+      "dinner": "শুধু রাত"
+    },
+    "furnishing": {
+      "all": "সব",
+      "furnished": "সাজানো",
+      "semiFurnished": "আংশিক সাজানো",
+      "unfurnished": "খালি"
+    }
+  },
+  "savedSearches": {
+    "title": "সংরক্ষিত অনুসন্ধান",
+    "description": "আপনার মানদণ্ডে মিলে এমন সম্পত্তির জন্য সতর্কতা পরিচালনা করুন।",
+    "newSearch": "নতুন অনুসন্ধান",
+    "stats": {
+      "total": "মোট অনুসন্ধান",
+      "active": "সক্রিয়",
+      "inactive": "নিষ্ক্রিয়"
+    },
+    "tabs": {
+      "all": "সব",
+      "active": "সক্রিয়",
+      "inactive": "নিষ্ক্রিয়"
+    },
+    "emptyAllTitle": "কোনো সংরক্ষিত অনুসন্ধান নেই",
+    "emptyAllDesc": "নতুন সম্পত্তি মিললে জানতে অনুসন্ধানের মানদণ্ড সংরক্ষণ করুন।",
+    "emptyActiveTitle": "কোনো সক্রিয় অনুসন্ধান নেই",
+    "emptyActiveDesc": "আপডেট পেতে সংরক্ষিত অনুসন্ধানে বিজ্ঞপ্তি চালু করুন।",
+    "emptyInactiveTitle": "কোনো নিষ্ক্রিয় অনুসন্ধান নেই",
+    "emptyInactiveDesc": "বিরতি দেওয়া অনুসন্ধান এখানে দেখাবে।",
+    "createSavedSearch": "সংরক্ষিত অনুসন্ধান তৈরি",
+    "deleteConfirmTitle": "সংরক্ষিত অনুসন্ধান মুছবেন?",
+    "deleteConfirmDesc": "আপনি কি নিশ্চিত যে এই সংরক্ষিত অনুসন্ধান মুছতে চান?",
+    "editTitle": "সংরক্ষিত অনুসন্ধান সম্পাদনা",
+    "editDesc": "আপনার সংরক্ষিত অনুসন্ধানের নাম আপডেট করুন",
+    "searchName": "অনুসন্ধানের নাম",
+    "searchNamePlaceholder": "অনুসন্ধানের নাম লিখুন",
+    "actions": {
+      "save": "অনুসন্ধান সংরক্ষণ",
+      "enableAlerts": "সতর্কতা চালু",
+      "disableAlerts": "সতর্কতা বন্ধ",
+      "delete": "মুছুন",
+      "runSearch": "অনুসন্ধান চালান"
+    }
+  },
+  "history": {
+    "title": "অনুসন্ধান ইতিহাস",
+    "description": "আপনার সাম্প্রতিক অনুসন্ধান।",
+    "countInHistory": "ইতিহাসে {count, plural, one {#টি অনুসন্ধান} other {#টি অনুসন্ধান}}",
+    "emptyTitle": "কোনো অনুসন্ধান ইতিহাস নেই",
+    "emptyDesc": "আপনার সাম্প্রতিক অনুসন্ধান এখানে দেখাবে।",
+    "startSearching": "অনুসন্ধান শুরু করুন",
+    "clearAll": "সব ইতিহাস মুছুন",
+    "clearConfirmTitle": "অনুসন্ধান ইতিহাস মুছবেন?",
+    "clearConfirmDesc": "এটি স্থায়ীভাবে সব অনুসন্ধান ইতিহাস মুছে দেবে। এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।",
+    "runAgain": "আবার অনুসন্ধান"
+  },
+  "compare": {
+    "title": "তালিকা তুলনা",
+    "description": "৩টি পর্যন্ত সম্পত্তির পাশাপাশি তুলনা।",
+    "loading": "তুলনা লোড হচ্ছে…",
+    "emptyTitle": "তুলনার কিছু নেই",
+    "emptyDesc": "অনুসন্ধান থেকে তুলনা চেকবক্স দিয়ে ২–৩টি তালিকা নির্বাচন করুন।",
+    "errorTitle": "তালিকা লোড করা যায়নি",
+    "errorDesc": "আবার তালিকা নির্বাচন করে দেখুন।",
+    "goToSearch": "অনুসন্ধানে যান",
+    "backToSearch": "অনুসন্ধানে ফিরুন",
+    "fields": {
+      "rent": "ভাড়া",
+      "location": "অবস্থান",
+      "type": "ধরন",
+      "gender": "লিঙ্গ",
+      "seatType": "সিটের ধরন",
+      "mealPlan": "খাবার পরিকল্পনা",
+      "verified": "যাচাইকৃত",
+      "rating": "রেটিং",
+      "available": "উপলব্ধ"
+    },
+    "perMonth": "/মাস",
+    "yes": "হ্যাঁ",
+    "no": "না"
+  }
+}

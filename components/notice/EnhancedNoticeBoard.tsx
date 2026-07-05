@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import type { Notice } from '@/types/mess'
 import { cn } from '@/lib/utils'
+import { SafeText } from '@/components/security/SafeText'
 import { format } from 'date-fns'
 // Using regular img tag for dynamic/external images
 
@@ -217,9 +218,9 @@ export function EnhancedNoticeBoard({
                         </div>
                       </div>
 
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                      <SafeText as="p" className="text-sm text-muted-foreground leading-relaxed mb-3">
                         {notice.content}
-                      </p>
+                      </SafeText>
 
                       {/* Attachments */}
                       {(notice.pdfUrl ||

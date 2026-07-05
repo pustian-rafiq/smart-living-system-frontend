@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -32,10 +32,10 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { mockBuildings } from '@/data/mockBuildings'
-import { mockMess } from '@/data/mockMess'
-import { mockBillTemplates } from '@/data/mockBillTemplates'
 import type { BillGenerationRule } from '@/types/bill'
+import { fetchBillsBoard } from '@/lib/api/bills'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 const billRuleSchema = z.object({
   name: z.string().min(1, 'Rule name is required'),
@@ -82,6 +82,25 @@ export function BillGenerationRuleDialog({
   const [selectedPropertyType, setSelectedPropertyType] = useState<
     'apartment' | 'mess' | 'all'
   >(rule?.propertyType || 'all')
+  const loadBillsBoard = useCallback(
+    () =>
+      open
+        ? fetchBillsBoard()
+        : Promise.resolve(
+            ok({
+              bills: [],
+              templates: [],
+              rules: [],
+              meterReadings: [],
+              buildings: [],
+              flats: [],
+              renters: [],
+              messList: [],
+            })
+          ),
+    [open]
+  )
+  const { data: billsBoard } = useMockQuery(loadBillsBoard)
 
   const form = useForm<BillRuleFormData>({
     resolver: zodResolver(billRuleSchema) as never,
@@ -125,10 +144,10 @@ export function BillGenerationRuleDialog({
     selectedPropertyType === 'all'
       ? []
       : selectedPropertyType === 'apartment'
-        ? mockBuildings
-        : mockMess
+        ? (billsBoard?.buildings ?? [])
+        : (billsBoard?.messList ?? [])
 
-  const availableTemplates = mockBillTemplates.filter(t => {
+  const availableTemplates = (billsBoard?.templates ?? []).filter(t => {
     if (propertyType && t.propertyType !== propertyType) return false
     return t.isActive
   })

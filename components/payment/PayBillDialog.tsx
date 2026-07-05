@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   Dialog,
   DialogContent,
@@ -13,10 +15,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { DownloadBillButton } from '@/components/bill/DownloadBillButton'
+import { ReceiptViewDialog } from '@/components/payment/ReceiptViewDialog'
 import type { Bill } from '@/types/bill'
 import type { PaymentMethod, PaymentTransaction } from '@/types/payment'
 import { payBill } from '@/lib/api/payments'
 import { getDemoTenantId } from '@/lib/api/demoUser'
+import { useAppFormat } from '@/hooks/useAppFormat'
 import { Wallet, Smartphone } from 'lucide-react'
 import { PaymentMethodSelector, getPaymentMethodOption } from '@/components/payment/PaymentMethodSelector'
 import { PaymentProcessingState } from '@/components/payment/PaymentProcessingState'
@@ -26,7 +30,6 @@ import {
   PaymentHistoryLink,
   paymentResultHref,
 } from '@/components/payment/PaymentResultView'
-import Link from 'next/link'
 
 type Step = 'method' | 'confirm' | 'processing' | 'result'
 
@@ -45,6 +48,9 @@ export function PayBillDialog({
   onSuccess,
   userId,
 }: PayBillDialogProps) {
+  const t = useTranslations('payments.payBill')
+  const tc = useTranslations('common')
+  const { formatCurrency } = useAppFormat()
   const [step, setStep] = useState<Step>('method')
   const [method, setMethod] = useState<PaymentMethod>('bKash')
   const [accountNumber, setAccountNumber] = useState('')
@@ -52,6 +58,7 @@ export function PayBillDialog({
   const [transaction, setTransaction] = useState<PaymentTransaction | null>(
     null
   )
+  const [receiptOpen, setReceiptOpen] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -60,6 +67,7 @@ export function PayBillDialog({
     setAccountNumber('')
     setError(null)
     setTransaction(null)
+    setReceiptOpen(false)
   }, [open, bill?.id])
 
   if (!bill) return null
@@ -73,7 +81,7 @@ export function PayBillDialog({
     if (selected?.needsAccount) {
       const digits = accountNumber.replace(/\D/g, '')
       if (digits.length < 11) {
-        setError('Enter a valid 11-digit wallet / account number')
+        setError(t('invalidWallet'))
         return
       }
     }
@@ -118,13 +126,16 @@ export function PayBillDialog({
         ? 'pending'
         : 'failed'
 
+  const statusLabel =
+    bill.status === 'overdue' ? tc('status.overdue') : tc('status.unpaid')
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
-            Pay bill
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
             {bill.month} {bill.year} · {bill.propertyName}
@@ -134,9 +145,9 @@ export function PayBillDialog({
         <div className="rounded-lg border bg-muted/40 p-3">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="text-sm text-muted-foreground">Amount due</p>
+              <p className="text-sm text-muted-foreground">{t('amountDue')}</p>
               <p className="text-2xl font-bold text-primary">
-                ৳{bill.amount.toLocaleString()}
+                {formatCurrency(bill.amount)}
               </p>
             </div>
             <Badge
@@ -147,7 +158,7 @@ export function PayBillDialog({
                   : 'border-amber-200 bg-amber-50 text-amber-900'
               }
             >
-              {bill.status}
+              {statusLabel}
             </Badge>
           </div>
         </div>
@@ -156,7 +167,7 @@ export function PayBillDialog({
           <div className="space-y-4">
             <PaymentMethodSelector value={method} onChange={setMethod} />
             <Button className="w-full" onClick={() => setStep('confirm')}>
-              Continue
+              {tc('continue')}
             </Button>
           </div>
         )}
@@ -166,13 +177,13 @@ export function PayBillDialog({
             <PaymentResultBackButton onClick={() => setStep('method')} />
 
             <div className="rounded-lg border p-3 text-sm">
-              <p className="text-muted-foreground">Paying with</p>
+              <p className="text-muted-foreground">{t('payingWith')}</p>
               <p className="font-semibold">{method}</p>
             </div>
 
             {selected?.needsAccount && (
               <div className="space-y-2">
-                <Label htmlFor="wallet">Wallet / account number</Label>
+                <Label htmlFor="wallet">{t('walletLabel')}</Label>
                 <div className="relative">
                   <Smartphone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -184,17 +195,12 @@ export function PayBillDialog({
                     inputMode="numeric"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Demo mode — no real money is charged until gateway is connected.
-                </p>
+                <p className="text-xs text-muted-foreground">{t('walletHint')}</p>
               </div>
             )}
 
             {method === 'Cash' && (
-              <p className="text-sm text-muted-foreground">
-                Cash is recorded as pending until your property owner confirms
-                receipt.
-              </p>
+              <p className="text-sm text-muted-foreground">{t('cashPending')}</p>
             )}
 
             {error && (
@@ -204,7 +210,7 @@ export function PayBillDialog({
             )}
 
             <Button className="w-full" onClick={submitPayment}>
-              Pay ৳{bill.amount.toLocaleString()}
+              {t('payAmount', { amount: formatCurrency(bill.amount) })}
             </Button>
           </div>
         )}
@@ -226,14 +232,23 @@ export function PayBillDialog({
             onDone={() => onOpenChange(false)}
             receiptAction={
               transaction.status === 'completed' ? (
-                <DownloadBillButton
-                  bill={{
-                    ...bill,
-                    status: 'paid',
-                    paidDate: new Date().toISOString().split('T')[0],
-                  }}
-                  className="w-full"
-                />
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => setReceiptOpen(true)}
+                  >
+                    {t('viewReceipt')}
+                  </Button>
+                  <DownloadBillButton
+                    bill={{
+                      ...bill,
+                      status: 'paid',
+                      paidDate: new Date().toISOString().split('T')[0],
+                    }}
+                    className="w-full"
+                  />
+                </div>
               ) : undefined
             }
             secondaryAction={
@@ -247,7 +262,7 @@ export function PayBillDialog({
                     )}
                     onClick={() => onOpenChange(false)}
                   >
-                    Open payment status page
+                    {t('openStatusPage')}
                   </Link>
                 </Button>
               </>
@@ -255,6 +270,20 @@ export function PayBillDialog({
           />
         )}
       </DialogContent>
+
+      <ReceiptViewDialog
+        open={receiptOpen}
+        onOpenChange={setReceiptOpen}
+        bill={{
+          ...bill,
+          status: transaction?.status === 'completed' ? 'paid' : bill.status,
+          paidDate:
+            transaction?.status === 'completed'
+              ? new Date().toISOString().split('T')[0]
+              : bill.paidDate,
+        }}
+        payment={transaction}
+      />
     </Dialog>
   )
 }

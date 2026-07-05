@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DailyMenuDialog } from '@/components/meal/DailyMenuDialog'
@@ -19,20 +20,26 @@ import {
   updateDailyMenu,
   addWeeklySchedule,
   updateMealTiming,
-} from '@/data/mockMeals'
-import { mockMess } from '@/data/mockMess'
+} from '@/lib/api/messDomain'
+import { fetchMessById } from '@/lib/api/mess'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
-import { Plus, Calendar, Clock, Settings, UtensilsCrossed } from 'lucide-react'
+import { useAppFormat } from '@/hooks/useAppFormat'
+import { Plus, Calendar, Clock, UtensilsCrossed } from 'lucide-react'
 import type { DailyMenu, WeeklySchedule } from '@/types/meal'
 import { format } from 'date-fns'
 
 export default function MealManagementPage() {
+  const t = useTranslations('mess')
+  const tc = useTranslations('common')
+  const { formatDate } = useAppFormat()
   const params = useParams()
   const router = useRouter()
   const role = getStoredRole()
   const messId = params.messId as string
 
-  const mess = mockMess.find(m => m.id === messId)
+  const loadMess = useCallback(() => fetchMessById(messId), [messId])
+  const { data: mess } = useMockQuery(loadMess)
   const [dailyMenus, setDailyMenus] = useState(getDailyMenusByMess(messId))
   const [weeklySchedule, setWeeklySchedule] = useState(
     getWeeklyScheduleByMess(messId)
@@ -61,13 +68,13 @@ export default function MealManagementPage() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p className="text-center">Mess not found</p>
+          <p className="text-center">{t('notFound')}</p>
         </div>
       </Layout>
     )
   }
 
-  const handleDailyMenuSubmit = (data: any) => {
+  const handleDailyMenuSubmit = (data: Parameters<typeof addDailyMenu>[0]) => {
     if (editingMenu) {
       updateDailyMenu(editingMenu.id, data)
     } else {
@@ -77,17 +84,19 @@ export default function MealManagementPage() {
     setEditingMenu(null)
   }
 
-  const handleWeeklyScheduleSubmit = (data: any) => {
-    if (editingSchedule) {
-      // Update logic would go here
-    } else {
+  const handleWeeklyScheduleSubmit = (
+    data: Parameters<typeof addWeeklySchedule>[0]
+  ) => {
+    if (!editingSchedule) {
       addWeeklySchedule(data)
     }
     setWeeklySchedule(getWeeklyScheduleByMess(messId))
     setEditingSchedule(null)
   }
 
-  const handleMealTimingSubmit = (data: any) => {
+  const handleMealTimingSubmit = (
+    data: Parameters<typeof updateMealTiming>[1]
+  ) => {
     updateMealTiming(messId, data)
     setMealTiming(getMealTimingByMess(messId))
   }
@@ -100,13 +109,13 @@ export default function MealManagementPage() {
   return (
     <Layout userRole="owner">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Meal Management</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            {t('meals.managementTitle')}
+          </h1>
           <p className="text-muted-foreground">{mess.name}</p>
         </div>
 
-        {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mb-6">
           <Button
             variant="outline"
@@ -117,7 +126,7 @@ export default function MealManagementPage() {
             }}
           >
             <Plus className="h-6 w-6" />
-            <span>Add Daily Menu</span>
+            <span>{t('meals.addDailyMenu')}</span>
           </Button>
           <Button
             variant="outline"
@@ -128,7 +137,7 @@ export default function MealManagementPage() {
             }}
           >
             <Calendar className="h-6 w-6" />
-            <span>Weekly Schedule</span>
+            <span>{t('meals.weeklySchedule')}</span>
           </Button>
           <Button
             variant="outline"
@@ -136,19 +145,17 @@ export default function MealManagementPage() {
             onClick={() => setIsMealTimingDialogOpen(true)}
           >
             <Clock className="h-6 w-6" />
-            <span>Meal Timings</span>
+            <span>{t('meals.mealTimings')}</span>
           </Button>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="today" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="today">Today's Menu</TabsTrigger>
-            <TabsTrigger value="daily">Daily Menus</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly Schedule</TabsTrigger>
+            <TabsTrigger value="today">{t('meals.tabs.today')}</TabsTrigger>
+            <TabsTrigger value="daily">{t('meals.tabs.daily')}</TabsTrigger>
+            <TabsTrigger value="weekly">{t('meals.tabs.weekly')}</TabsTrigger>
           </TabsList>
 
-          {/* Today's Menu */}
           <TabsContent value="today" className="space-y-4">
             {todayMenu ? (
               <MenuCard menu={todayMenu} mealTiming={mealTiming} />
@@ -157,18 +164,17 @@ export default function MealManagementPage() {
                 <CardContent className="py-12 text-center">
                   <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-muted-foreground mb-4">
-                    No menu set for today
+                    {t('meals.emptyToday')}
                   </p>
                   <Button onClick={() => setIsDailyMenuDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Today's Menu
+                    {t('meals.createTodayMenu')}
                   </Button>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
 
-          {/* Daily Menus */}
           <TabsContent value="daily" className="space-y-4">
             {dailyMenus.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -184,7 +190,7 @@ export default function MealManagementPage() {
                         setIsDailyMenuDialogOpen(true)
                       }}
                     >
-                      Edit
+                      {tc('edit')}
                     </Button>
                   </div>
                 ))}
@@ -194,27 +200,33 @@ export default function MealManagementPage() {
                 <CardContent className="py-12 text-center">
                   <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-muted-foreground mb-4">
-                    No daily menus created yet
+                    {t('meals.emptyDaily')}
                   </p>
                   <Button onClick={() => setIsDailyMenuDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Daily Menu
+                    {t('meals.createDailyMenu')}
                   </Button>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
 
-          {/* Weekly Schedule */}
           <TabsContent value="weekly" className="space-y-4">
             {weeklySchedule ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold">Active Weekly Schedule</h3>
+                    <h3 className="font-semibold">
+                      {t('meals.activeWeeklySchedule')}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(weeklySchedule.weekStartDate), 'MMM dd')}{' '}
-                      - {format(new Date(weeklySchedule.weekEndDate), 'MMM dd')}
+                      {formatDate(weeklySchedule.weekStartDate, {
+                        style: 'short',
+                      })}{' '}
+                      -{' '}
+                      {formatDate(weeklySchedule.weekEndDate, {
+                        style: 'short',
+                      })}
                     </p>
                   </div>
                   <Button
@@ -224,7 +236,7 @@ export default function MealManagementPage() {
                       setIsWeeklyScheduleDialogOpen(true)
                     }}
                   >
-                    Edit Schedule
+                    {t('meals.editSchedule')}
                   </Button>
                 </div>
                 <WeeklyMenuView
@@ -237,11 +249,11 @@ export default function MealManagementPage() {
                 <CardContent className="py-12 text-center">
                   <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-muted-foreground mb-4">
-                    No weekly schedule set
+                    {t('meals.emptyWeekly')}
                   </p>
                   <Button onClick={() => setIsWeeklyScheduleDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Weekly Schedule
+                    {t('meals.createWeeklySchedule')}
                   </Button>
                 </CardContent>
               </Card>
@@ -249,7 +261,6 @@ export default function MealManagementPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Dialogs */}
         <DailyMenuDialog
           menu={editingMenu}
           messId={messId}

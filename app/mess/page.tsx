@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -14,16 +15,23 @@ import { AssignStudentDialog } from '@/components/mess/AssignStudentDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStoredRole } from '@/hooks/useStoredRole'
-import { mockMess, mockStudents, mockSeats } from '@/data/mockMess'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import { fetchMessList, mockSeats, mockStudents } from '@/lib/api/mess'
 import type { Mess } from '@/types/mess'
 import { LayoutDashboard, GraduationCap, Building2 } from 'lucide-react'
+import { MessOnboardingDialog } from '@/components/onboarding'
 
 export default function MessOverviewPage() {
+  const t = useTranslations('mess')
   const { ready, isOwner, isRenter } = useStoredRole()
-  const [messes, setMesses] = useState(mockMess)
+  const loadMesses = useCallback(() => fetchMessList(), [])
+  const { data: messList, loading } = useMockQuery(loadMesses)
+  const messes = messList ?? []
   const [selectedMess, setSelectedMess] = useState<Mess | null>(null)
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
   const [assignMessage, setAssignMessage] = useState<string | null>(null)
+  const [localMesses, setLocalMesses] = useState<Mess[] | null>(null)
+  const displayMesses = localMesses ?? messes
 
   const handleAssignStudent = (mess: Mess) => {
     setSelectedMess(mess)
@@ -63,8 +71,9 @@ export default function MessOverviewPage() {
       monthlyFee: selectedMess.monthlyFee,
     })
 
-    setMesses(prev =>
-      prev.map(m =>
+    setLocalMesses(prev => {
+      const base = prev ?? messes
+      return base.map(m =>
         m.id === selectedMess.id
           ? {
               ...m,
@@ -72,50 +81,52 @@ export default function MessOverviewPage() {
             }
           : m
       )
-    )
+    })
 
     setAssignMessage(
-      `${data.name} assigned to seat ${data.seatNumber} in ${selectedMess.name}.`
+      t('overview.assignSuccess', {
+        name: data.name,
+        seat: data.seatNumber,
+        mess: selectedMess.name,
+      })
     )
     setIsAssignDialogOpen(false)
     setSelectedMess(null)
   }
 
-  if (!ready) {
+  if (!ready || loading) {
     return (
       <Layout>
         <PageContainer>
-          <LoadingState label="Loading mess…" />
+          <LoadingState label={t('loading')} />
         </PageContainer>
       </Layout>
     )
   }
 
-  // Renters / students go to their student dashboard
   if (isRenter) {
     return (
       <Layout>
         <PageContainer>
           <PageHeader
-            title="My mess"
-            description="View your seat, meals, attendance, and pay monthly fees."
+            title={t('overview.renterTitle')}
+            description={t('overview.renterDescription')}
           />
           <Card className="max-w-lg border-primary/20 bg-primary/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <GraduationCap className="h-5 w-5" />
-                Student dashboard
+                {t('studentDashboard.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Open your mess student dashboard for notices, menu, attendance,
-                and Pay Now for monthly fees.
+                {t('overview.renterCardDesc')}
               </p>
               <Button asChild className="w-full sm:w-auto">
                 <Link href="/mess/student-dashboard">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Open student dashboard
+                  {t('overview.openStudentDashboard')}
                 </Link>
               </Button>
             </CardContent>
@@ -128,14 +139,15 @@ export default function MessOverviewPage() {
   return (
     <Layout>
       <PageContainer>
+        <MessOnboardingDialog />
         <PageHeader
-          title="Mess management"
-          description="Manage seats, meals, attendance, SMS, rules, and expenses."
+          title={t('overview.ownerTitle')}
+          description={t('overview.ownerDescription')}
           actions={
             <Button variant="outline" asChild>
               <Link href="/mess/student-dashboard">
                 <GraduationCap className="mr-2 h-4 w-4" />
-                Preview student view
+                {t('overview.previewStudentView')}
               </Link>
             </Button>
           }
@@ -147,15 +159,15 @@ export default function MessOverviewPage() {
           </div>
         )}
 
-        {messes.length === 0 ? (
+        {displayMesses.length === 0 ? (
           <EmptyState
-            title="No mess facilities yet"
-            description="Add your first mess or hostel to manage seats and students."
+            title={t('overview.emptyTitle')}
+            description={t('overview.emptyDesc')}
             icon={Building2}
           />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {messes.map(mess => (
+            {displayMesses.map(mess => (
               <MessOverviewCard
                 key={mess.id}
                 mess={mess}

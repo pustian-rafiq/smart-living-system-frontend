@@ -39,6 +39,7 @@ import { format } from 'date-fns'
 import { CalendarIcon, Upload, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Document } from '@/types/renterProfile'
+import { validateFile, getAcceptAttribute } from '@/lib/security/file-upload'
 
 const documentUploadSchema = z.object({
   type: z.enum([
@@ -83,12 +84,19 @@ export function DocumentUploadDialog({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
-      form.setValue('file', file)
+    if (!file) return
+
+    const result = validateFile(file, 'document')
+    if (!result.valid) {
+      form.setError('file', { message: 'Invalid file type or size' })
+      e.target.value = ''
+      return
     }
+
+    setSelectedFile(result.file)
+    const url = URL.createObjectURL(result.file)
+    setPreviewUrl(url)
+    form.setValue('file', result.file)
   }
 
   const handleSubmit = async (data: z.infer<typeof documentUploadSchema>) => {
@@ -237,7 +245,7 @@ export function DocumentUploadDialog({
                       <div className="flex items-center gap-4">
                         <Input
                           type="file"
-                          accept="image/*,.pdf"
+                          accept={getAcceptAttribute('document')}
                           onChange={handleFileSelect}
                           className="hidden"
                           id="file-upload"

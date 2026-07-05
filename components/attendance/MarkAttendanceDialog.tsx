@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -33,7 +33,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Clock } from 'lucide-react'
-import { mockStudents } from '@/data/mockMess'
+import { fetchMessStudents } from '@/lib/api/mess'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 const markAttendanceSchema = z.object({
   studentIds: z.array(z.string()).min(1, 'Select at least one student'),
@@ -62,7 +64,12 @@ export function MarkAttendanceDialog({
   onSubmit,
 }: MarkAttendanceDialogProps) {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
-  const messStudents = mockStudents.filter(s => s.seatNumber) // Only students with assigned seats
+  const loadStudents = useCallback(
+    () => (open ? fetchMessStudents(messId) : Promise.resolve(ok([]))),
+    [open, messId]
+  )
+  const { data: students } = useMockQuery(loadStudents)
+  const messStudents = (students ?? []).filter(s => s.seatNumber) // Only students with assigned seats
 
   const form = useForm({
     resolver: zodResolver(markAttendanceSchema),

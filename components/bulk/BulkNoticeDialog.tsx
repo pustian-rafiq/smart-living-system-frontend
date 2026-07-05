@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -42,10 +42,9 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
-import { mockBuildings } from '@/data/mockBuildings'
-import { getFloorsByBuilding } from '@/data/mockFloors'
-import { mockFlats } from '@/data/mockBuildings'
-import { mockMess } from '@/data/mockMess'
+import { fetchOwnerPortfolioSnapshot, fetchFloorsByBuilding } from '@/lib/api/buildings'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { BulkNoticeData } from '@/types/bulk'
 import { Bell } from 'lucide-react'
 
@@ -86,9 +85,29 @@ export function BulkNoticeDialog({
   const [selectedMess, setSelectedMess] = useState<string>('')
   const [expiryDate, setExpiryDate] = useState<Date | undefined>()
 
-  const floors = selectedBuilding ? getFloorsByBuilding(selectedBuilding) : []
+  const loadPortfolio = useCallback(
+    () =>
+      open
+        ? fetchOwnerPortfolioSnapshot()
+        : Promise.resolve(ok({ buildings: [], flats: [], messList: [] })),
+    [open]
+  )
+  const { data: portfolio } = useMockQuery(loadPortfolio)
+
+  const loadFloors = useCallback(
+    () =>
+      open && selectedBuilding
+        ? fetchFloorsByBuilding(selectedBuilding)
+        : Promise.resolve(ok([])),
+    [open, selectedBuilding]
+  )
+  const { data: floorsData } = useMockQuery(loadFloors)
+
+  const floors = floorsData ?? []
+  const buildings = portfolio?.buildings ?? []
+  const messList = portfolio?.messList ?? []
   const availableFlats = selectedBuilding
-    ? mockFlats.filter(f => f.buildingId === selectedBuilding)
+    ? (portfolio?.flats ?? []).filter(f => f.buildingId === selectedBuilding)
     : []
 
   const form = useForm<BulkNoticeData>({
@@ -130,7 +149,7 @@ export function BulkNoticeDialog({
 
   const selectedCount = useMemo(() => {
     if (selectedMess)
-      return mockMess.find(m => m.id === selectedMess)?.totalSeats || 0
+      return messList.find(m => m.id === selectedMess)?.totalSeats || 0
     if (selectedFlats.length > 0) return selectedFlats.length
     if (selectedFloors.length > 0) {
       return floors
@@ -146,6 +165,7 @@ export function BulkNoticeDialog({
     selectedBuilding,
     floors,
     availableFlats,
+    messList,
   ])
 
   return (
@@ -195,7 +215,7 @@ export function BulkNoticeDialog({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {mockBuildings.map(building => (
+                            {buildings.map(building => (
                               <SelectItem key={building.id} value={building.id}>
                                 {building.name}
                               </SelectItem>
@@ -230,7 +250,7 @@ export function BulkNoticeDialog({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {mockMess.map(mess => (
+                            {messList.map(mess => (
                               <SelectItem key={mess.id} value={mess.id}>
                                 {mess.name}
                               </SelectItem>

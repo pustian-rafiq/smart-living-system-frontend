@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -23,6 +24,8 @@ import type { ReactNode } from 'react'
 
 function CompareContent() {
   const router = useRouter()
+  const t = useTranslations('property.compare')
+  const tf = useTranslations('search.page.filters')
   const searchParams = useSearchParams()
   const ids = useMemo(
     () =>
@@ -40,27 +43,27 @@ function CompareContent() {
   if (!ids.length) {
     return (
       <EmptyState
-        title="Nothing to compare"
-        description="Select 2–3 listings from search using the compare checkbox."
+        title={t('emptyTitle')}
+        description={t('emptyDesc')}
         icon={GitCompareArrows}
       >
         <Button asChild>
-          <Link href="/search">Go to search</Link>
+          <Link href="/search">{t('goToSearch')}</Link>
         </Button>
       </EmptyState>
     )
   }
 
-  if (loading) return <LoadingState label="Loading comparison…" />
+  if (loading) return <LoadingState label={t('loading')} />
   if (error || !properties?.length) {
     return (
       <EmptyState
-        title="Could not load listings"
-        description={error || 'Try selecting listings again.'}
+        title={t('errorTitle')}
+        description={error || t('errorDesc')}
         icon={GitCompareArrows}
       >
         <Button asChild>
-          <Link href="/search">Back to search</Link>
+          <Link href="/search">{t('backToSearch')}</Link>
         </Button>
       </EmptyState>
     )
@@ -71,19 +74,20 @@ function CompareContent() {
     get: (p: Property) => ReactNode
   }[] = [
     {
-      label: 'Rent',
+      label: t('fields.rent'),
       get: p => (
         <span className="font-bold text-primary">
-          ৳{p.rent.toLocaleString()}/mo
+          ৳{p.rent.toLocaleString()}
+          {t('perMonth')}
         </span>
       ),
     },
     {
-      label: 'Type',
+      label: t('fields.type'),
       get: p => <span className="capitalize">{p.type}</span>,
     },
     {
-      label: 'Location',
+      label: t('fields.location'),
       get: p => (
         <span>
           {p.area}, {p.city}
@@ -91,7 +95,7 @@ function CompareContent() {
       ),
     },
     {
-      label: 'Rating',
+      label: t('fields.rating'),
       get: p =>
         p.rating != null && p.reviewCount ? (
           <RatingDisplay rating={p.rating} size="sm" />
@@ -100,7 +104,7 @@ function CompareContent() {
         ),
     },
     {
-      label: 'Verified',
+      label: t('fields.verified'),
       get: p =>
         p.verified ? (
           <Check className="h-4 w-4 text-emerald-600" />
@@ -109,7 +113,7 @@ function CompareContent() {
         ),
     },
     {
-      label: 'Instant book',
+      label: t('instantBook'),
       get: p =>
         p.instantBook ? (
           <Check className="h-4 w-4 text-emerald-600" />
@@ -118,32 +122,34 @@ function CompareContent() {
         ),
     },
     {
-      label: 'Available',
-      get: p => (p.available ? 'Yes' : 'No'),
+      label: t('fields.available'),
+      get: p => (p.available ? t('yes') : t('no')),
     },
     {
-      label: 'Gender',
+      label: t('fields.gender'),
       get: p => (p.gender ? <span className="capitalize">{p.gender}</span> : '—'),
     },
     {
-      label: 'Seat',
+      label: t('seat'),
       get: p =>
         p.seatType ? <span className="capitalize">{p.seatType}</span> : '—',
     },
     {
-      label: 'Meals',
+      label: t('meals'),
       get: p =>
         p.mealIncluded
-          ? `Yes${p.mealCost ? ` (+৳${p.mealCost})` : ''}`
-          : 'No',
+          ? `${t('yes')}${p.mealCost ? ` (+৳${p.mealCost})` : ''}`
+          : t('no'),
     },
     {
-      label: 'Deposit',
+      label: t('deposit'),
       get: p =>
-        `${p.depositMonths ?? (p.type === 'apartment' ? 2 : 1)} month(s)`,
+        t('months', {
+          count: p.depositMonths ?? (p.type === 'apartment' ? 2 : 1),
+        }),
     },
     {
-      label: 'Furnishing',
+      label: tf('furnishing'),
       get: p =>
         p.furnishing ? (
           <span className="capitalize">{p.furnishing}</span>
@@ -152,15 +158,15 @@ function CompareContent() {
         ),
     },
     {
-      label: 'Parking',
-      get: p => (p.parking ? 'Yes' : 'No'),
+      label: tf('parking'),
+      get: p => (p.parking ? t('yes') : t('no')),
     },
     {
-      label: 'Security',
-      get: p => (p.security ? 'Yes' : 'No'),
+      label: tf('security'),
+      get: p => (p.security ? t('yes') : t('no')),
     },
     {
-      label: 'Facilities',
+      label: t('facilities'),
       get: p => (
         <div className="flex flex-wrap gap-1">
           {p.facilities.slice(0, 6).map((f: string) => (
@@ -209,7 +215,7 @@ function CompareContent() {
                   className="mt-3"
                   onClick={() => router.push(`/listings/${p.id}`)}
                 >
-                  View listing
+                  {t('viewListing')}
                 </Button>
               </th>
             ))}
@@ -235,19 +241,22 @@ function CompareContent() {
 }
 
 export default function ComparePage() {
+  const t = useTranslations('property.compare')
+  const tc = useTranslations('common')
+
   return (
     <Layout>
       <PageContainer>
         <PageHeader
-          title="Compare listings"
-          description="Side-by-side comparison to pick the best mess, hostel, or apartment."
+          title={t('title')}
+          description={t('description')}
           actions={
             <Button variant="outline" asChild>
-              <Link href="/search">Add more from search</Link>
+              <Link href="/search">{t('addMoreFromSearch')}</Link>
             </Button>
           }
         />
-        <Suspense fallback={<LoadingState label="Loading…" />}>
+        <Suspense fallback={<LoadingState label={tc('loading')} />}>
           <CompareContent />
         </Suspense>
       </PageContainer>

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FloorCard } from '@/components/floor/FloorCard'
 import { FloorDialog } from '@/components/floor/FloorDialog'
@@ -18,31 +19,41 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import {
-  getFloorsByBuilding,
+  fetchBuildingById,
+  fetchFloorsByBuilding,
   addFloor,
   updateFloor,
   deleteFloor,
-} from '@/data/mockFloors'
-import { mockBuildings } from '@/data/mockBuildings'
+} from '@/lib/api/buildings'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { Floor, FloorFormData } from '@/types/floor'
 import { Plus, Building2 } from 'lucide-react'
 
 export default function FloorsPage() {
+  const t = useTranslations('portfolio.floors')
+  const tb = useTranslations('portfolio.buildings')
+  const tc = useTranslations('common')
   const params = useParams()
   const router = useRouter()
   const buildingId = params.buildingId as string
+
+  const loadBuilding = useCallback(
+    () => fetchBuildingById(buildingId),
+    [buildingId]
+  )
+  const { data: building } = useMockQuery(loadBuilding)
+
+  const loadFloors = useCallback(
+    () => fetchFloorsByBuilding(buildingId),
+    [buildingId]
+  )
+  const { data: floorsData, refetch: refetchFloors } = useMockQuery(loadFloors)
+  const floors = floorsData ?? []
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedFloor, setSelectedFloor] = useState<Floor | null>(null)
   const [deleteFloorData, setDeleteFloorData] = useState<Floor | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
-
-  const building = mockBuildings.find(b => b.id === buildingId)
-  const floors = useMemo(
-    () => getFloorsByBuilding(buildingId),
-    [buildingId, refreshKey]
-  )
 
   const handleAddFloor = () => {
     setSelectedFloor(null)
@@ -76,7 +87,7 @@ export default function FloorsPage() {
         flats: [],
       })
     }
-    setRefreshKey(k => k + 1)
+    void refetchFloors()
   }
 
   const handleConfirmDelete = () => {
@@ -84,9 +95,16 @@ export default function FloorsPage() {
       deleteFloor(deleteFloorData.id)
       setIsDeleteDialogOpen(false)
       setDeleteFloorData(null)
-      setRefreshKey(k => k + 1)
+      void refetchFloors()
     }
   }
+
+  const tf = useTranslations('portfolio.flats')
+  const deleteFloorName =
+    deleteFloorData?.name ||
+    (deleteFloorData
+      ? tf('floorNumber', { number: deleteFloorData.floorNumber })
+      : '')
 
   if (!building) {
     return (
@@ -94,13 +112,13 @@ export default function FloorsPage() {
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">Building not found</p>
+              <p className="text-muted-foreground">{tb('notFoundTitle')}</p>
               <Button
                 variant="outline"
                 className="mt-4"
                 onClick={() => router.push('/my-properties')}
               >
-                Back to Buildings
+                {tb('backToBuildings')}
               </Button>
             </CardContent>
           </Card>
@@ -121,15 +139,13 @@ export default function FloorsPage() {
                 className="mb-2 -ml-2"
                 onClick={() => router.push('/my-properties')}
               >
-                ← Back to buildings
+                {t('backToBuildings')}
               </Button>
               <h1 className="flex items-center gap-2 text-2xl font-bold">
                 <Building2 className="h-6 w-6" />
-                {building.name} — Floors
+                {t('titleSuffix', { name: building.name })}
               </h1>
-              <p className="mt-1 text-muted-foreground">
-                Manage floors and open flats by floor
-              </p>
+              <p className="mt-1 text-muted-foreground">{t('manageDesc')}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -138,11 +154,11 @@ export default function FloorsPage() {
                   router.push(`/my-properties/buildings/${buildingId}/flats`)
                 }
               >
-                All flats
+                {t('allFlats')}
               </Button>
               <Button onClick={handleAddFloor}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add floor
+                {t('addFloor')}
               </Button>
             </div>
           </div>
@@ -165,10 +181,10 @@ export default function FloorsPage() {
           <Card>
             <CardContent className="py-12 text-center">
               <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground mb-4">No floors found</p>
+              <p className="text-muted-foreground mb-4">{t('emptyFloors')}</p>
               <Button onClick={handleAddFloor}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add First Floor
+                {t('addFirstFloor')}
               </Button>
             </CardContent>
           </Card>
@@ -189,22 +205,18 @@ export default function FloorsPage() {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Floor?</AlertDialogTitle>
+              <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete{' '}
-                {deleteFloorData?.name ||
-                  `Floor ${deleteFloorData?.floorNumber}`}
-                ? This action cannot be undone. All flats on this floor will
-                need to be reassigned.
+                {t('deleteDesc', { name: deleteFloorName })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{tc('actions.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Delete
+                {tc('delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

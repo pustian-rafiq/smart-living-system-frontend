@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,14 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Bell, X, Search, ExternalLink } from 'lucide-react'
-import {
-  mockSavedSearches,
-  getActiveSavedSearches,
-} from '@/data/mockSavedSearches'
-import { mockProperties } from '@/data/mockProperties'
+import { Bell, Search, ExternalLink } from 'lucide-react'
+import { fetchSearchMatchNotifications } from '@/lib/api/search'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { SavedSearch } from '@/types/savedSearch'
-import type { Property, SearchFilters } from '@/types/property'
+import type { SearchMatchNotification } from '@/lib/api/search'
 import { useRouter } from 'next/navigation'
 
 interface SearchNotificationProps {
@@ -27,184 +24,33 @@ interface SearchNotificationProps {
 
 interface MatchNotification {
   savedSearch: SavedSearch
-  newMatches: Property[]
+  newMatches: SearchMatchNotification['newMatches']
   matchCount: number
-}
-
-// Helper function to check if property matches search filters
-function propertyMatchesFilters(
-  property: Property,
-  filters: SearchFilters
-): boolean {
-  // Property type
-  if (
-    filters.propertyType !== 'all' &&
-    property.type !== filters.propertyType
-  ) {
-    return false
-  }
-
-  // City
-  if (filters.city && property.city !== filters.city) {
-    return false
-  }
-
-  // Area
-  if (filters.area && property.area !== filters.area) {
-    return false
-  }
-
-  // Rent range
-  if (
-    property.rent < filters.rentRange[0] ||
-    property.rent > filters.rentRange[1]
-  ) {
-    return false
-  }
-
-  // Available only
-  if (filters.availableOnly && !property.available) {
-    return false
-  }
-
-  // Verified only
-  if (filters.verifiedOnly && !property.verified) {
-    return false
-  }
-
-  // Gender (for mess/hostel)
-  if (
-    filters.gender &&
-    (property.type === 'mess' || property.type === 'hostel')
-  ) {
-    if (
-      property.gender &&
-      property.gender !== filters.gender &&
-      property.gender !== 'mixed'
-    ) {
-      return false
-    }
-  }
-
-  // Seat type
-  if (filters.seatType && property.seatType !== filters.seatType) {
-    return false
-  }
-
-  // Meal included
-  if (
-    filters.mealIncluded !== undefined &&
-    property.mealIncluded !== filters.mealIncluded
-  ) {
-    return false
-  }
-
-  // Meal plan
-  if (filters.mealPlan && property.mealPlan !== filters.mealPlan) {
-    return false
-  }
-
-  // Nearby facilities
-  if (filters.nearbyFacilities && filters.nearbyFacilities.length > 0) {
-    const propertyFacilities = property.nearbyFacilities || []
-    const hasAllFacilities = filters.nearbyFacilities.every(facility =>
-      propertyFacilities.includes(facility)
-    )
-    if (!hasAllFacilities) {
-      return false
-    }
-  }
-
-  // Building age
-  if (filters.buildingAge !== undefined && property.buildingAge !== undefined) {
-    if (property.buildingAge > filters.buildingAge) {
-      return false
-    }
-  }
-
-  // Floor level
-  if (filters.floorLevel !== undefined && property.floorLevel !== undefined) {
-    if (property.floorLevel > filters.floorLevel) {
-      return false
-    }
-  }
-
-  // Furnishing
-  if (filters.furnishing && property.furnishing !== filters.furnishing) {
-    return false
-  }
-
-  // Parking
-  if (filters.parking !== undefined && property.parking !== filters.parking) {
-    return false
-  }
-
-  // Security
-  if (
-    filters.security !== undefined &&
-    property.security !== filters.security
-  ) {
-    return false
-  }
-
-  return true
 }
 
 export function SearchNotification({ userId }: SearchNotificationProps) {
   const router = useRouter()
-  const [notifications, setNotifications] = useState<MatchNotification[]>([])
   const [showNotificationDialog, setShowNotificationDialog] = useState(false)
-  const [hasNewMatches, setHasNewMatches] = useState(false)
+  const [dismissedIds, setDismissedIds] = useState<string[]>([])
+
+  const loadNotifications = useCallback(
+    () => fetchSearchMatchNotifications(userId),
+    [userId]
+  )
+  const { data, refetch } = useMockQuery(loadNotifications)
+  const notifications: MatchNotification[] = (data ?? []).filter(
+    notification => !dismissedIds.includes(notification.savedSearch.id)
+  )
 
   useEffect(() => {
-    const checkForNewMatches = () => {
-      const activeSearches = getActiveSavedSearches(userId)
-      const newNotifications: MatchNotification[] = []
-
-      activeSearches.forEach(savedSearch => {
-        // Find properties that match this search
-        const matchingProperties = mockProperties.filter(property =>
-          propertyMatchesFilters(property, savedSearch.filters)
-        )
-
-        // Check if there are new matches (properties created after last check)
-        const lastChecked = savedSearch.lastChecked
-          ? new Date(savedSearch.lastChecked)
-          : new Date(savedSearch.createdAt)
-
-        const newMatches = matchingProperties.filter(property => {
-          const propertyDate = new Date(property.createdAt)
-          return propertyDate > lastChecked
-        })
-
-        if (newMatches.length > 0) {
-          newNotifications.push({
-            savedSearch,
-            newMatches,
-            matchCount: matchingProperties.length,
-          })
-        }
-      })
-
-      if (newNotifications.length > 0) {
-        setNotifications(newNotifications)
-        setHasNewMatches(true)
-        // Update last checked time for all searches
-        newNotifications.forEach(notification => {
-          notification.savedSearch.lastChecked = new Date().toISOString()
-          notification.savedSearch.matchCount = notification.matchCount
-          notification.savedSearch.updatedAt = new Date().toISOString()
-        })
-      }
-    }
-
-    // Check immediately
-    checkForNewMatches()
-
-    // Check every 5 minutes (in real app, this would be server-side)
-    const interval = setInterval(checkForNewMatches, 5 * 60 * 1000)
-
+    const interval = setInterval(() => {
+      refetch()
+    }, 5 * 60 * 1000)
     return () => clearInterval(interval)
+  }, [refetch])
+
+  useEffect(() => {
+    setDismissedIds([])
   }, [userId])
 
   const handleViewMatches = (savedSearch: SavedSearch) => {
@@ -232,17 +78,15 @@ export function SearchNotification({ userId }: SearchNotificationProps) {
     }
     router.push(`/search?${params.toString()}`)
     setShowNotificationDialog(false)
-    setHasNewMatches(false)
-    setNotifications([])
+    setDismissedIds(ids => (ids.includes(savedSearch.id) ? ids : [...ids, savedSearch.id]))
   }
 
   const handleDismiss = () => {
     setShowNotificationDialog(false)
-    setHasNewMatches(false)
-    setNotifications([])
+    setDismissedIds(notifications.map(notification => notification.savedSearch.id))
   }
 
-  if (!hasNewMatches || notifications.length === 0) {
+  if (notifications.length === 0) {
     return null
   }
 

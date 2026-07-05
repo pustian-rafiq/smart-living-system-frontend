@@ -18,6 +18,7 @@ import {
   getQuickActionsForRole,
   isChildActive,
   isNavItemActive,
+  useNavLabels,
 } from '@/lib/navigation'
 import type { NavItem } from '@/lib/navigation'
 import type { UserRole } from '@/types'
@@ -36,18 +37,24 @@ function navTriggerClass(active: boolean) {
 }
 
 function NavLinkItem({ item, pathname }: { item: NavItem; pathname: string }) {
+  const { label } = useNavLabels()
   const active = isNavItemActive(pathname, item)
 
   if (!item.href) return null
 
   return (
-    <Link href={item.href} className={navTriggerClass(active)}>
-      {item.label}
+    <Link
+      href={item.href}
+      className={navTriggerClass(active)}
+      aria-current={active ? 'page' : undefined}
+    >
+      {label(item.labelKey)}
     </Link>
   )
 }
 
 function NavDropdownItem({ item, pathname }: { item: NavItem; pathname: string }) {
+  const { label } = useNavLabels()
   const active = isNavItemActive(pathname, item)
 
   if (!item.children?.length) return null
@@ -55,7 +62,7 @@ function NavDropdownItem({ item, pathname }: { item: NavItem; pathname: string }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={cn(navTriggerClass(active), 'outline-none')}>
-        {item.label}
+        {label(item.labelKey)}
         <ChevronDown className="h-3.5 w-3.5 opacity-60" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
@@ -68,10 +75,10 @@ function NavDropdownItem({ item, pathname }: { item: NavItem; pathname: string }
                 isChildActive(pathname, child) && 'bg-accent'
               )}
             >
-              <span className="font-medium">{child.label}</span>
-              {child.description && (
+              <span className="font-medium">{label(child.labelKey)}</span>
+              {child.descriptionKey && (
                 <span className="text-xs text-muted-foreground">
-                  {child.description}
+                  {label(child.descriptionKey)}
                 </span>
               )}
             </Link>
@@ -83,6 +90,7 @@ function NavDropdownItem({ item, pathname }: { item: NavItem; pathname: string }
 }
 
 function QuickActionsMenu({ role }: { role: UserRole }) {
+  const { label } = useNavLabels()
   const actions = getQuickActionsForRole(role)
   if (actions.length === 0) return null
 
@@ -91,11 +99,11 @@ function QuickActionsMenu({ role }: { role: UserRole }) {
       <DropdownMenuTrigger asChild>
         <Button size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" />
-          New
+          {label('quickActions.new')}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Quick actions</DropdownMenuLabel>
+        <DropdownMenuLabel>{label('quickActions.title')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {actions.map(action => (
           <DropdownMenuItem key={action.href} asChild>
@@ -103,10 +111,10 @@ function QuickActionsMenu({ role }: { role: UserRole }) {
               href={action.href}
               className="flex cursor-pointer flex-col items-start gap-0.5"
             >
-              <span className="font-medium">{action.label}</span>
-              {action.description && (
+              <span className="font-medium">{label(action.labelKey)}</span>
+              {action.descriptionKey && (
                 <span className="text-xs text-muted-foreground">
-                  {action.description}
+                  {label(action.descriptionKey)}
                 </span>
               )}
             </Link>
@@ -130,9 +138,9 @@ export function Navbar({ userRole = 'renter' }: NavbarProps) {
         <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
           {items.map(item =>
             item.children?.length ? (
-              <NavDropdownItem key={item.label} item={item} pathname={pathname} />
+              <NavDropdownItem key={item.labelKey} item={item} pathname={pathname} />
             ) : (
-              <NavLinkItem key={item.label} item={item} pathname={pathname} />
+              <NavLinkItem key={item.labelKey} item={item} pathname={pathname} />
             )
           )}
         </div>

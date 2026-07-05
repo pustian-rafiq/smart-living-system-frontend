@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useLanguage } from '@/components/language/LanguageProvider'
-import { useTheme } from '@/components/theme/ThemeProvider'
+import { useTranslations } from 'next-intl'
+import { LanguageSwitcher } from '@/components/i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,25 +18,20 @@ import {
 
 export default function Login() {
   const router = useRouter()
-  const { t, language, toggle: toggleLang } = useLanguage()
-  const { theme } = useTheme()
+  const t = useTranslations('auth.login')
+  const tc = useTranslations('common')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const formatPhoneNumber = (value: string) => {
-    // Remove all non-digits
     const digits = value.replace(/\D/g, '')
-
-    // If starts with 880, keep it
     if (digits.startsWith('880')) {
-      return digits.slice(0, 13) // Max 13 digits (880 + 10 digits)
+      return digits.slice(0, 13)
     }
-    // If starts with 0, add 880 prefix
     if (digits.startsWith('0')) {
-      return '880' + digits.slice(1, 11) // 880 + 10 digits
+      return '880' + digits.slice(1, 11)
     }
-    // Otherwise, add 880 prefix
     return '880' + digits.slice(0, 10)
   }
 
@@ -49,18 +45,15 @@ export default function Login() {
     e.preventDefault()
     setError('')
 
-    // Validate phone number (should be 880 + 10 digits = 13 digits)
     if (phone.length !== 13) {
-      setError(language === 'bn' ? 'অবৈধ ফোন নম্বর' : 'Invalid phone number')
+      setError(t('invalidPhone'))
       return
     }
 
     setLoading(true)
 
-    // Simulate API call
     setTimeout(() => {
       setLoading(false)
-      // Store phone in sessionStorage for OTP page
       sessionStorage.setItem('loginPhone', phone)
       router.push('/otp-verify')
     }, 1000)
@@ -71,28 +64,21 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-[480px]">
-        {/* Language Toggle */}
         <div className="flex justify-end mb-4">
-          <Button onClick={toggleLang} variant="outline" size="sm">
-            {language === 'bn' ? 'English' : 'বাংলা'}
-          </Button>
+          <LanguageSwitcher />
         </div>
 
-        {/* Login Card */}
         <Card className="w-full">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl sm:text-3xl">
-              {t.login.title}
-            </CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl">{t('title')}</CardTitle>
             <CardDescription className="text-sm sm:text-base">
-              {t.login.subtitle}
+              {t('subtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Phone Input */}
               <div className="space-y-2">
-                <Label htmlFor="phone">{t.login.phoneLabel}</Label>
+                <Label htmlFor="phone">{t('phoneLabel')}</Label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <span className="text-muted-foreground text-lg font-medium">
@@ -104,7 +90,7 @@ export default function Login() {
                     id="phone"
                     value={displayPhone}
                     onChange={handlePhoneChange}
-                    placeholder={t.login.phonePlaceholder}
+                    placeholder={t('phonePlaceholder')}
                     className="pl-20 text-base sm:text-lg"
                     maxLength={17}
                     required
@@ -113,34 +99,36 @@ export default function Login() {
                 {error && <p className="text-sm text-destructive">{error}</p>}
               </div>
 
-              {/* Send OTP Button */}
               <Button
                 type="submit"
                 disabled={loading || phone.length !== 13}
                 className="w-full text-base sm:text-lg h-12 sm:h-14"
                 size="lg"
               >
-                {loading ? t.common.loading : t.login.sendOtp}
+                {loading ? tc('loading') : t('sendOtp')}
               </Button>
 
-              {/* Terms & Conditions */}
               <p className="text-xs sm:text-sm text-center text-muted-foreground">
-                {t.login.terms}{' '}
-                <a href="/terms" className="text-primary hover:underline">
-                  {t.login.termsLink}
-                </a>{' '}
-                {t.login.and}{' '}
-                <a href="/privacy" className="text-primary hover:underline">
-                  {t.login.privacyLink}
-                </a>
+                {t('terms')}{' '}
+                <Link href="/terms" className="text-link hover:underline">
+                  {t('termsLink')}
+                </Link>{' '}
+                {t('and')}{' '}
+                <Link href="/privacy" className="text-link hover:underline">
+                  {t('privacyLink')}
+                </Link>
+              </p>
+              <p className="text-center text-xs text-muted-foreground">
+                <Link href="/account/recover" className="text-link hover:underline">
+                  {t('forgotAccess')}
+                </Link>
               </p>
             </form>
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2024 Smart Living System
+          {tc('copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </div>

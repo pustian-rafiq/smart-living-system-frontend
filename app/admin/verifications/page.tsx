@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo, Suspense } from 'react'
+import { useState, useMemo, Suspense, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { VerificationRequestCard } from '@/components/admin/VerificationRequestCard'
@@ -11,41 +12,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { mockVerificationRequests } from '@/data/mockAdmin'
-import type { VerificationStatus } from '@/types/admin'
+import { fetchVerificationRequests } from '@/lib/api/admin'
+import type { VerificationRequest, VerificationStatus } from '@/types/admin'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 function VerificationsContent() {
+  const { confirm } = useConfirm()
+  const t = useTranslations('admin.verifications')
+  const tp = useTranslations('admin.properties')
+  const tc = useTranslations('common')
   const searchParams = useSearchParams()
   const initialStatus =
     (searchParams.get('status') as VerificationStatus) || 'all'
 
-  const [requests, setRequests] = useState(mockVerificationRequests)
+  const [requests, setRequests] = useState<VerificationRequest[]>([])
   const [statusFilter, setStatusFilter] = useState<VerificationStatus | 'all'>(
     initialStatus
   )
+
+  useEffect(() => {
+    fetchVerificationRequests().then(result => {
+      if (result.ok) setRequests(result.data)
+    })
+  }, [])
 
   const filteredRequests = useMemo(() => {
     if (statusFilter === 'all') return requests
     return requests.filter(r => r.status === statusFilter)
   }, [requests, statusFilter])
 
-  const handleApprove = (requestId: string) => {
-    if (confirm('Approve this verification request?')) {
-      setRequests(
-        requests.map(r =>
-          r.id === requestId
-            ? {
-                ...r,
-                status: 'approved' as VerificationStatus,
-                reviewedAt: new Date().toISOString(),
-                reviewedBy: 'admin1',
-              }
-            : r
-        )
+  const handleApprove = async (requestId: string) => {
+    const ok = await confirm({
+      title: t('approveTitle'),
+    })
+    if (!ok) return
+    setRequests(
+      requests.map(r =>
+        r.id === requestId
+          ? {
+              ...r,
+              status: 'approved' as VerificationStatus,
+              reviewedAt: new Date().toISOString(),
+              reviewedBy: 'admin1',
+            }
+          : r
       )
-      // TODO: API call
-      alert('Verification approved')
-    }
+    )
+    toast.success(t('approved'))
   }
 
   const handleReject = (requestId: string, reason: string) => {
@@ -62,8 +76,7 @@ function VerificationsContent() {
           : r
       )
     )
-    // TODO: API call
-    alert('Verification rejected')
+    toast.success(t('rejected'))
   }
 
   const statusCounts = {
@@ -78,40 +91,28 @@ function VerificationsContent() {
     <AdminLayout>
       <div className="max-w-7xl">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Verification Management</h2>
-          <p className="text-muted-foreground">
-            Review and manage user verification requests
-          </p>
+          <h2 className="text-2xl font-bold mb-2">{t('managementTitle')}</h2>
+          <p className="text-muted-foreground">{t('managementDesc')}</p>
         </div>
 
-        {/* Status Filter */}
         <div className="mb-6 flex items-center gap-4">
           <Select
             value={statusFilter}
-            onValueChange={value => setStatusFilter(value as any)}
+            onValueChange={value => setStatusFilter(value as VerificationStatus | 'all')}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={tp('filterByStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All ({statusCounts.all})</SelectItem>
-              <SelectItem value="pending">
-                Pending ({statusCounts.pending})
-              </SelectItem>
-              <SelectItem value="approved">
-                Approved ({statusCounts.approved})
-              </SelectItem>
-              <SelectItem value="rejected">
-                Rejected ({statusCounts.rejected})
-              </SelectItem>
-              <SelectItem value="expired">
-                Expired ({statusCounts.expired})
-              </SelectItem>
+              <SelectItem value="all">{tc('status.all')} ({statusCounts.all})</SelectItem>
+              <SelectItem value="pending">{tc('status.pending')} ({statusCounts.pending})</SelectItem>
+              <SelectItem value="approved">{tc('status.approved')} ({statusCounts.approved})</SelectItem>
+              <SelectItem value="rejected">{tc('status.rejected')} ({statusCounts.rejected})</SelectItem>
+              <SelectItem value="expired">{t('expired')} ({statusCounts.expired})</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Verification Requests */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredRequests.map(request => (
             <VerificationRequestCard
@@ -125,7 +126,7 @@ function VerificationsContent() {
 
         {filteredRequests.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            No verification requests found
+            {t('emptyFiltered')}
           </div>
         )}
       </div>
@@ -134,8 +135,9 @@ function VerificationsContent() {
 }
 
 export default function AdminVerificationsPage() {
+  const tc = useTranslations('common')
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>{tc('loading')}</div>}>
       <VerificationsContent />
     </Suspense>
   )

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { RatingDisplay } from './RatingDisplay'
 import { format } from 'date-fns'
 import Image from 'next/image'
+import { SafeText } from '@/components/security/SafeText'
 
 interface ReviewCardProps {
   review: {
@@ -50,7 +51,9 @@ export function ReviewCard({ review }: ReviewCardProps) {
               />
             </div>
 
-            <p className="text-sm text-foreground mb-3">{review.comment}</p>
+            <SafeText as="p" className="text-sm text-foreground mb-3">
+              {review.comment}
+            </SafeText>
 
             {review.images && review.images.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mb-3">
@@ -86,9 +89,9 @@ export function ReviewCard({ review }: ReviewCardProps) {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-foreground">
+                <SafeText as="p" className="text-sm text-foreground">
                   {review.ownerResponse}
-                </p>
+                </SafeText>
               </div>
             )}
           </div>

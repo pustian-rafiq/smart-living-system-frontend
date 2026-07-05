@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { HotelCard } from '@/components/hotel/HotelCard'
 import { Button } from '@/components/ui/button'
@@ -16,11 +17,17 @@ import {
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
-import { Filter, X } from 'lucide-react'
-import { mockHotels } from '@/data/mockHotels'
-import type { Hotel, HotelSearchFilters } from '@/types/hotel'
+import { Filter, X, Hotel as HotelIcon } from 'lucide-react'
+import { EmptyState, LoadingState } from '@/components/page'
+import { fetchHotels } from '@/lib/api/hotels'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import type { HotelSearchFilters } from '@/types/hotel'
 
 export default function HotelsPage() {
+  const t = useTranslations('hotels')
+  const tc = useTranslations('common')
+  const loadHotels = useCallback(() => fetchHotels(), [])
+  const { data: hotels, loading } = useMockQuery(loadHotels)
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState<HotelSearchFilters>({
     city: undefined,
@@ -37,7 +44,7 @@ export default function HotelsPage() {
   const [ratingRange, setRatingRange] = useState([0, 5])
 
   const filteredHotels = useMemo(() => {
-    let filtered = [...mockHotels]
+    let filtered = [...(hotels ?? [])]
 
     if (filters.city) {
       filtered = filtered.filter(h =>
@@ -74,7 +81,7 @@ export default function HotelsPage() {
     }
 
     return filtered
-  }, [filters])
+  }, [filters, hotels])
 
   const handleResetFilters = () => {
     setFilters({
@@ -111,16 +118,26 @@ export default function HotelsPage() {
     'Spa',
   ]
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
+          <LoadingState label={t('browse.pageTitle')} />
+        </div>
+      </Layout>
+    )
+  }
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-2">
-            Find Hotels & Guest Houses
+            {t('browse.pageTitle')}
           </h1>
           <p className="text-muted-foreground">
-            Discover the perfect accommodation for your stay
+            {t('browse.pageDescription')}
           </p>
         </div>
 
@@ -132,7 +149,7 @@ export default function HotelsPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-semibold">Filters</h2>
+                  <h2 className="font-semibold">{tc('filters')}</h2>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -146,7 +163,7 @@ export default function HotelsPage() {
                 <div className="space-y-4">
                   {/* City */}
                   <div>
-                    <Label>City</Label>
+                    <Label>{t('browse.filters.city')}</Label>
                     <Select
                       value={filters.city || 'all'}
                       onValueChange={value =>
@@ -157,10 +174,12 @@ export default function HotelsPage() {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select city" />
+                        <SelectValue placeholder={t('browse.filters.selectCity')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Cities</SelectItem>
+                        <SelectItem value="all">
+                          {t('browse.filters.allCities')}
+                        </SelectItem>
                         {cities.map(city => (
                           <SelectItem key={city} value={city}>
                             {city}
@@ -172,7 +191,7 @@ export default function HotelsPage() {
 
                   {/* Area */}
                   <div>
-                    <Label>Area</Label>
+                    <Label>{t('browse.filters.area')}</Label>
                     <Select
                       value={filters.area || 'all'}
                       onValueChange={value =>
@@ -183,10 +202,12 @@ export default function HotelsPage() {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select area" />
+                        <SelectValue placeholder={t('browse.filters.selectArea')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Areas</SelectItem>
+                        <SelectItem value="all">
+                          {t('browse.filters.allAreas')}
+                        </SelectItem>
                         {areas.map(area => (
                           <SelectItem key={area} value={area}>
                             {area}
@@ -198,7 +219,7 @@ export default function HotelsPage() {
 
                   {/* Hotel Type */}
                   <div>
-                    <Label>Hotel Type</Label>
+                    <Label>{t('browse.filters.hotelType')}</Label>
                     <Select
                       value={filters.hotelType || 'all'}
                       onValueChange={value =>
@@ -209,17 +230,29 @@ export default function HotelsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="hotel">Hotel</SelectItem>
-                        <SelectItem value="guest-house">Guest House</SelectItem>
-                        <SelectItem value="resort">Resort</SelectItem>
+                        <SelectItem value="all">
+                          {t('browse.filters.allTypes')}
+                        </SelectItem>
+                        <SelectItem value="hotel">
+                          {t('browse.filters.hotel')}
+                        </SelectItem>
+                        <SelectItem value="guest-house">
+                          {t('browse.filters.guestHouse')}
+                        </SelectItem>
+                        <SelectItem value="resort">
+                          {t('browse.filters.resort')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Rating */}
                   <div>
-                    <Label>Minimum Rating: {ratingRange[0]}+</Label>
+                    <Label>
+                      {t('browse.filters.minimumRating', {
+                        rating: ratingRange[0],
+                      })}
+                    </Label>
                     <Slider
                       value={ratingRange}
                       onValueChange={value => {
@@ -236,7 +269,10 @@ export default function HotelsPage() {
                   {/* Price Range */}
                   <div>
                     <Label>
-                      Price Range: ৳{priceRange[0]} - ৳{priceRange[1]}
+                      {t('browse.filters.priceRangeLabel', {
+                        min: priceRange[0],
+                        max: priceRange[1],
+                      })}
                     </Label>
                     <Slider
                       value={priceRange}
@@ -257,7 +293,7 @@ export default function HotelsPage() {
 
                   {/* Amenities */}
                   <div>
-                    <Label>Amenities</Label>
+                    <Label>{t('browse.filters.amenities')}</Label>
                     <div className="space-y-2 mt-2">
                       {amenities.map(amenity => (
                         <div
@@ -292,7 +328,7 @@ export default function HotelsPage() {
                     className="w-full"
                     onClick={handleResetFilters}
                   >
-                    Reset Filters
+                    {tc('resetFilters')}
                   </Button>
                 </div>
               </CardContent>
@@ -304,42 +340,32 @@ export default function HotelsPage() {
             {/* Mobile Filter Button */}
             <div className="mb-4 flex items-center justify-between lg:hidden">
               <p className="text-sm text-muted-foreground">
-                {filteredHotels.length} hotel
-                {filteredHotels.length !== 1 ? 's' : ''} found
+                {t('browse.found', { count: filteredHotels.length })}
               </p>
               <Button variant="outline" onClick={() => setShowFilters(true)}>
                 <Filter className="mr-2 h-4 w-4" />
-                Filters
+                {tc('filters')}
               </Button>
             </div>
 
             {/* Desktop Results Header */}
             <div className="mb-4 hidden lg:block">
               <p className="text-sm text-muted-foreground">
-                {filteredHotels.length} hotel
-                {filteredHotels.length !== 1 ? 's' : ''} found
+                {t('browse.found', { count: filteredHotels.length })}
               </p>
             </div>
 
             {/* Hotel List */}
             {filteredHotels.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <p className="text-lg font-semibold text-muted-foreground">
-                    No hotels found
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Try adjusting your filters
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={handleResetFilters}
-                    className="mt-4"
-                  >
-                    Reset Filters
-                  </Button>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={HotelIcon}
+                title={t('browse.emptyTitle')}
+                description={t('browse.emptyDesc')}
+              >
+                <Button variant="outline" onClick={handleResetFilters}>
+                  {tc('resetFilters')}
+                </Button>
+              </EmptyState>
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {filteredHotels.map(hotel => (

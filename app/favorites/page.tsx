@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
+import { EmptyState, LoadingState } from '@/components/page'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -23,27 +24,152 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { mockFavorites, getFavoritesByUserId } from '@/data/mockFavorites'
+import {
+  fetchFavorites,
+  toggleFavorite,
+} from '@/lib/api/favorites'
+import { fetchPropertiesByIds } from '@/lib/api/properties'
+import { getDemoChatUserId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { Favorite } from '@/types/favorites'
-import { Heart, Share2, Trash2, Search, GitCompare } from 'lucide-react'
-import { mockProperties } from '@/data/mockProperties'
+import type { Property } from '@/types/property'
+import { Heart, Share2, Search, GitCompare } from 'lucide-react'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
+
+function CompareTableBody({
+  properties,
+  onView,
+  onClose,
+}: {
+  properties: Property[]
+  onView: (id: string) => void
+  onClose: () => void
+}) {
+  const t = useTranslations('property.compare')
+  const tSearch = useTranslations('search.page.actions')
+
+  return (
+    <>
+      <tr className="border-b">
+        <td className="p-2 font-medium">{t('fields.type')}</td>
+        {properties.map(property => (
+          <td key={property.id} className="p-2 text-center capitalize">
+            {property.type}
+          </td>
+        ))}
+      </tr>
+      <tr className="border-b">
+        <td className="p-2 font-medium">{t('fields.rent')}</td>
+        {properties.map(property => (
+          <td
+            key={property.id}
+            className="p-2 text-center font-semibold text-primary"
+          >
+            ৳{property.rent.toLocaleString()}
+            {t('perMonth')}
+          </td>
+        ))}
+      </tr>
+      <tr className="border-b">
+        <td className="p-2 font-medium">{t('fields.location')}</td>
+        {properties.map(property => (
+          <td key={property.id} className="p-2 text-center text-sm">
+            {property.area}, {property.city}
+          </td>
+        ))}
+      </tr>
+      <tr className="border-b">
+        <td className="p-2 font-medium">{t('fields.available')}</td>
+        {properties.map(property => (
+          <td key={property.id} className="p-2 text-center">
+            {property.available ? (
+              <span className="text-green-600">{t('yes')}</span>
+            ) : (
+              <span className="text-red-600">{t('no')}</span>
+            )}
+          </td>
+        ))}
+      </tr>
+      <tr className="border-b">
+        <td className="p-2 font-medium">{t('fields.verified')}</td>
+        {properties.map(property => (
+          <td key={property.id} className="p-2 text-center">
+            {property.verified ? (
+              <span className="text-green-600">{t('yes')}</span>
+            ) : (
+              <span className="text-gray-400">{t('no')}</span>
+            )}
+          </td>
+        ))}
+      </tr>
+      <tr className="border-b">
+        <td className="p-2 font-medium">{t('facilities')}</td>
+        {properties.map(property => (
+          <td key={property.id} className="p-2 text-center">
+            <div className="flex flex-wrap gap-1 justify-center">
+              {property.facilities.slice(0, 3).map((facility, idx) => (
+                <span
+                  key={idx}
+                  className="text-xs bg-muted px-2 py-1 rounded"
+                >
+                  {facility}
+                </span>
+              ))}
+              {property.facilities.length > 3 && (
+                <span className="text-xs text-muted-foreground">
+                  +{property.facilities.length - 3}
+                </span>
+              )}
+            </div>
+          </td>
+        ))}
+      </tr>
+      <tr>
+        <td className="p-2 font-medium">{t('fields.actions')}</td>
+        {properties.map(property => (
+          <td key={property.id} className="p-2 text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                onView(property.id)
+                onClose()
+              }}
+            >
+              {tSearch('viewDetails')}
+            </Button>
+          </td>
+        ))}
+      </tr>
+    </>
+  )
+}
 
 export default function FavoritesPage() {
+  const { confirm } = useConfirm()
   const router = useRouter()
+  const t = useTranslations('property.favorites')
+  const tc = useTranslations('common')
+  const tCompare = useTranslations('property.compare')
+  const tSearch = useTranslations('search.page.actions')
   const [selectedFavorites, setSelectedFavorites] = useState<string[]>([])
   const [showShareDialog, setShowShareDialog] = useState(false)
   const [shareUrl, setShareUrl] = useState('')
   const [showCompareDialog, setShowCompareDialog] = useState(false)
   const [sortBy, setSortBy] = useState<'date' | 'rent' | 'name'>('date')
 
-  // Get current user ID (in real app, this would come from auth)
-  const currentUserId = 'user1' // Mock user ID
+  const userId = getDemoChatUserId()
+  const loadFavorites = useCallback(() => fetchFavorites(userId), [userId])
+  const {
+    data: favoritesData,
+    loading,
+    refetch,
+  } = useMockQuery(loadFavorites)
 
   const favorites = useMemo(() => {
-    const favs = getFavoritesByUserId(currentUserId)
-    // Sort favorites
-    return favs.sort((a, b) => {
+    const favs = favoritesData ?? []
+    return [...favs].sort((a, b) => {
       switch (sortBy) {
         case 'rent':
           return a.propertyRent - b.propertyRent
@@ -54,17 +180,33 @@ export default function FavoritesPage() {
           return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
       }
     })
-  }, [currentUserId, sortBy])
+  }, [favoritesData, sortBy])
 
-  const handleRemove = (id: string) => {
-    if (confirm('Remove this property from favorites?')) {
-      // In real app, this would call an API
-      const index = mockFavorites.findIndex(fav => fav.id === id)
-      if (index > -1) {
-        mockFavorites.splice(index, 1)
-      }
-      setSelectedFavorites(selectedFavorites.filter(favId => favId !== id))
+  const compareIds = useMemo(
+    () =>
+      selectedFavorites
+        .map(id => favorites.find(f => f.id === id)?.propertyId)
+        .filter((id): id is string => Boolean(id)),
+    [selectedFavorites, favorites]
+  )
+  const loadCompareProperties = useCallback(
+    () => fetchPropertiesByIds(compareIds),
+    [compareIds]
+  )
+  const { data: comparePropertiesData } = useMockQuery(loadCompareProperties)
+
+  const handleRemove = async (id: string) => {
+    const ok = await confirm({
+      title: t('removeConfirmTitle'),
+      description: t('removeConfirmDesc'),
+    })
+    if (!ok) return
+    const favorite = favorites.find(fav => fav.id === id)
+    if (favorite) {
+      await toggleFavorite(favorite.propertyId, userId)
+      refetch()
     }
+    setSelectedFavorites(selectedFavorites.filter(favId => favId !== id))
   }
 
   const handleView = (propertyId: string) => {
@@ -72,7 +214,6 @@ export default function FavoritesPage() {
   }
 
   const handleShare = (favorite: Favorite) => {
-    // Generate shareable URL
     const url = `${window.location.origin}/search?propertyId=${favorite.propertyId}`
     setShareUrl(url)
     setShowShareDialog(true)
@@ -80,7 +221,7 @@ export default function FavoritesPage() {
 
   const handleCopyShareUrl = () => {
     navigator.clipboard.writeText(shareUrl)
-    alert('Link copied to clipboard!')
+    toast.success(t('linkCopied'))
   }
 
   const handleToggleSelect = (id: string) => {
@@ -91,37 +232,35 @@ export default function FavoritesPage() {
 
   const handleCompare = () => {
     if (selectedFavorites.length < 2) {
-      alert('Please select at least 2 properties to compare')
+      toast.error(t('selectMinCompare'))
       return
     }
     if (selectedFavorites.length > 4) {
-      alert('You can compare up to 4 properties at once')
+      toast.error(t('selectMaxCompare'))
       return
     }
     setShowCompareDialog(true)
   }
 
-  const propertiesToCompare = useMemo(() => {
-    return selectedFavorites
-      .map(id => {
-        const favorite = favorites.find(f => f.id === id)
-        if (!favorite) return null
-        return mockProperties.find(p => p.id === favorite.propertyId)
-      })
-      .filter(Boolean)
-  }, [selectedFavorites, favorites])
+  const propertiesToCompare = comparePropertiesData ?? []
+
+  if (loading) {
+    return (
+      <Layout>
+        <LoadingState label={t('title')} />
+      </Layout>
+    )
+  }
 
   return (
     <Layout>
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold sm:text-3xl">My Favorites</h1>
+              <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {favorites.length}{' '}
-                {favorites.length === 1 ? 'property' : 'properties'} saved
+                {t('count', { count: favorites.length })}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -133,29 +272,28 @@ export default function FavoritesPage() {
                     disabled={selectedFavorites.length < 2}
                   >
                     <GitCompare className="mr-2 h-4 w-4" />
-                    Compare ({selectedFavorites.length})
+                    {t('compare', { count: selectedFavorites.length })}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setSelectedFavorites([])}
                   >
-                    Clear Selection
+                    {t('clearSelection')}
                   </Button>
                 </>
               )}
               <Button onClick={() => router.push('/search')}>
                 <Search className="mr-2 h-4 w-4" />
-                Find More
+                {t('findMore')}
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Sort and Filter */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <Label>Sort by:</Label>
+              <Label>{t('sortBy')}:</Label>
               <Select
                 value={sortBy}
                 onValueChange={value =>
@@ -166,32 +304,26 @@ export default function FavoritesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="date">Date Added</SelectItem>
-                  <SelectItem value="rent">Rent (Low to High)</SelectItem>
-                  <SelectItem value="name">Name (A to Z)</SelectItem>
+                  <SelectItem value="date">{t('sortDate')}</SelectItem>
+                  <SelectItem value="rent">{t('sortRent')}</SelectItem>
+                  <SelectItem value="name">{t('sortName')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Favorites Grid */}
         {favorites.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Heart className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-semibold text-muted-foreground">
-                No favorites yet
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground text-center">
-                Save properties you like to view them later
-              </p>
-              <Button className="mt-4" onClick={() => router.push('/search')}>
-                <Search className="mr-2 h-4 w-4" />
-                Browse Properties
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={Heart}
+            title={t('emptyTitle')}
+            description={t('emptyDesc')}
+          >
+            <Button onClick={() => router.push('/search')}>
+              <Search className="mr-2 h-4 w-4" />
+              {t('browse')}
+            </Button>
+          </EmptyState>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {favorites.map(favorite => (
@@ -202,7 +334,6 @@ export default function FavoritesPage() {
                   onView={handleView}
                   onShare={handleShare}
                 />
-                {/* Selection Checkbox */}
                 <div className="absolute left-2 top-2 z-10">
                   <input
                     type="checkbox"
@@ -216,21 +347,18 @@ export default function FavoritesPage() {
           </div>
         )}
 
-        {/* Share Dialog */}
         <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Share Property</DialogTitle>
-              <DialogDescription>
-                Share this property with others
-              </DialogDescription>
+              <DialogTitle>{t('shareTitle')}</DialogTitle>
+              <DialogDescription>{t('shareDesc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Share Link</Label>
+                <Label>{t('shareLink')}</Label>
                 <div className="flex gap-2 mt-2">
                   <Input value={shareUrl} readOnly />
-                  <Button onClick={handleCopyShareUrl}>Copy</Button>
+                  <Button onClick={handleCopyShareUrl}>{t('copy')}</Button>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -240,34 +368,35 @@ export default function FavoritesPage() {
                   onClick={() => {
                     if (navigator.share) {
                       navigator.share({
-                        title: 'Check out this property',
+                        title: t('checkOutProperty'),
                         url: shareUrl,
                       })
                     }
                   }}
                 >
                   <Share2 className="mr-2 h-4 w-4" />
-                  Share
+                  {t('share')}
                 </Button>
                 <Button
                   variant="outline"
                   className="flex-1"
                   onClick={() => setShowShareDialog(false)}
                 >
-                  Close
+                  {tc('close')}
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Compare Dialog */}
         <Dialog open={showCompareDialog} onOpenChange={setShowCompareDialog}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Compare Properties</DialogTitle>
+              <DialogTitle>{t('compareDialogTitle')}</DialogTitle>
               <DialogDescription>
-                Compare {propertiesToCompare.length} properties side by side
+                {t('compareDialogDesc', {
+                  count: propertiesToCompare.length,
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="mt-4">
@@ -275,116 +404,25 @@ export default function FavoritesPage() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b">
-                      <th className="p-2 text-left">Property</th>
+                      <th className="p-2 text-left">
+                        {tCompare('fields.property')}
+                      </th>
                       {propertiesToCompare.map(property => (
                         <th
-                          key={property!.id}
+                          key={property.id}
                           className="p-2 text-center min-w-[200px]"
                         >
-                          {property!.name}
+                          {property.name}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Type</td>
-                      {propertiesToCompare.map(property => (
-                        <td
-                          key={property!.id}
-                          className="p-2 text-center capitalize"
-                        >
-                          {property!.type}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Rent</td>
-                      {propertiesToCompare.map(property => (
-                        <td
-                          key={property!.id}
-                          className="p-2 text-center font-semibold text-primary"
-                        >
-                          ৳{property!.rent.toLocaleString()}/month
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Location</td>
-                      {propertiesToCompare.map(property => (
-                        <td
-                          key={property!.id}
-                          className="p-2 text-center text-sm"
-                        >
-                          {property!.area}, {property!.city}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Available</td>
-                      {propertiesToCompare.map(property => (
-                        <td key={property!.id} className="p-2 text-center">
-                          {property!.available ? (
-                            <span className="text-green-600">Yes</span>
-                          ) : (
-                            <span className="text-red-600">No</span>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Verified</td>
-                      {propertiesToCompare.map(property => (
-                        <td key={property!.id} className="p-2 text-center">
-                          {property!.verified ? (
-                            <span className="text-green-600">Yes</span>
-                          ) : (
-                            <span className="text-gray-400">No</span>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="border-b">
-                      <td className="p-2 font-medium">Facilities</td>
-                      {propertiesToCompare.map(property => (
-                        <td key={property!.id} className="p-2 text-center">
-                          <div className="flex flex-wrap gap-1 justify-center">
-                            {property!.facilities
-                              .slice(0, 3)
-                              .map((facility, idx) => (
-                                <span
-                                  key={idx}
-                                  className="text-xs bg-muted px-2 py-1 rounded"
-                                >
-                                  {facility}
-                                </span>
-                              ))}
-                            {property!.facilities.length > 3 && (
-                              <span className="text-xs text-muted-foreground">
-                                +{property!.facilities.length - 3}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                      ))}
-                    </tr>
-                    <tr>
-                      <td className="p-2 font-medium">Actions</td>
-                      {propertiesToCompare.map(property => (
-                        <td key={property!.id} className="p-2 text-center">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              handleView(property!.id)
-                              setShowCompareDialog(false)
-                            }}
-                          >
-                            View Details
-                          </Button>
-                        </td>
-                      ))}
-                    </tr>
+                    <CompareTableBody
+                      properties={propertiesToCompare}
+                      onView={handleView}
+                      onClose={() => setShowCompareDialog(false)}
+                    />
                   </tbody>
                 </table>
               </div>

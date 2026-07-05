@@ -1,0 +1,13 @@
+{
+  "accessDenied": {
+    "title": "Access denied",
+    "description": "You don't have permission to view this page.",
+    "backToDashboard": "Go to dashboard",
+    "backToAdmin": "Go to admin"
+  },
+  "file": {
+    "fileRequired": "Please select a file.",
+    "fileTooLarge": "File is too large. Maximum size for {label} is {max}.",
+    "fileTypeNotAllowed": "File type not allowed. Accepted for {label}: {types}."
+  }
+}

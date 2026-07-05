@@ -1,0 +1,170 @@
+{
+  "page": {
+    "title": "Search properties",
+    "description": "Filter apartments, mess, hostels, and hotels across Bangladesh.",
+    "loading": "Searching…",
+    "results": "{count, plural, one {# result} other {# results}}",
+    "noResultsTitle": "No properties match your filters",
+    "noResultsDesc": "Try widening your search area or adjusting filters.",
+    "savedSearchesLink": "Saved searches",
+    "locationError": "Unable to get your location. Please enable location services.",
+    "withinRadius": "within {distance}",
+    "viewMode": {
+      "list": "List",
+      "map": "Map"
+    },
+    "filters": {
+      "title": "Filters",
+      "show": "Show filters",
+      "hide": "Hide filters",
+      "advanced": "Advanced filters",
+      "propertyType": "Property type",
+      "city": "City",
+      "area": "Area",
+      "rentRange": "Rent range",
+      "availableOnly": "Available only",
+      "availableOnlyHint": "Show only available properties",
+      "verifiedOnly": "Verified only",
+      "verifiedOnlyHint": "Show only verified properties",
+      "nearMe": "Near me",
+      "gender": "Gender",
+      "seatType": "Seat type",
+      "mealPlan": "Meal plan",
+      "mealIncluded": "Meal included",
+      "furnishing": "Furnishing",
+      "parking": "Parking",
+      "parkingAvailable": "Parking available",
+      "security": "Security",
+      "nearbyFacilities": "Nearby facilities",
+      "buildingAge": "Building age (max: {value} years)",
+      "buildingAgeAny": "Any",
+      "floorLevel": "Floor level (max: {value})",
+      "locationSearch": "Location search",
+      "searchRadius": "Search radius:",
+      "filterByDistance": "Filter by distance",
+      "showingWithin": "Showing properties within {distance} of your location",
+      "allCities": "All cities",
+      "allAreas": "All areas",
+      "selectCity": "Select city",
+      "selectArea": "Select area",
+      "selectGender": "Select gender",
+      "selectSeatType": "Select seat type",
+      "selectMealPlan": "Select meal plan",
+      "selectFurnishing": "Select furnishing"
+    },
+    "actions": {
+      "search": "Search",
+      "reset": "Reset filters",
+      "saveSearch": "Save search",
+      "searchSaved": "Search saved",
+      "saveSuccess": "Search \"{name}\" saved successfully!",
+      "compare": "Compare ({count})",
+      "book": "Book",
+      "viewDetails": "View details",
+      "gettingLocation": "Getting location…",
+      "useMyLocation": "Use my location"
+    },
+    "propertyTypes": {
+      "all": "All",
+      "mess": "Mess",
+      "apartment": "Apartment",
+      "hostel": "Hostel",
+      "hotel": "Hotel"
+    },
+    "gender": {
+      "all": "All",
+      "male": "Male",
+      "female": "Female",
+      "mixed": "Mixed"
+    },
+    "seatTypes": {
+      "all": "All",
+      "single": "Single",
+      "shared": "Shared"
+    },
+    "mealPlans": {
+      "all": "All meals",
+      "breakfast": "Breakfast only",
+      "lunch": "Lunch only",
+      "dinner": "Dinner only"
+    },
+    "furnishing": {
+      "all": "All",
+      "furnished": "Furnished",
+      "semiFurnished": "Semi-furnished",
+      "unfurnished": "Unfurnished"
+    }
+  },
+  "savedSearches": {
+    "title": "Saved searches",
+    "description": "Manage alerts for properties that match your criteria.",
+    "newSearch": "New search",
+    "stats": {
+      "total": "Total searches",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "tabs": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "emptyAllTitle": "No saved searches",
+    "emptyAllDesc": "Save your search criteria to get notified when new properties match.",
+    "emptyActiveTitle": "No active searches",
+    "emptyActiveDesc": "Enable notifications on your saved searches to get updates.",
+    "emptyInactiveTitle": "No inactive searches",
+    "emptyInactiveDesc": "Paused searches will appear here.",
+    "createSavedSearch": "Create saved search",
+    "deleteConfirmTitle": "Delete saved search?",
+    "deleteConfirmDesc": "Are you sure you want to delete this saved search?",
+    "editTitle": "Edit saved search",
+    "editDesc": "Update the name of your saved search",
+    "searchName": "Search name",
+    "searchNamePlaceholder": "Enter search name",
+    "actions": {
+      "save": "Save search",
+      "enableAlerts": "Enable alerts",
+      "disableAlerts": "Disable alerts",
+      "delete": "Delete",
+      "runSearch": "Run search"
+    }
+  },
+  "history": {
+    "title": "Search history",
+    "description": "Recent searches you have performed.",
+    "countInHistory": "{count, plural, one {# search} other {# searches}} in history",
+    "emptyTitle": "No search history",
+    "emptyDesc": "Your recent searches will appear here.",
+    "startSearching": "Start searching",
+    "clearAll": "Clear all history",
+    "clearConfirmTitle": "Clear search history?",
+    "clearConfirmDesc": "This will permanently delete all your search history. This action cannot be undone.",
+    "runAgain": "Search again"
+  },
+  "compare": {
+    "title": "Compare listings",
+    "description": "Side-by-side comparison of up to 3 properties.",
+    "loading": "Loading comparison…",
+    "emptyTitle": "Nothing to compare",
+    "emptyDesc": "Select 2–3 listings from search using the compare checkbox.",
+    "errorTitle": "Could not load listings",
+    "errorDesc": "Try selecting listings again.",
+    "goToSearch": "Go to search",
+    "backToSearch": "Back to search",
+    "fields": {
+      "rent": "Rent",
+      "location": "Location",
+      "type": "Type",
+      "gender": "Gender",
+      "seatType": "Seat type",
+      "mealPlan": "Meal plan",
+      "verified": "Verified",
+      "rating": "Rating",
+      "available": "Available"
+    },
+    "perMonth": "/mo",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "site": {
+    "name": "Smart Living System",
+    "description": "Find and manage mess, hostel, hotel & apartment living in Bangladesh — verified listings, bills, and payments in one platform."
+  },
+  "pwa": {
+    "installTitle": "Install Smart Living",
+    "installDescription": "Add to your home screen for faster access to search, bills, and bookings.",
+    "installAction": "Install",
+    "dismiss": "Not now"
+  },
+  "pages": {
+    "home": {
+      "title": "Find Your Perfect Living Space in Bangladesh",
+      "description": "Connect with verified mess, hostel, hotel & apartment owners. Search, book, and manage rent and bills on one modern platform.",
+      "keywords": "mess Bangladesh, hostel Dhaka, apartment rent, hotel booking, smart living, verified listings"
+    },
+    "search": {
+      "title": "Search Accommodation",
+      "description": "Search verified mess, hostels, hotels, and apartments by city, area, price, and amenities across Bangladesh.",
+      "keywords": "search accommodation, rent mess, find hostel, apartment search Bangladesh"
+    },
+    "properties": {
+      "title": "Browse Properties",
+      "description": "Explore verified rental properties — mess, hostels, apartments, and shared spaces with transparent pricing.",
+      "keywords": "rental properties, mess listing, apartment Bangladesh"
+    },
+    "hotels": {
+      "title": "Hotels & Guest Houses",
+      "description": "Book short-term hotel and guest house stays with daily pricing, room availability, and secure payments.",
+      "keywords": "hotel Bangladesh, guest house booking, short stay Dhaka"
+    },
+    "compare": {
+      "title": "Compare Properties",
+      "description": "Compare mess, hostels, and apartments side by side — price, amenities, location, and reviews.",
+      "keywords": "compare rentals, property comparison Bangladesh"
+    },
+    "terms": {
+      "title": "Terms & Conditions",
+      "description": "Rules for using Smart Living System in Bangladesh — for renters, owners, and guests.",
+      "keywords": "terms of service, rental platform Bangladesh"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "How Smart Living collects, uses, and protects your personal information.",
+      "keywords": "privacy policy, data protection Bangladesh"
+    },
+    "safety": {
+      "title": "Safety & Anti-Scam Guide",
+      "description": "Protect yourself when renting mess, flats, or hostels in Bangladesh. Updated for local scams and payment risks.",
+      "keywords": "rental safety, scam prevention Bangladesh"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "description": "Quick answers about accounts, bookings, payments, and safety on Smart Living System.",
+      "keywords": "FAQ, help, rental questions Bangladesh"
+    },
+    "help": {
+      "title": "Help Center",
+      "description": "Guides for renters, students, owners, and payments on Smart Living System.",
+      "keywords": "help center, support, rental guide"
+    },
+    "about": {
+      "title": "About Smart Living",
+      "description": "Bangladesh's unified platform for finding and managing accommodation — mess, hostels, hotels, and apartments.",
+      "keywords": "about smart living, accommodation platform Bangladesh"
+    },
+    "contact": {
+      "title": "Contact Us",
+      "description": "Reach our support team for help with listings, bookings, or payments.",
+      "keywords": "contact support, smart living help"
+    },
+    "login": {
+      "title": "Login",
+      "description": "Sign in to Smart Living System with your mobile number.",
+      "keywords": ""
+    },
+    "otpVerify": {
+      "title": "Verify OTP",
+      "description": "Enter the one-time password sent to your phone to continue.",
+      "keywords": ""
+    },
+    "roleSelection": {
+      "title": "Choose Your Role",
+      "description": "Select whether you are a renter, property owner, or student to personalize your experience.",
+      "keywords": ""
+    },
+    "accountRecover": {
+      "title": "Recover Account",
+      "description": "Recover access to your Smart Living account using your registered phone number.",
+      "keywords": ""
+    },
+    "accountChangePhone": {
+      "title": "Change Phone Number",
+      "description": "Update the phone number linked to your Smart Living account.",
+      "keywords": ""
+    },
+    "listingNotFound": {
+      "title": "Listing Not Found",
+      "description": "This accommodation listing could not be found or may have been removed.",
+      "keywords": ""
+    }
+  },
+  "listing": {
+    "title": "{name} in {area}, {city}",
+    "priceLine": "৳{rent}/month · {type}"
+  }
+}

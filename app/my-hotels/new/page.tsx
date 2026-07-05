@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -29,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { addHotel } from '@/data/mockHotels'
+import { registerHotel } from '@/lib/api/hotels'
 import { CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -69,9 +70,11 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-const STEPS = ['Basics', 'License & media', 'Pricing & policy']
+const STEPS = ['basics', 'licenseMedia', 'pricingPolicy'] as const
 
 export default function RegisterHotelPage() {
+  const t = useTranslations('hotels')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [amenities, setAmenities] = useState<string[]>(['WiFi', 'AC'])
@@ -124,14 +127,15 @@ export default function RegisterHotelPage() {
   }
 
   const onSubmit = form.handleSubmit(values => {
-    const hotel = addHotel({
+    void registerHotel({
       ...values,
       amenities,
       imageUrl: values.imageUrl || undefined,
       licenseNumber: values.licenseNumber || undefined,
       licenseDocumentName: values.licenseDocumentName || 'license.pdf',
+    }).then(result => {
+      if (result.ok) setCreatedId(result.data.id)
     })
-    setCreatedId(hotel.id)
   })
 
   if (createdId) {
@@ -140,21 +144,21 @@ export default function RegisterHotelPage() {
         <PageContainer>
           <div className="mx-auto max-w-md space-y-4 text-center">
             <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" />
-            <h1 className="text-2xl font-bold">Hotel registered</h1>
-            <p className="text-muted-foreground">
-              Pending verification. You can manage rooms and pricing now.
-            </p>
+            <h1 className="text-2xl font-bold">{t('register.successTitle')}</h1>
+            <p className="text-muted-foreground">{t('register.successDesc')}</p>
             <div className="flex flex-col gap-2">
               <Button asChild>
-                <Link href={`/my-hotels/${createdId}/rooms`}>Manage rooms</Link>
+                <Link href={`/my-hotels/${createdId}/rooms`}>
+                  {t('register.manageRooms')}
+                </Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link href={`/my-hotels/${createdId}/pricing`}>
-                  Pricing rules
+                  {t('register.pricingRules')}
                 </Link>
               </Button>
               <Button variant="ghost" asChild>
-                <Link href="/my-hotels">My hotels</Link>
+                <Link href="/my-hotels">{t('register.myHotelsLink')}</Link>
               </Button>
             </div>
           </div>
@@ -167,24 +171,24 @@ export default function RegisterHotelPage() {
     <Layout>
       <PageContainer>
         <PageHeader
-          title="Register hotel / guest house"
-          description="Onboard your property with license, pricing, and cancellation policy."
+          title={t('register.title')}
+          description={t('register.descriptionLong')}
         />
 
         <div className="mb-6 flex gap-2">
-          {STEPS.map((label, i) => (
+          {STEPS.map((stepKey, i) => (
             <Badge
-              key={label}
+              key={stepKey}
               variant={i === step ? 'default' : i < step ? 'secondary' : 'outline'}
             >
-              {i + 1}. {label}
+              {i + 1}. {t(`register.steps.${stepKey}`)}
             </Badge>
           ))}
         </div>
 
         <Card className="mx-auto max-w-2xl">
           <CardHeader>
-            <CardTitle>{STEPS[step]}</CardTitle>
+            <CardTitle>{t(`register.steps.${STEPS[step]}`)}</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -196,7 +200,7 @@ export default function RegisterHotelPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Property name</FormLabel>
+                          <FormLabel>{t('register.fields.propertyName')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -210,7 +214,7 @@ export default function RegisterHotelPage() {
                         name="type"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Type</FormLabel>
+                            <FormLabel>{t('register.fields.type')}</FormLabel>
                             <Select
                               value={field.value}
                               onValueChange={field.onChange}
@@ -221,11 +225,15 @@ export default function RegisterHotelPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="hotel">Hotel</SelectItem>
-                                <SelectItem value="guest-house">
-                                  Guest house
+                                <SelectItem value="hotel">
+                                  {t('register.types.hotel')}
                                 </SelectItem>
-                                <SelectItem value="resort">Resort</SelectItem>
+                                <SelectItem value="guest-house">
+                                  {t('register.types.guestHouse')}
+                                </SelectItem>
+                                <SelectItem value="resort">
+                                  {t('register.types.resort')}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -237,7 +245,7 @@ export default function RegisterHotelPage() {
                         name="starRating"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Star rating</FormLabel>
+                            <FormLabel>{t('register.fields.starRating')}</FormLabel>
                             <FormControl>
                               <Input type="number" min={1} max={5} {...field} />
                             </FormControl>
@@ -251,7 +259,7 @@ export default function RegisterHotelPage() {
                       name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Address</FormLabel>
+                          <FormLabel>{t('register.fields.address')}</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -265,7 +273,7 @@ export default function RegisterHotelPage() {
                         name="area"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Area</FormLabel>
+                            <FormLabel>{t('register.fields.area')}</FormLabel>
                             <FormControl>
                               <Input {...field} />
                             </FormControl>
@@ -278,7 +286,7 @@ export default function RegisterHotelPage() {
                         name="city"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>City</FormLabel>
+                            <FormLabel>{t('register.fields.city')}</FormLabel>
                             <FormControl>
                               <Input {...field} />
                             </FormControl>
@@ -292,7 +300,7 @@ export default function RegisterHotelPage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>{t('register.fields.description')}</FormLabel>
                           <FormControl>
                             <Textarea rows={4} {...field} />
                           </FormControl>
@@ -301,7 +309,9 @@ export default function RegisterHotelPage() {
                       )}
                     />
                     <div>
-                      <Label className="mb-2 block">Amenities</Label>
+                      <Label className="mb-2 block">
+                        {t('register.fields.amenities')}
+                      </Label>
                       <div className="flex flex-wrap gap-2">
                         {AMENITIES.map(a => (
                           <Badge
@@ -328,7 +338,7 @@ export default function RegisterHotelPage() {
                         name="checkInTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Check-in time</FormLabel>
+                            <FormLabel>{t('register.fields.checkInTime')}</FormLabel>
                             <FormControl>
                               <Input type="time" {...field} />
                             </FormControl>
@@ -341,7 +351,7 @@ export default function RegisterHotelPage() {
                         name="checkOutTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Check-out time</FormLabel>
+                            <FormLabel>{t('register.fields.checkOutTime')}</FormLabel>
                             <FormControl>
                               <Input type="time" {...field} />
                             </FormControl>
@@ -355,7 +365,7 @@ export default function RegisterHotelPage() {
                       name="minimumStay"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Minimum stay (nights)</FormLabel>
+                          <FormLabel>{t('register.fields.minimumStay')}</FormLabel>
                           <FormControl>
                             <Input type="number" min={1} {...field} />
                           </FormControl>
@@ -368,12 +378,12 @@ export default function RegisterHotelPage() {
                       name="licenseNumber"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Trade / hotel license number</FormLabel>
+                          <FormLabel>{t('register.fields.licenseNumber')}</FormLabel>
                           <FormControl>
                             <Input placeholder="HTL-2024-XXX" {...field} />
                           </FormControl>
                           <FormDescription>
-                            Required for verification in Bangladesh
+                            {t('register.fields.licenseNumberDesc')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -384,7 +394,9 @@ export default function RegisterHotelPage() {
                       name="licenseDocumentName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>License document name</FormLabel>
+                          <FormLabel>
+                            {t('register.fields.licenseDocumentName')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="license_scan.pdf"
@@ -392,7 +404,7 @@ export default function RegisterHotelPage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Demo: enter filename; real upload comes with backend
+                            {t('register.fields.licenseDocumentDesc')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -403,7 +415,7 @@ export default function RegisterHotelPage() {
                       name="imageUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Cover image URL</FormLabel>
+                          <FormLabel>{t('register.fields.coverImageUrl')}</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="https://…"
@@ -424,7 +436,9 @@ export default function RegisterHotelPage() {
                       name="weekendMultiplier"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Weekend price multiplier</FormLabel>
+                          <FormLabel>
+                            {t('register.fields.weekendMultiplier')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -435,7 +449,7 @@ export default function RegisterHotelPage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            e.g. 1.15 = +15% Fri–Sat nights
+                            {t('register.fields.weekendMultiplierDesc')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -447,7 +461,9 @@ export default function RegisterHotelPage() {
                         name="serviceChargePercent"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Service charge %</FormLabel>
+                            <FormLabel>
+                              {t('register.fields.serviceChargePercent')}
+                            </FormLabel>
                             <FormControl>
                               <Input type="number" min={0} max={30} {...field} />
                             </FormControl>
@@ -460,7 +476,7 @@ export default function RegisterHotelPage() {
                         name="vatPercent"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>VAT %</FormLabel>
+                            <FormLabel>{t('register.fields.vatPercent')}</FormLabel>
                             <FormControl>
                               <Input type="number" min={0} max={30} {...field} />
                             </FormControl>
@@ -475,7 +491,9 @@ export default function RegisterHotelPage() {
                         name="freeCancellationHours"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Free cancel (hours before)</FormLabel>
+                            <FormLabel>
+                              {t('register.fields.freeCancellationHours')}
+                            </FormLabel>
                             <FormControl>
                               <Input type="number" min={0} {...field} />
                             </FormControl>
@@ -488,7 +506,9 @@ export default function RegisterHotelPage() {
                         name="partialRefundPercent"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Partial refund %</FormLabel>
+                            <FormLabel>
+                              {t('register.fields.partialRefundPercent')}
+                            </FormLabel>
                             <FormControl>
                               <Input type="number" min={0} max={100} {...field} />
                             </FormControl>
@@ -507,16 +527,16 @@ export default function RegisterHotelPage() {
                       variant="outline"
                       onClick={() => setStep(s => s - 1)}
                     >
-                      Back
+                      {tc('back')}
                     </Button>
                   )}
                   <div className="flex-1" />
                   {step < STEPS.length - 1 ? (
                     <Button type="button" onClick={next}>
-                      Continue
+                      {tc('continue')}
                     </Button>
                   ) : (
-                    <Button type="submit">Register hotel</Button>
+                    <Button type="submit">{t('register.submit')}</Button>
                   )}
                 </div>
               </form>

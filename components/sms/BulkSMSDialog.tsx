@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -37,8 +37,13 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Send, Users, MessageSquare } from 'lucide-react'
 import type { SMSRecipientType, SMSTemplate } from '@/types/sms'
-import { mockStudents } from '@/data/mockMess'
-import { getSMSTemplatesByMess, getSMSGroupsByMess } from '@/data/mockSMS'
+import {
+  fetchMessSmsGroups,
+  fetchMessSmsTemplates,
+  fetchMessStudents,
+} from '@/lib/api/mess'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 const bulkSMSSchema = z.object({
   recipientType: z.enum(['all', 'group', 'individual', 'custom']),
@@ -68,9 +73,25 @@ export function BulkSMSDialog({
     Record<string, string>
   >({})
 
-  const templates = getSMSTemplatesByMess(messId)
-  const groups = getSMSGroupsByMess(messId)
-  const messStudents = mockStudents.filter(s => s.seatNumber)
+  const loadTemplates = useCallback(
+    () => (open ? fetchMessSmsTemplates(messId) : Promise.resolve(ok([]))),
+    [open, messId]
+  )
+  const loadGroups = useCallback(
+    () => (open ? fetchMessSmsGroups(messId) : Promise.resolve(ok([]))),
+    [open, messId]
+  )
+  const loadStudents = useCallback(
+    () => (open ? fetchMessStudents(messId) : Promise.resolve(ok([]))),
+    [open, messId]
+  )
+  const { data: templatesData } = useMockQuery(loadTemplates)
+  const { data: groupsData } = useMockQuery(loadGroups)
+  const { data: studentsData } = useMockQuery(loadStudents)
+
+  const templates = templatesData ?? []
+  const groups = groupsData ?? []
+  const messStudents = (studentsData ?? []).filter(s => s.seatNumber)
 
   const form = useForm({
     resolver: zodResolver(bulkSMSSchema),
@@ -135,7 +156,7 @@ export function BulkSMSDialog({
     }
 
     // Determine recipients
-    let recipients: typeof mockStudents = []
+    let recipients = [] as typeof messStudents
     if (data.recipientType === 'all') {
       recipients = messStudents
     } else if (data.recipientType === 'group' && data.groupId) {

@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
+import { EmptyState } from '@/components/page'
 import { ComplaintCard } from '@/components/complaint/ComplaintCard'
 import { ComplaintForm } from '@/components/complaint/ComplaintForm'
 import { Button } from '@/components/ui/button'
@@ -12,58 +14,70 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Filter, Plus } from 'lucide-react'
-import { mockComplaints } from '@/data/mockComplaints'
+import { Filter, Plus, MessageSquareWarning } from 'lucide-react'
 import type { Complaint, ComplaintStatus } from '@/types/complaint'
 import { getStoredRole } from '@/utils/auth'
+import { toast } from '@/lib/feedback/toast'
+import { createComplaint, fetchComplaints } from '@/lib/api/complaints'
+import { getDemoTenantId } from '@/lib/api/demoUser'
 
 export default function ComplaintsPage() {
-  const [complaints, setComplaints] = useState(mockComplaints)
+  const t = useTranslations('tools.complaints')
+  const tc = useTranslations('common')
+  const [complaints, setComplaints] = useState<Complaint[]>([])
   const [statusFilter, setStatusFilter] = useState<ComplaintStatus | 'all'>(
     'all'
   )
   const [showForm, setShowForm] = useState(false)
 
-  // Get user role (in real app, get from auth context)
   const userRole = getStoredRole() || 'renter'
   const isOwner = userRole === 'owner'
 
-  // Filter complaints based on status
+  const loadComplaints = useCallback(async () => {
+    const result = await fetchComplaints(
+      isOwner ? { ownerView: true } : { userId: getDemoTenantId() }
+    )
+    if (result.ok) setComplaints(result.data)
+  }, [isOwner])
+
+  useEffect(() => {
+    loadComplaints()
+  }, [loadComplaints])
+
   const filteredComplaints = useMemo(() => {
     let filtered = [...complaints]
 
-    // Filter by role (in real app, filter by logged-in user ID)
     if (!isOwner) {
-      filtered = filtered.filter(c => c.userId === 'r1') // Mock: show complaints for first user
+      filtered = filtered.filter(c => c.userId === getDemoTenantId())
     }
 
-    // Filter by status
     if (statusFilter !== 'all') {
       filtered = filtered.filter(c => c.status === statusFilter)
     }
 
-    // Sort by date (newest first)
     return filtered.sort((a, b) => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
   }, [complaints, statusFilter, isOwner])
 
-  const handleSubmit = (data: any) => {
-    // TODO: Implement actual complaint submission
-    const newComplaint: Complaint = {
-      id: `c${Date.now()}`,
-      userId: 'r1', // In real app, get from auth
-      userName: 'Current User', // In real app, get from auth
+  const handleSubmit = async (data: {
+    title: string
+    description: string
+    image?: File
+  }) => {
+    const userId = getDemoTenantId()
+    const result = await createComplaint({
+      userId,
+      userName: 'Current User',
       title: data.title,
       description: data.description,
-      status: 'open',
       imageUrl: data.image ? URL.createObjectURL(data.image) : undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    })
+    if (result.ok) {
+      setComplaints(prev => [result.data, ...prev])
+      setShowForm(false)
+      toast.success(t('submitSuccess'))
     }
-    setComplaints([newComplaint, ...complaints])
-    setShowForm(false)
-    alert('Complaint submitted successfully!')
   }
 
   const statusCounts = {
@@ -73,39 +87,37 @@ export default function ComplaintsPage() {
     resolved: complaints.filter(c => c.status === 'resolved').length,
   }
 
+  const statusLabel = (status: ComplaintStatus | 'all') =>
+    status === 'all' ? tc('status.all') : tc(`status.${status === 'in_progress' ? 'inProgress' : status}`)
+
   return (
     <Layout>
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold sm:text-3xl">Complaints</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {isOwner
-                ? 'Manage and track all complaints'
-                : 'Submit and track your complaints'}
+              {isOwner ? t('descriptionOwner') : t('descriptionRenter')}
             </p>
           </div>
           {!isOwner && (
             <Button onClick={() => setShowForm(!showForm)}>
               <Plus className="mr-2 h-4 w-4" />
-              {showForm ? 'Cancel' : 'New Complaint'}
+              {showForm ? tc('cancel') : t('newComplaint')}
             </Button>
           )}
         </div>
 
-        {/* Complaint Form */}
         {!isOwner && showForm && (
           <div className="mb-6">
             <ComplaintForm onSubmit={handleSubmit} />
           </div>
         )}
 
-        {/* Filters */}
         <div className="mb-6 flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Filter by Status:</span>
+            <span className="text-sm font-medium">{tc('filterByStatus')}</span>
           </div>
           <Select
             value={statusFilter}
@@ -117,38 +129,43 @@ export default function ComplaintsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All ({statusCounts.all})</SelectItem>
-              <SelectItem value="open">Open ({statusCounts.open})</SelectItem>
+              <SelectItem value="all">
+                {statusLabel('all')} ({statusCounts.all})
+              </SelectItem>
+              <SelectItem value="open">
+                {statusLabel('open')} ({statusCounts.open})
+              </SelectItem>
               <SelectItem value="in_progress">
-                In Progress ({statusCounts.in_progress})
+                {statusLabel('in_progress')} ({statusCounts.in_progress})
               </SelectItem>
               <SelectItem value="resolved">
-                Resolved ({statusCounts.resolved})
+                {statusLabel('resolved')} ({statusCounts.resolved})
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Complaints List */}
         {filteredComplaints.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-            <p className="text-lg font-semibold text-muted-foreground">
-              No complaints found
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {statusFilter !== 'all'
-                ? `No complaints with status "${statusFilter}"`
+          <EmptyState
+            icon={MessageSquareWarning}
+            title={t('emptyTitle')}
+            description={
+              statusFilter !== 'all'
+                ? t('emptyDescFilter', {
+                    status: statusLabel(statusFilter),
+                  })
                 : !isOwner
-                  ? 'Submit your first complaint to get started'
-                  : 'No complaints yet'}
-            </p>
+                  ? t('emptyDescRenter')
+                  : t('emptyDescOwner')
+            }
+          >
             {!isOwner && !showForm && (
-              <Button onClick={() => setShowForm(true)} className="mt-4">
+              <Button onClick={() => setShowForm(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                New Complaint
+                {t('newComplaint')}
               </Button>
             )}
-          </div>
+          </EmptyState>
         ) : (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {filteredComplaints.map(complaint => (

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,27 +14,31 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BookingCalendar } from '@/components/hotel/BookingCalendar'
-import {
-  mockHotels,
-  getRoomsByHotelId,
-  getBookingsByHotelId,
-} from '@/data/mockHotels'
+import { fetchHotelById, fetchHotelRooms, fetchHotelBookings } from '@/lib/api/hotels'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 export default function BookingCalendarPage() {
+  const t = useTranslations('hotels')
+  const tc = useTranslations('common')
   const params = useParams()
   const router = useRouter()
   const hotelId = params.hotelId as string
 
-  const hotel = mockHotels.find(h => h.id === hotelId)
-  const rooms = hotel ? getRoomsByHotelId(hotelId) : []
-  const bookings = hotel ? getBookingsByHotelId(hotelId) : []
+  const loadHotel = useCallback(() => fetchHotelById(hotelId), [hotelId])
+  const { data: hotel } = useMockQuery(loadHotel)
+
+  const loadRooms = useCallback(() => fetchHotelRooms(hotelId), [hotelId])
+  const { data: rooms } = useMockQuery(loadRooms)
+
+  const loadBookings = useCallback(() => fetchHotelBookings(hotelId), [hotelId])
+  const { data: bookings } = useMockQuery(loadBookings)
 
   const [selectedRoomId, setSelectedRoomId] = useState<string>('all')
 
   const filteredBookings =
     selectedRoomId === 'all'
-      ? bookings
-      : bookings.filter(b => b.roomId === selectedRoomId)
+      ? (bookings ?? [])
+      : (bookings ?? []).filter(b => b.roomId === selectedRoomId)
 
   if (!hotel) {
     return (
@@ -42,14 +47,14 @@ export default function BookingCalendarPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-lg font-semibold text-muted-foreground">
-                Hotel not found
+                {t('pricing.notFoundTitle')}
               </p>
               <Button
                 variant="outline"
                 onClick={() => router.push('/my-hotels')}
                 className="mt-4"
               >
-                Back to Hotels
+                {t('myHotels.backToHotels')}
               </Button>
             </CardContent>
           </Card>
@@ -68,9 +73,11 @@ export default function BookingCalendarPage() {
             onClick={() => router.back()}
             className="mb-2"
           >
-            ← Back
+            ← {tc('back')}
           </Button>
-          <h1 className="text-2xl font-bold mb-2">Booking Calendar</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            {t('calendar.pageTitle')}
+          </h1>
           <p className="text-muted-foreground">{hotel.name}</p>
         </div>
 
@@ -78,16 +85,21 @@ export default function BookingCalendarPage() {
         <Card className="mb-6">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <label className="text-sm font-medium">Filter by Room:</label>
+              <label className="text-sm font-medium">
+                {t('calendar.filterByRoom')}
+              </label>
               <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Rooms</SelectItem>
-                  {rooms.map(room => (
+                  <SelectItem value="all">{t('calendar.allRooms')}</SelectItem>
+                  {(rooms ?? []).map(room => (
                     <SelectItem key={room.id} value={room.id}>
-                      Room {room.roomNumber} ({room.type})
+                      {t('calendar.roomOption', {
+                        number: room.roomNumber,
+                        type: room.type,
+                      })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -99,7 +111,7 @@ export default function BookingCalendarPage() {
         {/* Calendar */}
         <Card>
           <CardHeader>
-            <CardTitle>Availability Calendar</CardTitle>
+            <CardTitle>{t('calendar.availabilityCalendar')}</CardTitle>
           </CardHeader>
           <CardContent>
             <BookingCalendar
@@ -112,7 +124,7 @@ export default function BookingCalendarPage() {
         {/* Booking List */}
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Upcoming Bookings</CardTitle>
+            <CardTitle>{t('calendar.upcomingBookings')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -147,7 +159,7 @@ export default function BookingCalendarPage() {
                 b => b.status !== 'cancelled' && b.status !== 'completed'
               ).length === 0 && (
                 <p className="text-center text-muted-foreground py-4">
-                  No upcoming bookings
+                  {t('calendar.noUpcoming')}
                 </p>
               )}
             </div>

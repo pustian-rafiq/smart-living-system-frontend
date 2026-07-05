@@ -47,6 +47,8 @@ import {
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import type { Notice } from '@/types/mess'
+import { toast } from '@/lib/feedback/toast'
+import { getAcceptAttribute, validateFile } from '@/lib/security/file-upload'
 
 const noticeSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
@@ -109,32 +111,40 @@ export function CreateNoticeDialog({
 
   const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file && file.type === 'application/pdf') {
-      setPdfFile(file)
-      setPdfPreview(URL.createObjectURL(file))
-    } else {
-      alert('Please select a PDF file')
+    if (!file) return
+    const result = validateFile(file, 'pdf')
+    if (!result.valid) {
+      toast.error('Please select a valid PDF under 5 MB')
+      e.target.value = ''
+      return
     }
+    setPdfFile(result.file)
+    setPdfPreview(URL.createObjectURL(result.file))
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    const imageFiles = files.filter(file => file.type.startsWith('image/'))
+    const validImages: File[] = []
 
-    if (imageFiles.length !== files.length) {
-      alert('Some files are not images and were skipped')
+    for (const file of files) {
+      const result = validateFile(file, 'image')
+      if (result.valid) validImages.push(result.file)
     }
 
-    setImageFiles(prev => [...prev, ...imageFiles])
+    if (validImages.length !== files.length) {
+      toast.warning('Some files were skipped (invalid type or too large)')
+    }
 
-    // Create previews
-    imageFiles.forEach(file => {
+    setImageFiles(prev => [...prev, ...validImages])
+
+    validImages.forEach(file => {
       const reader = new FileReader()
-      reader.onload = e => {
-        setImagePreviews(prev => [...prev, e.target?.result as string])
+      reader.onload = ev => {
+        setImagePreviews(prev => [...prev, ev.target?.result as string])
       }
       reader.readAsDataURL(file)
     })
+    e.target.value = ''
   }
 
   const removePdf = () => {
@@ -313,7 +323,7 @@ export function CreateNoticeDialog({
                 <div className="flex items-center gap-2">
                   <Input
                     type="file"
-                    accept=".pdf"
+                    accept={getAcceptAttribute('pdf')}
                     onChange={handlePdfChange}
                     className="flex-1"
                   />
@@ -344,7 +354,7 @@ export function CreateNoticeDialog({
               <Label>Images (Optional)</Label>
               <Input
                 type="file"
-                accept="image/*"
+                accept={getAcceptAttribute('image')}
                 multiple
                 onChange={handleImageChange}
               />

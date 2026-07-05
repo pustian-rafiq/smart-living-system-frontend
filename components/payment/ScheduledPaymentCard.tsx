@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,7 +13,8 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import type { ScheduledPayment } from '@/types/payment'
-import { format, differenceInDays } from 'date-fns'
+import { differenceInDays } from 'date-fns'
+import { useAppFormat } from '@/hooks/useAppFormat'
 
 interface ScheduledPaymentCardProps {
   payment: ScheduledPayment
@@ -51,6 +53,10 @@ export function ScheduledPaymentCard({
   onCancel,
   showActions = true,
 }: ScheduledPaymentCardProps) {
+  const t = useTranslations('payments.scheduledCard')
+  const tc = useTranslations('common')
+  const { formatCurrency, formatDate } = useAppFormat()
+
   const daysUntilPayment = differenceInDays(
     new Date(payment.scheduledDate),
     new Date()
@@ -76,12 +82,11 @@ export function ScheduledPaymentCard({
                 className={`text-xs ${statusColors[payment.status]}`}
               >
                 <StatusIcon className="h-3 w-3 mr-1" />
-                {payment.status.charAt(0).toUpperCase() +
-                  payment.status.slice(1)}
+                {tc(`status.${payment.status}`)}
               </Badge>
               {payment.autoRetry && (
                 <Badge variant="outline" className="text-xs">
-                  Auto-retry
+                  {t('autoRetry')}
                 </Badge>
               )}
             </div>
@@ -89,29 +94,27 @@ export function ScheduledPaymentCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Amount */}
         <div>
           <p className="text-2xl font-bold text-primary">
-            ৳{payment.amount.toLocaleString()}
+            {formatCurrency(payment.amount)}
           </p>
         </div>
 
-        {/* Schedule Info */}
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              Scheduled Date
+              {t('scheduledDate')}
             </span>
             <span className="font-medium">
-              {format(new Date(payment.scheduledDate), 'MMM dd, yyyy')}
+              {formatDate(payment.scheduledDate)}
             </span>
           </div>
           {payment.scheduledTime && (
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                Time
+                {t('time')}
               </span>
               <span className="font-medium">{payment.scheduledTime}</span>
             </div>
@@ -119,29 +122,28 @@ export function ScheduledPaymentCard({
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-1">
               <CreditCard className="h-4 w-4" />
-              Payment Method
+              {t('paymentMethod')}
             </span>
             <span className="font-medium">{payment.paymentMethod}</span>
           </div>
           {payment.accountNumber && (
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Account</span>
+              <span className="text-muted-foreground">{t('account')}</span>
               <span className="font-medium">{payment.accountNumber}</span>
             </div>
           )}
         </div>
 
-        {/* Time Until Payment */}
         {isUpcoming && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
                 {daysUntilPayment === 0
-                  ? 'Due today'
+                  ? t('dueToday')
                   : daysUntilPayment === 1
-                    ? 'Due tomorrow'
-                    : `Due in ${daysUntilPayment} days`}
+                    ? t('dueTomorrow')
+                    : t('dueInDays', { count: daysUntilPayment })}
               </p>
             </div>
           </div>
@@ -152,35 +154,34 @@ export function ScheduledPaymentCard({
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
               <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                Overdue by {Math.abs(daysUntilPayment)} day
-                {Math.abs(daysUntilPayment) !== 1 ? 's' : ''}
+                {t('overdueBy', { count: Math.abs(daysUntilPayment) })}
               </p>
             </div>
           </div>
         )}
 
-        {/* Failure Reason */}
         {payment.status === 'failed' && payment.failureReason && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
             <p className="text-xs font-medium text-red-800 dark:text-red-200">
-              Failure: {payment.failureReason}
+              {t('failure', { reason: payment.failureReason })}
             </p>
             {payment.autoRetry && payment.retryCount < payment.maxRetries && (
               <p className="text-xs text-red-700 dark:text-red-300 mt-1">
-                Auto-retry: {payment.retryCount}/{payment.maxRetries} attempts
+                {t('autoRetryAttempts', {
+                  current: payment.retryCount,
+                  max: payment.maxRetries,
+                })}
               </p>
             )}
           </div>
         )}
 
-        {/* Transaction ID */}
         {payment.transactionId && (
           <div className="text-xs text-muted-foreground">
-            Transaction: {payment.transactionId}
+            {t('transaction', { id: payment.transactionId })}
           </div>
         )}
 
-        {/* Actions */}
         {showActions && (
           <div className="flex gap-2 pt-2 border-t">
             {payment.status === 'scheduled' && onEdit && (
@@ -190,7 +191,7 @@ export function ScheduledPaymentCard({
                 className="flex-1"
                 onClick={() => onEdit(payment)}
               >
-                Edit
+                {tc('actions.edit')}
               </Button>
             )}
             {(payment.status === 'scheduled' || payment.status === 'pending') &&
@@ -201,7 +202,7 @@ export function ScheduledPaymentCard({
                   className="flex-1"
                   onClick={() => onCancel(payment)}
                 >
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
               )}
           </div>

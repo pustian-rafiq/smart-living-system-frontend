@@ -1,15 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User, Phone } from 'lucide-react'
-import { getStoredRole } from '@/utils/auth'
-import { mockRenters } from '@/data/mockBuildings'
+import { getStoredRole, isAdminSession } from '@/utils/auth'
+import { fetchRenters } from '@/lib/api/buildings'
+import { getDemoUserId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { RenterDashboard } from '@/components/dashboard/RenterDashboard'
 import { OwnerDashboard } from '@/components/dashboard/OwnerDashboard'
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard'
@@ -38,14 +41,14 @@ function Icon({
   )
 }
 
-function VerificationBadge() {
+function VerificationBadge({ label }: { label: string }) {
   return (
     <Badge
       variant="outline"
       className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
     >
       <Check className="h-3.5 w-3.5 mr-1" />
-      Verified
+      {label}
     </Badge>
   )
 }
@@ -68,6 +71,7 @@ function Check({ className }: { className?: string }) {
 
 export default function DashboardPage() {
   const router = useRouter()
+  const td = useTranslations('dashboard')
   const [role, setRole] = useState<UserRole>('renter')
   const [name, setName] = useState('Rahim')
   const [phone, setPhone] = useState('+8801712345678')
@@ -78,10 +82,10 @@ export default function DashboardPage() {
   const [area, setArea] = useState('Mirpur')
   const [search, setSearch] = useState('')
 
-  // Get current user ID (in real app, get from auth context)
-  const currentUserId =
-    role === 'renter' ? 'r1' : role === 'owner' ? 'owner1' : 'admin1'
-  const currentRenter = mockRenters.find(r => r.id === currentUserId)
+  const currentUserId = getDemoUserId(role)
+  const loadRenters = useCallback(() => fetchRenters(), [])
+  const { data: renters } = useMockQuery(loadRenters)
+  const currentRenter = renters?.find(r => r.id === currentUserId)
 
   useEffect(() => {
     const loggedIn =
@@ -93,6 +97,14 @@ export default function DashboardPage() {
     }
 
     const storedRole = sessionStorage.getItem('userRole') as UserRole | null
+    if (storedRole === 'admin') {
+      if (isAdminSession()) {
+        router.replace('/admin')
+        return
+      }
+      router.replace('/admin/login')
+      return
+    }
     if (storedRole) setRole(storedRole)
 
     const storedPhone = sessionStorage.getItem('loginPhone')
@@ -153,13 +165,13 @@ export default function DashboardPage() {
                 )}
                 <div className="min-w-0">
                   <p className="text-sm text-muted-foreground md:text-base">
-                    Welcome back,
+                    {td('welcomeBack')}
                   </p>
                   <div className="flex flex-wrap items-center gap-2 md:gap-3">
                     <h1 className="truncate text-xl font-bold md:text-2xl lg:text-3xl">
                       {name}
                     </h1>
-                    <VerificationBadge />
+                    <VerificationBadge label={td('verified')} />
                   </div>
                   {role === 'renter' && phone && (
                     <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
@@ -178,7 +190,7 @@ export default function DashboardPage() {
                 >
                   <Link href="/profile">
                     <User className="mr-2 h-4 w-4" />
-                    Profile
+                    {td('profile')}
                   </Link>
                 </Button>
                 {role === 'renter' && (
@@ -189,7 +201,7 @@ export default function DashboardPage() {
                           path="M11 19a8 8 0 100-16 8 8 0 000 16zm10 2l-4.35-4.35"
                           className="h-4 w-4 mr-2"
                         />
-                        Search
+                        {td('search')}
                       </Link>
                     </Button>
                     <Button asChild variant="ghost" size="sm">
@@ -198,7 +210,7 @@ export default function DashboardPage() {
                           path="M9 14l2 2 4-4M7 3h10a2 2 0 012 2v16l-4-2-4 2-4-2-4 2V5a2 2 0 012-2z"
                           className="h-4 w-4 mr-2"
                         />
-                        Bills
+                        {td('bills')}
                       </Link>
                     </Button>
                   </div>

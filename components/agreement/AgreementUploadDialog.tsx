@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -34,8 +34,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Upload, FileText, X } from 'lucide-react'
-import { mockBuildings, mockFlats } from '@/data/mockBuildings'
+import { fetchAgreementFormData } from '@/lib/api/documents'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { RentalAgreement } from '@/types/agreement'
+import { toast } from '@/lib/feedback/toast'
 
 const agreementUploadSchema = z.object({
   propertyId: z.string().min(1, 'Property is required'),
@@ -71,12 +73,17 @@ export function AgreementUploadDialog({
   const [specialCondition, setSpecialCondition] = useState('')
   const [selectedPropertyId, setSelectedPropertyId] = useState('')
 
+  const loadFormData = useCallback(() => fetchAgreementFormData(), [])
+  const { data: formData } = useMockQuery(loadFormData)
+  const mockBuildings = formData?.buildings ?? []
+  const mockFlats = formData?.flats ?? []
+
   const availableFlats = useMemo(
     () =>
       selectedPropertyId
         ? mockFlats.filter(f => f.buildingId === selectedPropertyId)
         : [],
-    [selectedPropertyId]
+    [selectedPropertyId, mockFlats]
   )
 
   const form = useForm({
@@ -120,7 +127,7 @@ export function AgreementUploadDialog({
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
       if (selectedFile.type !== 'application/pdf') {
-        alert('Please upload a PDF file')
+        toast.error('Please upload a PDF file')
         return
       }
       setFile(selectedFile)
@@ -134,7 +141,7 @@ export function AgreementUploadDialog({
 
   const handleSubmit = (data: any) => {
     if (!file && !filePreview) {
-      alert('Please upload an agreement document')
+      toast.error('Please upload an agreement document')
       return
     }
 

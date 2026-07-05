@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -39,6 +40,8 @@ import type { Booking, BookingStatus } from '@/types/booking'
 import { Calendar, Search } from 'lucide-react'
 
 export default function MyBookingsPage() {
+  const t = useTranslations('portfolio.myBookings')
+  const tc = useTranslations('common')
   const [selectedStatus, setSelectedStatus] = useState<BookingStatus | 'all'>(
     'all'
   )
@@ -90,7 +93,7 @@ export default function MyBookingsPage() {
     setCancelTarget(null)
     setCancelReason('')
     setShowDetail(false)
-    setTick(t => t + 1)
+    setTick(n => n + 1)
     refetch()
   }
 
@@ -98,13 +101,13 @@ export default function MyBookingsPage() {
     <Layout>
       <PageContainer>
         <PageHeader
-          title="My bookings"
-          description="Track requests, instant bookings, and stay history."
+          title={t('title')}
+          description={t('description')}
           actions={
             <Button asChild variant="outline">
               <Link href="/search">
                 <Search className="mr-2 h-4 w-4" />
-                Find housing
+                {tc('findHousing')}
               </Link>
             </Button>
           }
@@ -118,27 +121,29 @@ export default function MyBookingsPage() {
             }
           >
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={tc('filterByStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="all">{tc('allStatus')}</SelectItem>
+              <SelectItem value="pending">{tc('status.pending')}</SelectItem>
+              <SelectItem value="approved">{tc('status.approved')}</SelectItem>
+              <SelectItem value="rejected">{tc('status.rejected')}</SelectItem>
+              <SelectItem value="cancelled">{tc('status.cancelled')}</SelectItem>
+              <SelectItem value="completed">{tc('status.completed')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {loading && <LoadingState label="Loading bookings…" />}
+        {loading && (
+          <LoadingState label={t('loading')} variant="skeleton" skeletonVariant="row" skeletonCount={4} />
+        )}
         {error && (
           <EmptyState
-            title="Could not load bookings"
+            title={t('errorTitle')}
             description={error}
             icon={Calendar}
           >
-            <Button onClick={() => refetch()}>Retry</Button>
+            <Button onClick={() => refetch()}>{tc('retry')}</Button>
           </EmptyState>
         )}
 
@@ -146,22 +151,22 @@ export default function MyBookingsPage() {
           <Tabs defaultValue="upcoming" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upcoming">
-                Upcoming ({upcomingBookings.length})
+                {t('tabs.upcoming')} ({upcomingBookings.length})
               </TabsTrigger>
               <TabsTrigger value="past">
-                Past ({pastBookings.length})
+                {t('tabs.past')} ({pastBookings.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="upcoming" className="mt-6 space-y-4">
               {upcomingBookings.length === 0 ? (
                 <EmptyState
-                  title="No upcoming bookings"
-                  description="Search verified mess, hostel, and apartment listings to book."
+                  title={t('emptyUpcomingTitle')}
+                  description={t('emptyUpcomingDesc')}
                   icon={Calendar}
                 >
                   <Button asChild>
-                    <Link href="/search">Browse listings</Link>
+                    <Link href="/search">{tc('browseListings')}</Link>
                   </Button>
                 </EmptyState>
               ) : (
@@ -182,8 +187,8 @@ export default function MyBookingsPage() {
             <TabsContent value="past" className="mt-6 space-y-4">
               {pastBookings.length === 0 ? (
                 <EmptyState
-                  title="No past bookings"
-                  description="Completed, cancelled, and rejected bookings appear here."
+                  title={t('emptyPastTitle')}
+                  description={t('emptyPastDesc')}
                   icon={Calendar}
                 />
               ) : (
@@ -222,22 +227,19 @@ export default function MyBookingsPage() {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Cancel booking</DialogTitle>
-              <DialogDescription>
-                Tell the owner why you are cancelling. Pending and approved
-                bookings can be cancelled.
-              </DialogDescription>
+              <DialogTitle>{t('cancelTitle')}</DialogTitle>
+              <DialogDescription>{t('cancelDesc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="cancel-reason">Reason</Label>
+                <Label htmlFor="cancel-reason">{t('cancelReason')}</Label>
                 <Textarea
                   id="cancel-reason"
                   className="mt-2"
                   rows={4}
                   value={cancelReason}
                   onChange={e => setCancelReason(e.target.value)}
-                  placeholder="e.g. Found another place closer to campus"
+                  placeholder={t('cancelReasonPlaceholder')}
                 />
               </div>
               {actionError && (
@@ -249,7 +251,7 @@ export default function MyBookingsPage() {
                   className="flex-1"
                   onClick={() => setCancelTarget(null)}
                 >
-                  Keep booking
+                  {t('keepBooking')}
                 </Button>
                 <Button
                   variant="destructive"
@@ -257,7 +259,7 @@ export default function MyBookingsPage() {
                   disabled={!cancelReason.trim()}
                   onClick={confirmCancel}
                 >
-                  Confirm cancel
+                  {t('confirmCancel')}
                 </Button>
               </div>
             </div>

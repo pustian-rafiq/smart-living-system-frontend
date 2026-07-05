@@ -13,10 +13,12 @@ import { RatingDisplay } from '@/components/hotel/RatingDisplay'
 import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
 import { InstantBookBadge } from '@/components/shared/InstantBookBadge'
 import { OverlayBadge } from '@/components/shared/OverlayBadge'
+import { FeaturedBadge, isListingFeatured } from '@/components/monetization/FeaturedBadge'
 import { useRouter } from 'next/navigation'
 import type { Property } from '@/types/property'
 import Image from 'next/image'
 import { getDemoRenterId } from '@/lib/api/demoUser'
+import { formatCurrency } from '@/lib/format/locale'
 import { cn } from '@/lib/utils'
 
 interface PropertyCardProps {
@@ -66,6 +68,9 @@ export function PropertyCard({
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="absolute left-2 top-2 z-10 flex flex-wrap gap-1.5">
+          {isListingFeatured(property) && (
+            <FeaturedBadge className="pointer-events-auto" />
+          )}
           <AvailabilityBadge available={property.available} tone="solid" />
           {property.instantBook && property.available && (
             <InstantBookBadge tone="solid" />
@@ -140,13 +145,13 @@ export function PropertyCard({
         <div className="mb-3">
           <div className="flex flex-wrap items-baseline gap-1">
             <span className="text-2xl font-bold text-primary sm:text-3xl">
-              ৳{property.rent.toLocaleString()}
+              {formatCurrency(property.rent)}
             </span>
             <span className="text-sm text-muted-foreground">/month</span>
           </div>
           {property.mealIncluded && property.mealCost && (
             <p className="mt-1.5 text-xs text-muted-foreground">
-              + ৳{property.mealCost.toLocaleString()}/month for meals
+              + {formatCurrency(property.mealCost)}/month for meals
             </p>
           )}
           {property.seatType && (

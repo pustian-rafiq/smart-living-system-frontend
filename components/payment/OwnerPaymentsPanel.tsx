@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { PageHeader } from '@/components/page'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -9,32 +10,44 @@ import { OwnerPaymentAnalyticsPanel } from '@/components/payment/OwnerPaymentAna
 import { PayoutLedgerTable } from '@/components/payment/PayoutLedgerTable'
 import { CommissionBreakdownCard } from '@/components/payment/CommissionBreakdownCard'
 import {
-  getOwnerPayouts,
-  getOwnerPaymentAnalytics,
-} from '@/data/mockPayouts'
+  fetchOwnerPayouts,
+  fetchOwnerPaymentAnalytics,
+} from '@/lib/api/payments'
 import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { BarChart3, Wallet, FileText } from 'lucide-react'
 
 export function OwnerPaymentsPanel() {
+  const t = useTranslations('payments.owner')
   const ownerId = getDemoOwnerId()
-  const [tick, setTick] = useState(0)
 
-  const refresh = useCallback(() => setTick(t => t + 1), [])
+  const loadPayouts = useCallback(
+    () => fetchOwnerPayouts(ownerId),
+    [ownerId]
+  )
+  const loadAnalytics = useCallback(
+    () => fetchOwnerPaymentAnalytics(ownerId),
+    [ownerId]
+  )
 
-  const payouts = getOwnerPayouts(ownerId)
-  const analytics = getOwnerPaymentAnalytics(ownerId)
+  const { data: payouts = [], refetch: refetchPayouts } =
+    useMockQuery(loadPayouts)
+  const { data: analytics } = useMockQuery(loadAnalytics)
+
+  const refresh = useCallback(() => refetchPayouts(), [refetchPayouts])
+
   const latest = payouts[0]
 
   return (
     <>
       <PageHeader
-        title="Payments & payouts"
-        description="Track collections, platform commission, and settlement status."
+        title={t('panelTitle')}
+        description={t('panelDescription')}
         actions={
           <Button variant="outline" asChild>
             <Link href="/bills">
               <FileText className="mr-2 h-4 w-4" />
-              Manage bills
+              {t('manageBills')}
             </Link>
           </Button>
         }
@@ -51,15 +64,15 @@ export function OwnerPaymentsPanel() {
         </div>
       )}
 
-      <Tabs defaultValue="payouts" className="space-y-6" key={tick}>
+      <Tabs defaultValue="payouts" className="space-y-6">
         <TabsList>
           <TabsTrigger value="payouts">
             <Wallet className="mr-2 h-4 w-4" />
-            Payout ledger
+            {t('payoutLedger')}
           </TabsTrigger>
           <TabsTrigger value="analytics">
             <BarChart3 className="mr-2 h-4 w-4" />
-            Analytics
+            {t('analytics')}
           </TabsTrigger>
         </TabsList>
 
@@ -68,7 +81,7 @@ export function OwnerPaymentsPanel() {
         </TabsContent>
 
         <TabsContent value="analytics">
-          <OwnerPaymentAnalyticsPanel analytics={analytics} />
+          {analytics && <OwnerPaymentAnalyticsPanel analytics={analytics} />}
         </TabsContent>
       </Tabs>
     </>

@@ -1,0 +1,11 @@
+{
+  "preferences": "Preferences",
+  "language": "Language",
+  "theme": "Theme",
+  "themeDark": "Dark",
+  "themeLight": "Light",
+  "account": "Account",
+  "changePhone": "Change phone number",
+  "privacyPolicy": "Privacy policy",
+  "logOut": "Log out"
+}

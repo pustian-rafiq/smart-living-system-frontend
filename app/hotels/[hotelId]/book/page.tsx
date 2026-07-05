@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { format } from 'date-fns'
 import { Layout } from '@/components/layout/Layout'
 import {
@@ -22,25 +23,33 @@ import {
 } from '@/components/hotel/HotelPaymentDialog'
 import { DownloadInvoiceButton } from '@/components/hotel/DownloadInvoiceButton'
 import {
-  mockHotels,
-  getRoomsByHotelId,
+  fetchHotelById,
+  fetchHotelRooms,
+  createHotelBooking,
   mockBookings,
-  addHotelBooking,
-} from '@/data/mockHotels'
+} from '@/lib/api/hotels'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { calculateBookingFees } from '@/lib/hotel/pricing'
 import { getDemoRenterId } from '@/lib/api/demoUser'
+import { useAppFormat } from '@/hooks/useAppFormat'
 import type { Booking, Room } from '@/types/hotel'
 import { CheckCircle2, Hotel as HotelIcon } from 'lucide-react'
 import Link from 'next/link'
 
 export default function HotelBookingPage() {
+  const t = useTranslations('hotels')
+  const tc = useTranslations('common')
+  const { formatDate } = useAppFormat()
   const params = useParams()
   const router = useRouter()
   const hotelId = params.hotelId as string
 
-  const hotel = mockHotels.find(h => h.id === hotelId)
-  const rooms = hotel ? getRoomsByHotelId(hotelId) : []
-  const availableRooms = rooms.filter(r => r.available)
+  const loadHotel = useCallback(() => fetchHotelById(hotelId), [hotelId])
+  const { data: hotel } = useMockQuery(loadHotel)
+
+  const loadRooms = useCallback(() => fetchHotelRooms(hotelId), [hotelId])
+  const { data: rooms } = useMockQuery(loadRooms)
+  const availableRooms = (rooms ?? []).filter(r => r.available)
 
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [checkIn, setCheckIn] = useState<Date | undefined>()
@@ -66,12 +75,12 @@ export default function HotelBookingPage() {
       <Layout>
         <PageContainer>
           <EmptyState
-            title="Hotel not found"
-            description="This hotel may have been removed."
+            title={t('book.notFoundTitle')}
+            description={t('book.notFoundDesc')}
             icon={HotelIcon}
           >
             <Button asChild variant="outline">
-              <Link href="/hotels">Back to hotels</Link>
+              <Link href="/hotels">{t('book.backToHotels')}</Link>
             </Button>
           </EmptyState>
         </PageContainer>
@@ -113,9 +122,12 @@ export default function HotelBookingPage() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    addHotelBooking(booking)
-    setConfirmed(booking)
-    setPayOpen(false)
+    void createHotelBooking(booking).then(result => {
+      if (result.ok) {
+        setConfirmed(result.data)
+        setPayOpen(false)
+      }
+    })
   }
 
   if (confirmed && selectedRoom && guestData) {
@@ -137,25 +149,28 @@ export default function HotelBookingPage() {
               <CheckCircle2 className="h-9 w-9 text-emerald-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Booking confirmed</h1>
+              <h1 className="text-2xl font-bold">
+                {t('book.bookingConfirmed')}
+              </h1>
               <p className="mt-1 text-muted-foreground">
-                {hotel.name} · Room {selectedRoom.roomNumber}
+                {hotel.name} ·{' '}
+                {t('book.roomLabel', { number: selectedRoom.roomNumber })}
               </p>
             </div>
             <Card className="text-left">
               <CardContent className="space-y-3 pt-6 text-sm">
                 <p>
-                  <strong>Booking ID:</strong> {confirmed.id}
+                  <strong>{t('book.bookingId')}</strong> {confirmed.id}
                 </p>
                 <p>
-                  <strong>Txn:</strong> {confirmed.transactionId}
+                  <strong>{t('book.txn')}</strong> {confirmed.transactionId}
                 </p>
                 <p>
-                  <strong>Check-in:</strong> {confirmed.checkIn} (
+                  <strong>{t('book.checkIn')}:</strong> {confirmed.checkIn} (
                   {hotel.checkInTime})
                 </p>
                 <p>
-                  <strong>Check-out:</strong> {confirmed.checkOut} (
+                  <strong>{t('book.checkOut')}:</strong> {confirmed.checkOut} (
                   {hotel.checkOutTime})
                 </p>
                 <BookingFeeBreakdown fees={fees} />
@@ -169,11 +184,11 @@ export default function HotelBookingPage() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <DownloadInvoiceButton data={invoiceData} className="flex-1" />
               <Button className="flex-1" asChild>
-                <Link href="/my-bookings">My bookings</Link>
+                <Link href="/my-bookings">{t('book.myBookings')}</Link>
               </Button>
             </div>
             <Button variant="outline" asChild>
-              <Link href={`/hotels/${hotel.id}`}>Back to hotel</Link>
+              <Link href={`/hotels/${hotel.id}`}>{t('book.backToHotel')}</Link>
             </Button>
           </div>
         </PageContainer>
@@ -185,11 +200,11 @@ export default function HotelBookingPage() {
     <Layout>
       <PageContainer>
         <PageHeader
-          title={`Book ${hotel.name}`}
-          description="Select dates, room, guest details, then pay the advance."
+          title={t('book.title', { name: hotel.name })}
+          description={t('book.descriptionLong')}
           actions={
             <Button variant="ghost" onClick={() => router.back()}>
-              ← Back
+              ← {tc('back')}
             </Button>
           }
         />
@@ -198,7 +213,7 @@ export default function HotelBookingPage() {
           <div className="space-y-6 lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>1. Select dates</CardTitle>
+                <CardTitle>{t('book.step1SelectDates')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <BookingCalendar
@@ -214,7 +229,7 @@ export default function HotelBookingPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>2. Select room</CardTitle>
+                <CardTitle>{t('book.step2SelectRoom')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {availableRooms.map(room => (
@@ -228,7 +243,7 @@ export default function HotelBookingPage() {
                 ))}
                 {availableRooms.length === 0 && (
                   <p className="text-center text-muted-foreground">
-                    No rooms available
+                    {t('book.noRoomsAvailable')}
                   </p>
                 )}
               </CardContent>
@@ -251,7 +266,7 @@ export default function HotelBookingPage() {
           <div>
             <Card className="sticky top-4">
               <CardHeader>
-                <CardTitle>Booking summary</CardTitle>
+                <CardTitle>{t('book.bookingSummary')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -263,15 +278,20 @@ export default function HotelBookingPage() {
                 {selectedRoom && (
                   <div className="border-t pt-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Room</span>
+                      <span className="text-muted-foreground">
+                        {t('book.room')}
+                      </span>
                       <span className="font-medium">
                         {selectedRoom.roomNumber} · {selectedRoom.type}
                       </span>
                     </div>
                     <div className="mt-1 flex justify-between">
-                      <span className="text-muted-foreground">Base rate</span>
+                      <span className="text-muted-foreground">
+                        {t('pricing.baseRate')}
+                      </span>
                       <span>
-                        ৳{selectedRoom.basePrice.toLocaleString()}/night
+                        ৳{selectedRoom.basePrice.toLocaleString()}
+                        {t('book.perNight')}
                       </span>
                     </div>
                   </div>
@@ -279,12 +299,18 @@ export default function HotelBookingPage() {
                 {checkIn && checkOut && (
                   <div className="border-t pt-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Check-in</span>
-                      <span>{format(checkIn, 'MMM dd, yyyy')}</span>
+                      <span className="text-muted-foreground">
+                        {t('book.checkIn')}
+                      </span>
+                      <span>
+                        {formatDate(checkIn, { style: 'medium' })}
+                      </span>
                     </div>
                     <div className="mt-1 flex justify-between">
-                      <span className="text-muted-foreground">Check-out</span>
-                      <span>{format(checkOut, 'MMM dd, yyyy')}</span>
+                      <span className="text-muted-foreground">
+                        {t('book.checkOut')}
+                      </span>
+                      <span>{formatDate(checkOut, { style: 'medium' })}</span>
                     </div>
                   </div>
                 )}
@@ -292,8 +318,7 @@ export default function HotelBookingPage() {
                   <BookingFeeBreakdown fees={fees} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Weekend and seasonal rates may apply. VAT and service charge
-                  included in total.
+                  {t('book.ratesNote')}
                 </p>
               </CardContent>
             </Card>

@@ -3,20 +3,26 @@ import type {
   PaymentTransaction,
   RecordCashPaymentInput,
   ScheduledPayment,
+  PaymentSchedule,
   OwnerPayout,
   OwnerPaymentAnalytics,
 } from '@/types/payment'
 import {
   getPaymentTransactionsByUserId,
   getScheduledPaymentsByUserId,
+  getPaymentSchedulesByUserId,
   processBillPayment,
   mockPaymentTransactions,
   getPaymentTransactionByTxnId,
+  addScheduledPayment,
+  updateScheduledPayment,
+  cancelScheduledPayment,
 } from '@/data/mockPayments'
 import {
   getOwnerPayouts,
   getOwnerPaymentAnalytics,
   recordCashPayment,
+  markPayoutSettled,
 } from '@/data/mockPayouts'
 import { mockDelay, ok, err, type ApiResult } from './http'
 import { getDemoTenantId, getDemoOwnerId } from './demoUser'
@@ -113,4 +119,42 @@ export async function fetchPaymentByTxnId(
   await mockDelay()
   const txn = getPaymentTransactionByTxnId(transactionId)
   return ok(txn)
+}
+
+export async function fetchPaymentSchedules(
+  userId?: string
+): Promise<ApiResult<PaymentSchedule[]>> {
+  await mockDelay()
+  return ok(getPaymentSchedulesByUserId(userId || getDemoTenantId()))
+}
+
+export async function createScheduledPayment(
+  payment: Omit<ScheduledPayment, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<ApiResult<ScheduledPayment>> {
+  await mockDelay(100)
+  return ok(addScheduledPayment(payment))
+}
+
+export async function patchScheduledPayment(
+  paymentId: string,
+  updates: Partial<ScheduledPayment>
+): Promise<ApiResult<ScheduledPayment>> {
+  await mockDelay(100)
+  const updated = updateScheduledPayment(paymentId, updates)
+  if (!updated) return err('Scheduled payment not found', 'NOT_FOUND')
+  return ok(updated)
+}
+
+export async function cancelScheduledPaymentApi(
+  paymentId: string
+): Promise<ApiResult<boolean>> {
+  await mockDelay(100)
+  return ok(cancelScheduledPayment(paymentId))
+}
+
+export async function settlePayout(
+  payoutId: string
+): Promise<ApiResult<OwnerPayout | undefined>> {
+  await mockDelay(100)
+  return ok(markPayoutSettled(payoutId))
 }

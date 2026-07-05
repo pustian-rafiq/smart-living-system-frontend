@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { useTranslations } from 'next-intl'
 import {
   Dialog,
   DialogContent,
@@ -34,33 +35,26 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Calendar, Clock } from 'lucide-react'
+import { useAppFormat } from '@/hooks/useAppFormat'
 import type { ScheduledPayment, PaymentMethod } from '@/types/payment'
-import { mockBills } from '@/data/mockBills'
+import { fetchBillsForTenant } from '@/lib/api/bills'
+import { getDemoTenantId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
-const schedulePaymentSchema = z.object({
-  billId: z.string().min(1, 'Bill is required'),
-  scheduledDate: z.string().min(1, 'Scheduled date is required'),
-  scheduledTime: z.string().optional(),
-  paymentMethod: z.enum([
-    'bKash',
-    'Nagad',
-    'Rocket',
-    'Bank Transfer',
-    'Cash',
-    'Card',
-  ]),
-  accountNumber: z.string().optional(),
-  reminderEnabled: z.boolean(),
-  reminderDays: z.array(z.number()),
-  autoRetry: z.boolean(),
-  maxRetries: z.number().optional(),
-})
-
-type SchedulePaymentFormValues = z.infer<typeof schedulePaymentSchema>
+type SchedulePaymentFormValues = {
+  billId: string
+  scheduledDate: string
+  scheduledTime?: string
+  paymentMethod: PaymentMethod | 'Bank Transfer' | 'Card'
+  accountNumber?: string
+  reminderEnabled: boolean
+  reminderDays: number[]
+  autoRetry: boolean
+  maxRetries?: number
+}
 
 interface SchedulePaymentDialogProps {
   payment?: ScheduledPayment | null
-  /** Pre-select this bill when opening for a new schedule */
   billId?: string
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -91,9 +85,42 @@ export function SchedulePaymentDialog({
   onOpenChange,
   onSubmit,
 }: SchedulePaymentDialogProps) {
-  const userBills = useMemo(
-    () => mockBills.filter(b => b.tenantId === 'r1' && b.status === 'unpaid'),
+  const t = useTranslations('payments.scheduleDialog')
+  const tc = useTranslations('common')
+  const { formatCurrency } = useAppFormat()
+
+  const schedulePaymentSchema = useMemo(
+    () =>
+      z.object({
+        billId: z.string().min(1, t('billRequired')),
+        scheduledDate: z.string().min(1, t('dateRequired')),
+        scheduledTime: z.string().optional(),
+        paymentMethod: z.enum([
+          'bKash',
+          'Nagad',
+          'Rocket',
+          'Bank Transfer',
+          'Cash',
+          'Card',
+        ]),
+        accountNumber: z.string().optional(),
+        reminderEnabled: z.boolean(),
+        reminderDays: z.array(z.number()),
+        autoRetry: z.boolean(),
+        maxRetries: z.number().optional(),
+      }),
+    [t]
+  )
+
+  const loadBills = useCallback(
+    () => fetchBillsForTenant(getDemoTenantId()),
     []
+  )
+  const { data: tenantBills } = useMockQuery(loadBills)
+
+  const userBills = useMemo(
+    () => (tenantBills ?? []).filter(b => b.status === 'unpaid'),
+    [tenantBills]
   )
 
   const form = useForm<SchedulePaymentFormValues>({
@@ -101,7 +128,6 @@ export function SchedulePaymentDialog({
     defaultValues: emptyDefaults,
   })
 
-  // Reset only when the dialog opens — avoid unstable deps (new arrays / form identity)
   useEffect(() => {
     if (!open) return
 
@@ -136,7 +162,7 @@ export function SchedulePaymentDialog({
       ...data,
       billName: selectedBill
         ? `${selectedBill.month} ${selectedBill.year} - ${selectedBill.propertyName}`
-        : 'Payment',
+        : t('defaultBillName'),
       amount: selectedBill?.amount || 0,
     })
     form.reset(emptyDefaults)
@@ -149,11 +175,9 @@ export function SchedulePaymentDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            {payment ? 'Edit Scheduled Payment' : 'Schedule Payment'}
+            {payment ? t('editTitle') : t('createTitle')}
           </DialogTitle>
-          <DialogDescription>
-            Schedule a payment for a future date with automatic reminders
-          </DialogDescription>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -168,21 +192,21 @@ export function SchedulePaymentDialog({
                   name="billId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Select Bill</FormLabel>
+                      <FormLabel>{t('selectBill')}</FormLabel>
                       <Select
                         value={field.value || undefined}
                         onValueChange={field.onChange}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a bill" />
+                            <SelectValue placeholder={t('selectBillPlaceholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {userBills.map(bill => (
                             <SelectItem key={bill.id} value={bill.id}>
-                              {bill.month} {bill.year} - {bill.propertyName} (৳
-                              {bill.amount.toLocaleString()})
+                              {bill.month} {bill.year} - {bill.propertyName} (
+                              {formatCurrency(bill.amount)})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -200,7 +224,7 @@ export function SchedulePaymentDialog({
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
-                          Scheduled Date
+                          {t('scheduledDate')}
                         </FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
@@ -216,7 +240,7 @@ export function SchedulePaymentDialog({
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <Clock className="h-4 w-4" />
-                          Time (Optional)
+                          {t('scheduledTime')}
                         </FormLabel>
                         <FormControl>
                           <Input type="time" {...field} />
@@ -232,7 +256,7 @@ export function SchedulePaymentDialog({
                   name="paymentMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Payment Method</FormLabel>
+                      <FormLabel>{t('paymentMethod')}</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
@@ -263,13 +287,11 @@ export function SchedulePaymentDialog({
                   name="accountNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Account Number (Optional)</FormLabel>
+                      <FormLabel>{t('accountNumber')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., 01712345678" {...field} />
+                        <Input placeholder={t('accountPlaceholder')} {...field} />
                       </FormControl>
-                      <FormDescription>
-                        Your payment account number for this method
-                      </FormDescription>
+                      <FormDescription>{t('accountHint')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -278,9 +300,9 @@ export function SchedulePaymentDialog({
                 <div className="space-y-4 rounded-lg border p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold">Payment Reminders</h3>
+                      <h3 className="font-semibold">{t('remindersTitle')}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Get notified before the scheduled payment
+                        {t('remindersDesc')}
                       </p>
                     </div>
                     <FormField
@@ -305,7 +327,7 @@ export function SchedulePaymentDialog({
                       name="reminderDays"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Remind Me (Days Before)</FormLabel>
+                          <FormLabel>{t('remindDaysBefore')}</FormLabel>
                           <div className="grid grid-cols-3 gap-2">
                             {reminderDayOptions.map(day => (
                               <div
@@ -333,8 +355,8 @@ export function SchedulePaymentDialog({
                                   className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
                                   {day === 0
-                                    ? 'On day'
-                                    : `${day} day${day !== 1 ? 's' : ''}`}
+                                    ? t('onDay')
+                                    : t('daysBefore', { count: day })}
                                 </label>
                               </div>
                             ))}
@@ -349,9 +371,9 @@ export function SchedulePaymentDialog({
                 <div className="space-y-4 rounded-lg border p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold">Auto-retry on Failure</h3>
+                      <h3 className="font-semibold">{t('autoRetryTitle')}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Automatically retry payment if it fails
+                        {t('autoRetryDesc')}
                       </p>
                     </div>
                     <FormField
@@ -376,7 +398,7 @@ export function SchedulePaymentDialog({
                       name="maxRetries"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Maximum Retries</FormLabel>
+                          <FormLabel>{t('maxRetries')}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -388,9 +410,7 @@ export function SchedulePaymentDialog({
                               }
                             />
                           </FormControl>
-                          <FormDescription>
-                            Number of times to retry if payment fails (1-5)
-                          </FormDescription>
+                          <FormDescription>{t('maxRetriesHint')}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -406,10 +426,10 @@ export function SchedulePaymentDialog({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button type="submit">
-                {payment ? 'Update' : 'Schedule'} Payment
+                {payment ? t('updatePayment') : t('schedulePayment')}
               </Button>
             </DialogFooter>
           </form>

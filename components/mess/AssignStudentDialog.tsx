@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -28,7 +29,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { Mess, Seat } from '@/types/mess'
-import { mockSeats } from '@/data/mockMess'
+import { fetchMessSeats } from '@/lib/api/mess'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 const assignStudentSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -54,6 +57,15 @@ export function AssignStudentDialog({
   onOpenChange,
   onAssign,
 }: AssignStudentDialogProps) {
+  const loadSeats = useCallback(
+    () =>
+      open && mess
+        ? fetchMessSeats(mess.id)
+        : Promise.resolve(ok([] as Seat[])),
+    [open, mess]
+  )
+  const { data: seatsData } = useMockQuery(loadSeats)
+
   const form = useForm<AssignStudentFormData>({
     resolver: zodResolver(assignStudentSchema),
     defaultValues: {
@@ -67,7 +79,7 @@ export function AssignStudentDialog({
   })
 
   const availableSeats = mess
-    ? mockSeats
+    ? (seatsData ?? [])
         .filter(s => s.messId === mess.id && s.status === 'available')
         .map(s => s.seatNumber)
     : []

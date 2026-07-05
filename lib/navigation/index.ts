@@ -19,3 +19,4 @@ export {
 } from './config'
 
 export { isNavItemActive, isChildActive, isHrefActive } from './utils'
+export { useNavLabels } from './useNavLabels'

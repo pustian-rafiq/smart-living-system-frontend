@@ -25,6 +25,8 @@ import {
 import { format } from 'date-fns'
 import Image from 'next/image'
 import type { Chat, ChatMessage, ChatUser } from '@/types/chat'
+import { getAcceptAttribute, validateFile } from '@/lib/security/file-upload'
+import { toast } from '@/lib/feedback/toast'
 
 interface ChatWindowProps {
   chat: Chat | null
@@ -99,21 +101,31 @@ export function ChatWindow({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = event => {
-          setImagePreview(event.target?.result as string)
-          setShowImagePreview(true)
-          setSelectedFile(file)
-        }
-        reader.readAsDataURL(file)
-      } else {
-        setSelectedFile(file)
-        if (onSendFile) {
-          onSendFile(file)
-        }
+    if (!file) return
+
+    if (file.type.startsWith('image/')) {
+      const result = validateFile(file, 'chatImage')
+      if (!result.valid) {
+        toast.error('Invalid image', 'Choose a JPEG, PNG, WebP, or GIF under 3 MB.')
+        e.target.value = ''
+        return
       }
+      const reader = new FileReader()
+      reader.onload = event => {
+        setImagePreview(event.target?.result as string)
+        setShowImagePreview(true)
+        setSelectedFile(result.file)
+      }
+      reader.readAsDataURL(result.file)
+    } else {
+      const result = validateFile(file, 'chatAttachment')
+      if (!result.valid) {
+        toast.error('Invalid file', 'Choose a PDF, DOC, DOCX, or TXT under 10 MB.')
+        e.target.value = ''
+        return
+      }
+      setSelectedFile(result.file)
+      onSendFile?.(result.file)
     }
   }
 
@@ -325,14 +337,14 @@ export function ChatWindow({
             type="file"
             className="hidden"
             onChange={handleFileSelect}
-            accept=".pdf,.doc,.docx,.txt"
+            accept={getAcceptAttribute('chatAttachment')}
           />
           <input
             ref={imageInputRef}
             type="file"
             className="hidden"
             onChange={handleFileSelect}
-            accept="image/*"
+            accept={getAcceptAttribute('chatImage')}
           />
 
           {/* Attach Button */}

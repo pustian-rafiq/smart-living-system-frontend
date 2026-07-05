@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { PageContainer, PageHeader } from '@/components/page'
 import {
@@ -13,53 +14,41 @@ import {
 import { Button } from '@/components/ui/button'
 import { Building2, HeartHandshake, Shield, Sparkles } from 'lucide-react'
 
-const pillars = [
-  {
-    icon: Building2,
-    title: 'All-in-one',
-    text: 'Mess, hostel, apartment, and short stays in one place — built for how Bangladesh actually rents.',
-  },
-  {
-    icon: Shield,
-    title: 'Trust by design',
-    text: 'Verification, clear billing, and owner–renter tools reduce scams and WhatsApp chaos.',
-  },
-  {
-    icon: HeartHandshake,
-    title: 'Fair for both sides',
-    text: 'Renters get transparency; owners get structured rent, notices, and records.',
-  },
-]
+const pillarKeys = [
+  { key: 'allInOne', icon: Building2 },
+  { key: 'trustByDesign', icon: Shield },
+  { key: 'fairForBoth', icon: HeartHandshake },
+] as const
 
 export default function About() {
+  const t = useTranslations('legal')
+
   return (
     <Layout>
       <PageContainer>
         <PageHeader
-          title="About Smart Living"
-          description="We are building a modern living system for Bangladesh — from discovery and booking to rent, bills, and day-to-day communication."
+          title={t('about.title')}
+          description={t('about.description')}
         />
 
         <div className="prose prose-neutral dark:prose-invert mb-10 max-w-none">
           <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Whether you are a student in a mess, a professional in a flat, or a
-            traveller needing a guest house, Smart Living brings listings and
-            management into one consistent experience. This web app is
-            frontend-first: data is mocked like API responses so we can plug in
-            a real backend without rewriting screens.
+            {t('about.intro')}
           </p>
         </div>
 
         <div className="mb-10 grid gap-4 sm:grid-cols-3">
-          {pillars.map(({ icon: Icon, title, text }) => (
-            <Card key={title} className="border-border/80">
+          {pillarKeys.map(({ key, icon: Icon }) => (
+            <Card key={key} className="border-border/80">
               <CardHeader>
                 <div className="mb-2 inline-flex rounded-lg bg-primary/10 p-2 text-primary">
                   <Icon className="h-5 w-5" />
                 </div>
-                <CardTitle className="text-lg">{title}</CardTitle>
+                <CardTitle className="text-lg">
+                  {t(`about.pillars.${key}.title`)}
+                </CardTitle>
                 <CardDescription className="text-sm leading-relaxed">
-                  {text}
+                  {t(`about.pillars.${key}.text`)}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -72,16 +61,15 @@ export default function About() {
               <Sparkles className="mt-0.5 h-8 w-8 shrink-0 text-primary" />
               <div>
                 <p className="font-semibold text-foreground">
-                  Try the product flow
+                  {t('about.tryFlow.title')}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Search listings, save favourites, and explore owner or renter
-                  dashboards with demo data.
+                  {t('about.tryFlow.description')}
                 </p>
               </div>
             </div>
             <Button asChild>
-              <Link href="/search">Explore search</Link>
+              <Link href="/search">{t('about.tryFlow.cta')}</Link>
             </Button>
           </CardContent>
         </Card>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -27,7 +27,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Users } from 'lucide-react'
 import type { SMSGroup } from '@/types/sms'
-import { mockStudents } from '@/data/mockMess'
+import { fetchMessStudents } from '@/lib/api/mess'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 const smsGroupSchema = z.object({
   name: z.string().min(1, 'Group name is required'),
@@ -51,7 +53,12 @@ export function SMSGroupDialog({
   onSubmit,
 }: SMSGroupDialogProps) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
-  const messStudents = mockStudents.filter(s => s.seatNumber)
+  const loadStudents = useCallback(
+    () => (open ? fetchMessStudents(messId) : Promise.resolve(ok([]))),
+    [open, messId]
+  )
+  const { data: students } = useMockQuery(loadStudents)
+  const messStudents = (students ?? []).filter(s => s.seatNumber)
 
   const form = useForm({
     resolver: zodResolver(smsGroupSchema),

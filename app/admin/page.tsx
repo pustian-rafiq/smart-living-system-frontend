@@ -1,8 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import {
   Users,
   Building2,
@@ -13,66 +14,98 @@ import {
   MessageSquare,
   TrendingUp,
   FileText,
+  ShieldAlert,
 } from 'lucide-react'
 import {
-  mockAnalytics,
-  mockVerificationRequests,
-  mockDisputes,
-} from '@/data/mockAdmin'
-import { mockComplaints } from '@/data/mockComplaints'
-import {
+  fetchAdminAnalytics,
+  fetchAdminComplaints,
+  fetchVerificationRequests,
+  fetchDisputes,
+  fetchFraudReports,
   getVerificationRequestsByStatus,
   getDisputesByStatus,
-} from '@/data/mockAdmin'
+  getFraudReportsByStatus,
+} from '@/lib/api/admin'
+import type { AnalyticsData } from '@/types/admin'
+import type { Complaint } from '@/types/complaint'
 import Link from 'next/link'
 
 export default function AdminDashboardPage() {
+  const t = useTranslations('admin.dashboard')
+  const tProp = useTranslations('search.page.propertyTypes')
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [complaints, setComplaints] = useState<Complaint[]>([])
+
+  useEffect(() => {
+    Promise.all([
+      fetchAdminAnalytics(),
+      fetchAdminComplaints(),
+      fetchVerificationRequests(),
+      fetchDisputes(),
+      fetchFraudReports(),
+    ]).then(([analyticsRes, complaintsRes]) => {
+      if (analyticsRes.ok) setAnalytics(analyticsRes.data)
+      if (complaintsRes.ok) setComplaints(complaintsRes.data)
+    })
+  }, [])
+
+  if (!analytics) {
+    return (
+      <AdminLayout>
+        <div className="max-w-7xl p-8 text-muted-foreground">Loading...</div>
+      </AdminLayout>
+    )
+  }
+
   const pendingVerifications = getVerificationRequestsByStatus('pending')
   const openDisputes = getDisputesByStatus('open')
   const inProgressDisputes = getDisputesByStatus('in_progress')
 
   const stats = [
     {
-      title: 'Total Users',
-      value: mockAnalytics.totalUsers.toLocaleString(),
+      title: t('stats.totalUsers'),
+      value: analytics.totalUsers.toLocaleString(),
       icon: Users,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
-      growth: `+${mockAnalytics.growthMetrics.usersGrowth}%`,
+      growth: `+${analytics.growthMetrics.usersGrowth}%`,
       link: '/admin/users',
     },
     {
-      title: 'Total Properties',
-      value: mockAnalytics.totalProperties.toLocaleString(),
+      title: t('stats.totalProperties'),
+      value: analytics.totalProperties.toLocaleString(),
       icon: Building2,
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
-      growth: `+${mockAnalytics.growthMetrics.propertiesGrowth}%`,
+      growth: `+${analytics.growthMetrics.propertiesGrowth}%`,
       link: '/admin/properties',
     },
     {
-      title: 'Total Bookings',
-      value: mockAnalytics.totalBookings.toLocaleString(),
+      title: t('stats.totalBookings'),
+      value: analytics.totalBookings.toLocaleString(),
       icon: Calendar,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
-      growth: `+${mockAnalytics.growthMetrics.bookingsGrowth}%`,
+      growth: `+${analytics.growthMetrics.bookingsGrowth}%`,
       link: '/admin/bookings',
     },
     {
-      title: 'Total Revenue',
-      value: `৳${(mockAnalytics.totalRevenue / 1000000).toFixed(1)}M`,
+      title: t('stats.totalRevenue'),
+      value: `৳${(analytics.totalRevenue / 1000000).toFixed(1)}M`,
       icon: DollarSign,
       color: 'text-yellow-500',
       bgColor: 'bg-yellow-500/10',
-      growth: `+${mockAnalytics.growthMetrics.revenueGrowth}%`,
+      growth: `+${analytics.growthMetrics.revenueGrowth}%`,
       link: '/admin/analytics',
     },
   ]
 
+  const pendingFraud = getFraudReportsByStatus('pending').length
+  const investigatingFraud = getFraudReportsByStatus('investigating').length
+
   const quickActions = [
     {
-      title: 'Pending Verifications',
+      title: t('pending.verifications'),
       count: pendingVerifications.length,
       icon: FileCheck,
       color: 'text-yellow-500',
@@ -80,7 +113,7 @@ export default function AdminDashboardPage() {
       link: '/admin/verifications?status=pending',
     },
     {
-      title: 'Open Disputes',
+      title: t('pending.disputes'),
       count: openDisputes.length + inProgressDisputes.length,
       icon: MessageSquare,
       color: 'text-red-500',
@@ -88,16 +121,24 @@ export default function AdminDashboardPage() {
       link: '/admin/disputes',
     },
     {
-      title: 'Open Complaints',
-      count: mockComplaints.filter(c => c.status !== 'resolved').length,
+      title: t('pending.complaints'),
+      count: complaints.filter(c => c.status !== 'resolved').length,
       icon: AlertCircle,
       color: 'text-orange-500',
       bgColor: 'bg-orange-500/10',
       link: '/admin/complaints',
     },
     {
-      title: 'Audit Logs',
-      count: 'View',
+      title: t('pending.fraud'),
+      count: pendingFraud + investigatingFraud,
+      icon: ShieldAlert,
+      color: 'text-red-500',
+      bgColor: 'bg-red-500/10',
+      link: '/admin/fraud-reports',
+    },
+    {
+      title: t('auditLogs'),
+      count: t('view'),
       icon: FileText,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
@@ -108,21 +149,18 @@ export default function AdminDashboardPage() {
   return (
     <AdminLayout>
       <div className="max-w-7xl">
-        {/* Header */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Dashboard Overview</h2>
-          <p className="text-muted-foreground">
-            Overview of platform statistics and activities
-          </p>
+          <h2 className="text-2xl font-bold mb-2">{t('overviewTitle')}</h2>
+          <p className="text-muted-foreground">{t('overviewDesc')}</p>
         </div>
 
-        {/* Stats Grid */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon
             return (
-              <Card key={index}>
-                <CardContent className="p-4">
+              <Link key={index} href={stat.link}>
+                <Card className="cursor-pointer transition-all hover:shadow-md">
+                  <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
@@ -138,21 +176,21 @@ export default function AdminDashboardPage() {
                       <Icon className={`h-6 w-6 ${stat.color}`} />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             )
           })}
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Quick Actions */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>{t('quickActions')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {quickActions.map((action, index) => {
                     const Icon = action.icon
                     return (
@@ -183,58 +221,57 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
 
-            {/* User Distribution */}
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>User Distribution</CardTitle>
+                <CardTitle>{t('userDistribution')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Renters</span>
+                    <span className="text-sm">{t('renters')}</span>
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500"
                           style={{
-                            width: `${(mockAnalytics.usersByRole.renters / mockAnalytics.totalUsers) * 100}%`,
+                            width: `${(analytics.usersByRole.renters / analytics.totalUsers) * 100}%`,
                           }}
                         />
                       </div>
                       <span className="text-sm font-medium">
-                        {mockAnalytics.usersByRole.renters}
+                        {analytics.usersByRole.renters}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Owners</span>
+                    <span className="text-sm">{t('owners')}</span>
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                         <div
                           className="h-full bg-green-500"
                           style={{
-                            width: `${(mockAnalytics.usersByRole.owners / mockAnalytics.totalUsers) * 100}%`,
+                            width: `${(analytics.usersByRole.owners / analytics.totalUsers) * 100}%`,
                           }}
                         />
                       </div>
                       <span className="text-sm font-medium">
-                        {mockAnalytics.usersByRole.owners}
+                        {analytics.usersByRole.owners}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Admins</span>
+                    <span className="text-sm">{t('admins')}</span>
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-32 bg-muted rounded-full overflow-hidden">
                         <div
                           className="h-full bg-purple-500"
                           style={{
-                            width: `${(mockAnalytics.usersByRole.admins / mockAnalytics.totalUsers) * 100}%`,
+                            width: `${(analytics.usersByRole.admins / analytics.totalUsers) * 100}%`,
                           }}
                         />
                       </div>
                       <span className="text-sm font-medium">
-                        {mockAnalytics.usersByRole.admins}
+                        {analytics.usersByRole.admins}
                       </span>
                     </div>
                   </div>
@@ -243,58 +280,57 @@ export default function AdminDashboardPage() {
             </Card>
           </div>
 
-          {/* Property Distribution */}
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>Property Types</CardTitle>
+                <CardTitle>{t('propertyTypes')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Mess</span>
+                      <span className="text-sm font-medium">{tProp('mess')}</span>
                       <span className="text-sm text-muted-foreground">
-                        {mockAnalytics.propertiesByType.mess}
+                        {analytics.propertiesByType.mess}
                       </span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full bg-blue-500"
                         style={{
-                          width: `${(mockAnalytics.propertiesByType.mess / mockAnalytics.totalProperties) * 100}%`,
+                          width: `${(analytics.propertiesByType.mess / analytics.totalProperties) * 100}%`,
                         }}
                       />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Apartment</span>
+                      <span className="text-sm font-medium">{tProp('apartment')}</span>
                       <span className="text-sm text-muted-foreground">
-                        {mockAnalytics.propertiesByType.apartment}
+                        {analytics.propertiesByType.apartment}
                       </span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full bg-green-500"
                         style={{
-                          width: `${(mockAnalytics.propertiesByType.apartment / mockAnalytics.totalProperties) * 100}%`,
+                          width: `${(analytics.propertiesByType.apartment / analytics.totalProperties) * 100}%`,
                         }}
                       />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Hotel</span>
+                      <span className="text-sm font-medium">{tProp('hotel')}</span>
                       <span className="text-sm text-muted-foreground">
-                        {mockAnalytics.propertiesByType.hotel}
+                        {analytics.propertiesByType.hotel}
                       </span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full bg-purple-500"
                         style={{
-                          width: `${(mockAnalytics.propertiesByType.hotel / mockAnalytics.totalProperties) * 100}%`,
+                          width: `${(analytics.propertiesByType.hotel / analytics.totalProperties) * 100}%`,
                         }}
                       />
                     </div>
@@ -303,14 +339,13 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
 
-            {/* City-wise Stats */}
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Top Cities</CardTitle>
+                <CardTitle>{t('topCities')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockAnalytics.cityWiseStats
+                  {analytics.cityWiseStats
                     .slice(0, 5)
                     .map((city, index) => (
                       <div
@@ -320,8 +355,10 @@ export default function AdminDashboardPage() {
                         <div>
                           <p className="text-sm font-medium">{city.city}</p>
                           <p className="text-xs text-muted-foreground">
-                            {city.properties} properties, {city.bookings}{' '}
-                            bookings
+                            {t('cityStats', {
+                              properties: city.properties,
+                              bookings: city.bookings,
+                            })}
                           </p>
                         </div>
                         <p className="text-sm font-semibold">

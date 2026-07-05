@@ -1,0 +1,112 @@
+{
+  "owner": {
+    "title": "Bills Management",
+    "description": "Manage bills, templates, meter readings, and automation."
+  },
+  "renter": {
+    "title": "My Bills",
+    "description": "View and manage your monthly bills."
+  },
+  "loading": "Loading bills…",
+  "tabs": {
+    "bills": "Bills",
+    "templates": "Templates",
+    "meterReadings": "Meter Readings",
+    "automation": "Automation"
+  },
+  "filters": {
+    "status": "Filter by status:",
+    "all": "All ({count})",
+    "paid": "Paid ({count})",
+    "unpaid": "Unpaid ({count})",
+    "overdue": "Overdue ({count})"
+  },
+  "actions": {
+    "generateBill": "Generate Bill",
+    "bulkGenerate": "Bulk Generate",
+    "createTemplate": "Create Template",
+    "createRule": "Create Rule",
+    "addReading": "Add Reading",
+    "recordCash": "Record cash payment",
+    "schedulePayment": "Schedule payment",
+    "payNow": "Pay now",
+    "markPaid": "Mark as paid",
+    "edit": "Edit",
+    "delete": "Delete",
+    "viewDetails": "View details"
+  },
+  "empty": {
+    "billsTitle": "No bills found",
+    "billsDescFiltered": "No bills with status \"{status}\"",
+    "billsDescDefault": "Generate your first bill to get started.",
+    "templatesTitle": "No templates found",
+    "templatesDesc": "Create reusable templates for automated bill generation.",
+    "readingsTitle": "No meter readings found",
+    "readingsDesc": "Add meter readings to calculate utility charges.",
+    "rulesTitle": "No automation rules found",
+    "rulesDesc": "Set up rules to generate bills automatically each month.",
+    "renterTitle": "No bills yet",
+    "renterDesc": "Your monthly rent and utility bills will appear here."
+  },
+  "templates": {
+    "title": "Bill Templates",
+    "description": "Create reusable templates for automated bill generation.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "items": "{count, plural, one {# item} other {# items}}",
+    "noDescription": "No description",
+    "propertyLabel": "Property:",
+    "typeLabel": "Type:",
+    "itemsLabel": "Items:"
+  },
+  "meterReadings": {
+    "title": "Meter Readings",
+    "description": "Track electricity, gas, and water meter readings.",
+    "recordDesc": "Record meter readings for utility bill calculation",
+    "previous": "Previous",
+    "current": "Current",
+    "consumption": "Consumption",
+    "electricity": "Electricity:",
+    "gas": "Gas:",
+    "water": "Water:",
+    "units": "{count} units"
+  },
+  "automation": {
+    "title": "Bill Automation",
+    "rulesTitle": "Automation Rules",
+    "description": "Schedule automatic bill generation for your properties.",
+    "rulesDescription": "Configure automated bill generation schedules",
+    "nextRun": "Next run",
+    "lastRun": "Last run",
+    "schedule": "Schedule",
+    "templateLabel": "Template:",
+    "scheduleLabel": "Schedule:",
+    "dayOfMonth": "Day {day}"
+  },
+  "misc": {
+    "unknownProperty": "Unknown Property",
+    "unknownTenant": "Unknown Tenant",
+    "notAvailable": "N/A",
+    "flatPrefix": "Flat {number}"
+  },
+  "confirm": {
+    "deleteTemplateTitle": "Delete template?",
+    "deleteTemplateDesc": "Are you sure you want to delete template \"{name}\"?",
+    "deleteRuleTitle": "Delete rule?",
+    "deleteRuleDesc": "Are you sure you want to delete rule \"{name}\"?"
+  },
+  "status": {
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "overdue": "Overdue",
+    "partial": "Partially paid"
+  },
+  "billCard": {
+    "dueDate": "Due {date}",
+    "monthYear": "{month} {year}",
+    "tenant": "Tenant",
+    "property": "Property",
+    "flat": "Flat {number}",
+    "amount": "Amount"
+  }
+}

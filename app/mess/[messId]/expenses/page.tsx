@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,20 +25,29 @@ import {
   addExpense,
   updateExpense,
   deleteExpense,
-} from '@/data/mockMessExpenses'
-import { mockMess } from '@/data/mockMess'
+} from '@/lib/api/messDomain'
+import { fetchMessById } from '@/lib/api/mess'
+import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, DollarSign, FileText, TrendingUp } from 'lucide-react'
 import type { MessExpense } from '@/types/messExpense'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 export default function ExpensesManagementPage() {
+  const t = useTranslations('mess')
+  const tc = useTranslations('common')
+  const { confirm } = useConfirm()
   const params = useParams()
   const router = useRouter()
   const role = getStoredRole()
   const messId = params.messId as string
+  const ownerId = getDemoOwnerId()
 
-  const mess = mockMess.find(m => m.id === messId)
+  const loadMess = useCallback(() => fetchMessById(messId), [messId])
+  const { data: mess } = useMockQuery(loadMess)
   const [expenses, setExpenses] = useState(getExpensesByMess(messId))
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<MessExpense | null>(null)
@@ -57,7 +67,7 @@ export default function ExpensesManagementPage() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p className="text-center">Mess not found</p>
+          <p className="text-center">{t('notFound')}</p>
         </div>
       </Layout>
     )
@@ -90,11 +100,15 @@ export default function ExpensesManagementPage() {
     setEditingExpense(null)
   }
 
-  const handleExpenseDelete = (expense: MessExpense) => {
-    if (confirm('Are you sure you want to delete this expense?')) {
-      deleteExpense(expense.id)
-      setExpenses(getExpensesByMess(messId))
-    }
+  const handleExpenseDelete = async (expense: MessExpense) => {
+    const ok = await confirm({
+      title: t('expenses.deleteTitle'),
+      description: t('expenses.deleteDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    deleteExpense(expense.id)
+    setExpenses(getExpensesByMess(messId))
   }
 
   const handleGenerateReport = () => {
@@ -103,9 +117,11 @@ export default function ExpensesManagementPage() {
       'monthly',
       monthStart,
       monthEnd,
-      'owner1'
+      ownerId
     )
-    alert(`Report generated: ${report.fileName}`)
+    toast.success(
+      t('expenses.reportGenerated', { fileName: report.fileName ?? '' })
+    )
   }
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
@@ -119,13 +135,15 @@ export default function ExpensesManagementPage() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Expense Tracking</h1>
+            <h1 className="text-2xl font-bold mb-2">
+              {t('expenses.managementTitle')}
+            </h1>
             <p className="text-muted-foreground">{mess.name}</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleGenerateReport}>
               <FileText className="h-4 w-4 mr-2" />
-              Generate Report
+              {t('expenses.generateReport')}
             </Button>
             <Button
               onClick={() => {
@@ -134,7 +152,7 @@ export default function ExpensesManagementPage() {
               }}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Expense
+              {t('expenses.addExpense')}
             </Button>
           </div>
         </div>
@@ -145,7 +163,7 @@ export default function ExpensesManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-green-600" />
-                Total Expenses
+                {t('expenses.totalExpenses')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -158,7 +176,7 @@ export default function ExpensesManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-blue-600" />
-                This Month
+                {t('expenses.thisMonth')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -171,7 +189,7 @@ export default function ExpensesManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <FileText className="h-5 w-5 text-purple-600" />
-                Total Records
+                {t('expenses.totalRecords')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -185,25 +203,34 @@ export default function ExpensesManagementPage() {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>
-                Monthly Summary - {monthlySummary.month} {monthlySummary.year}
+                {t('expenses.monthlySummary', {
+                  month: monthlySummary.month,
+                  year: monthlySummary.year,
+                })}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Amount</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('expenses.totalAmount')}
+                  </p>
                   <p className="text-2xl font-bold">
                     ৳{monthlySummary.totalAmount.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Expense Count</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('expenses.expenseCount')}
+                  </p>
                   <p className="text-2xl font-bold">
                     {monthlySummary.expenseCount}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Average Daily</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('expenses.averageDaily')}
+                  </p>
                   <p className="text-2xl font-bold">
                     ৳{monthlySummary.averageDailyExpense.toFixed(2)}
                   </p>
@@ -239,21 +266,39 @@ export default function ExpensesManagementPage() {
         <Tabs defaultValue="expenses" className="space-y-6">
           <div className="flex items-center justify-between">
             <TabsList>
-              <TabsTrigger value="expenses">Expenses</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="expenses">
+                {t('expenses.tabs.expenses')}
+              </TabsTrigger>
+              <TabsTrigger value="analytics">
+                {t('expenses.tabs.analytics')}
+              </TabsTrigger>
             </TabsList>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="food">Food</SelectItem>
-                <SelectItem value="utilities">Utilities</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
-                <SelectItem value="supplies">Supplies</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="all">
+                  {t('expenses.allCategories')}
+                </SelectItem>
+                <SelectItem value="food">
+                  {t('expenses.categories.food')}
+                </SelectItem>
+                <SelectItem value="utilities">
+                  {t('expenses.categories.utilities')}
+                </SelectItem>
+                <SelectItem value="maintenance">
+                  {t('expenses.categories.maintenance')}
+                </SelectItem>
+                <SelectItem value="staff">
+                  {t('expenses.categories.staff')}
+                </SelectItem>
+                <SelectItem value="supplies">
+                  {t('expenses.categories.supplies')}
+                </SelectItem>
+                <SelectItem value="other">
+                  {t('expenses.categories.other')}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -279,11 +324,11 @@ export default function ExpensesManagementPage() {
                 <CardContent className="py-12 text-center">
                   <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-muted-foreground mb-4">
-                    No expenses recorded yet
+                    {t('expenses.emptyFiltered')}
                   </p>
                   <Button onClick={() => setIsExpenseDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add First Expense
+                    {t('expenses.addFirstExpense')}
                   </Button>
                 </CardContent>
               </Card>
@@ -309,7 +354,7 @@ export default function ExpensesManagementPage() {
                     categoryBreakdown: [],
                   }))}
                   type="bar"
-                  title="Expenses by month"
+                  title={t('expenses.expensesByMonth')}
                 />
                 <CategoryBreakdown
                   categories={monthlySummary.categoryBreakdown.map(cat => ({
@@ -336,7 +381,7 @@ export default function ExpensesManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <p className="text-muted-foreground">
-                    No data available for analytics
+                    {t('expenses.emptyAnalytics')}
                   </p>
                 </CardContent>
               </Card>

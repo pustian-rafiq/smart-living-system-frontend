@@ -1,11 +1,13 @@
 /** @type {import('next').NextConfig} */
+const createNextIntlPlugin = require('next-intl/plugin')
+
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
+
 const nextConfig = {
   reactStrictMode: true,
-  // Lint is run in dev/CI; full-project rules-of-hooks + copy fixes tracked separately
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Strict mode still runs in the IDE; CI can use `tsc --noEmit` after resolver/zod upgrades
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -19,6 +21,23 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self)',
+          },
+        ],
+      },
+    ]
+  },
 }
 
-module.exports = nextConfig
+module.exports = withNextIntl(nextConfig)

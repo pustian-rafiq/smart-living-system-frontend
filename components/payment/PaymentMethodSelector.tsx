@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { CHECKOUT_PAYMENT_METHODS } from '@/lib/payment/constants'
@@ -20,13 +21,14 @@ export function PaymentMethodSelector({
   excludeMethods = [],
   className,
 }: PaymentMethodSelectorProps) {
+  const t = useTranslations('payments.methodSelector')
   const methods = CHECKOUT_PAYMENT_METHODS.filter(
     m => !excludeMethods.includes(m.id)
   )
 
   return (
     <div className={className}>
-      <Label className="mb-2 block">Payment method</Label>
+      <Label className="mb-2 block">{t('label')}</Label>
       <RadioGroup
         value={value}
         onValueChange={v => onChange(v as PaymentMethod)}

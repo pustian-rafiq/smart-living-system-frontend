@@ -1,0 +1,143 @@
+{
+  "hero": {
+    "badge": "Bangladesh's First Unified Smart Living Platform",
+    "titleLine1": "Find Your Perfect",
+    "titleLine2": "Living Space",
+    "titleLine3": "in Bangladesh",
+    "subtitle": "Connect with verified mess, hostel, hotel & apartment owners. Manage rent, bills, and bookings all in one modern platform.",
+    "browseProperties": "Browse Properties",
+    "getStarted": "Get Started",
+    "goToDashboard": "Go to Dashboard",
+    "listProperty": "List Your Property",
+    "trustVerified": "Verified Listings",
+    "trustPayments": "Secure Payments",
+    "trustSupport": "24/7 Support"
+  },
+  "features": {
+    "title": "Everything You Need",
+    "subtitle": "One platform for finding, booking, and managing accommodation in Bangladesh.",
+    "findAccommodation": {
+      "title": "Find Accommodation",
+      "description": "Search mess, hostel, hotel & apartments by city, area, price, and amenities."
+    },
+    "apartmentManagement": {
+      "title": "Apartment Management",
+      "description": "Manage flats, renters, bills, and notices all in one dashboard."
+    },
+    "hotelGuestHouse": {
+      "title": "Hotel & Guest House",
+      "description": "Book short-term stays with daily pricing and instant booking."
+    },
+    "messHostel": {
+      "title": "Mess & Hostel",
+      "description": "Find verified mess with meal plans, seat types, and student-friendly pricing."
+    },
+    "verifiedTrusted": {
+      "title": "Verified & Trusted",
+      "description": "All listings verified with NID, documents, and background checks."
+    },
+    "easyPayments": {
+      "title": "Easy Payments",
+      "description": "Pay rent and bills with bKash, Nagad, Rocket, or cash — with receipts."
+    },
+    "directChat": {
+      "title": "Direct Chat",
+      "description": "Message owners directly from listings. No middlemen."
+    },
+    "locationSearch": {
+      "title": "Location Search",
+      "description": "Search by city, area, or near your university or workplace."
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Get started in three simple steps. Find, connect, and book your perfect living space.",
+    "step1": {
+      "title": "Search & Discover",
+      "description": "Browse verified properties by city, area, price, and amenities. Use filters to find exactly what you need."
+    },
+    "step2": {
+      "title": "Connect & Chat",
+      "description": "Chat directly with property owners. Ask questions, view photos, and get instant responses."
+    },
+    "step3": {
+      "title": "Book & Pay",
+      "description": "Book instantly or request a seat. Pay securely with bKash, Nagad, or Rocket. Get instant confirmation."
+    }
+  },
+  "stats": {
+    "propertiesListed": "Properties Listed",
+    "activeUsers": "Active Users",
+    "citiesCovered": "Cities Covered",
+    "userRating": "User Rating"
+  },
+  "targetUsers": {
+    "title": "Built for Everyone",
+    "subtitle": "Whether you're a student, job holder, property owner, or hotel manager — we have solutions for you.",
+    "students": {
+      "title": "Students",
+      "description": "Find verified mess and hostels near your university. Meal plans, seat types, and student-friendly pricing."
+    },
+    "jobHolders": {
+      "title": "Job Holders",
+      "description": "Discover apartments and shared spaces. Transparent pricing, verified owners, and easy booking."
+    },
+    "propertyOwners": {
+      "title": "Property Owners",
+      "description": "Manage your properties, renters, and bills efficiently. Automated reminders and payment tracking."
+    },
+    "hotelManagers": {
+      "title": "Hotel Managers",
+      "description": "Manage room inventory, bookings, and pricing. Daily rates, calendar view, and online payments."
+    },
+    "messOwners": {
+      "title": "Mess Owners",
+      "description": "Manage seats, meals, and students. Menu upload, attendance tracking, and bulk notifications."
+    },
+    "renters": {
+      "title": "Renters",
+      "description": "Track your rent, bills, and payments. View notices, submit complaints, and manage your tenancy."
+    }
+  },
+  "trust": {
+    "badge": "Trust & Security",
+    "title": "Your Safety is Our Priority",
+    "subtitle": "We verify every listing, owner, and transaction to ensure a safe and secure experience.",
+    "verifiedListings": {
+      "title": "Verified Listings",
+      "description": "All properties verified with NID, documents, and background checks."
+    },
+    "documentVerification": {
+      "title": "Document Verification",
+      "description": "Property owners verified with government-issued documents."
+    },
+    "securePayments": {
+      "title": "Secure Payments",
+      "description": "Encrypted payment processing with bKash, Nagad, and Rocket integration."
+    },
+    "trustBadge": {
+      "title": "Trust Badge System",
+      "description": "Earn trust badges for verified properties and reliable owners."
+    },
+    "communityReviews": {
+      "title": "Community Reviews",
+      "description": "Read reviews from real renters and make informed decisions."
+    },
+    "fraudProtection": {
+      "title": "Fraud Protection",
+      "description": "Advanced fraud detection and dispute management system."
+    }
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "subtitle": "Join thousands of users who are already using Smart Living System to find and manage properties in Bangladesh.",
+    "findAccommodation": "Find Accommodation",
+    "browseProperties": "Browse Properties",
+    "manageProperties": "Manage Properties",
+    "listProperty": "List Your Property",
+    "benefitFree": "Free to browse",
+    "benefitNoFees": "No hidden fees",
+    "benefitVerified": "Verified listings",
+    "benefitSupport": "24/7 support"
+  }
+}

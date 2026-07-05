@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { getUnreadCount } from '@/data/mockChats'
+import { fetchUnreadMessageCount } from '@/lib/api/messages'
 
 interface NotificationBadgeProps {
   userId: string
@@ -16,15 +16,14 @@ export function NotificationBadge({
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    // Update unread count
     const updateCount = () => {
-      const count = getUnreadCount(userId)
-      setUnreadCount(count)
+      fetchUnreadMessageCount(userId).then(result => {
+        if (result.ok) setUnreadCount(result.data)
+      })
     }
 
     updateCount()
-    // In real app, this would be a WebSocket subscription or polling
-    const interval = setInterval(updateCount, 5000) // Poll every 5 seconds
+    const interval = setInterval(updateCount, 5000)
 
     return () => clearInterval(interval)
   }, [userId])

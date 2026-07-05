@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -25,19 +26,30 @@ import {
   deleteRule,
   acceptRule,
   updateViolation,
-} from '@/data/mockMessRules'
-import { mockMess, mockStudents } from '@/data/mockMess'
+} from '@/lib/api/messDomain'
+import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
+import { getDemoTenantId, getDemoOwnerId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import type { MessRule, RuleViolation } from '@/types/messRules'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 export default function RulesManagementPage() {
+  const t = useTranslations('mess')
+  const tc = useTranslations('common')
+  const { confirm } = useConfirm()
   const params = useParams()
   const router = useRouter()
   const role = getStoredRole()
   const messId = params.messId as string
 
-  const mess = mockMess.find(m => m.id === messId)
+  const loadMess = useCallback(() => fetchMessById(messId), [messId])
+  const { data: mess } = useMockQuery(loadMess)
+
+  const loadStudents = useCallback(() => fetchMessStudents(messId), [messId])
+  const { data: students } = useMockQuery(loadStudents)
   const [rules, setRules] = useState(getRulesByMess(messId))
   const [violations, setViolations] = useState(getViolationsByMess(messId))
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false)
@@ -45,14 +57,14 @@ export default function RulesManagementPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [severityFilter, setSeverityFilter] = useState<string>('all')
 
-  // In real app, get from auth
-  const currentStudentId = 'r1'
+  const currentStudentId = getDemoTenantId()
+  const ownerId = getDemoOwnerId()
 
   if (!mess) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p className="text-center">Mess not found</p>
+          <p className="text-center">{t('notFound')}</p>
         </div>
       </Layout>
     )
@@ -91,29 +103,33 @@ export default function RulesManagementPage() {
     setEditingRule(null)
   }
 
-  const handleRuleDelete = (ruleId: string) => {
-    if (confirm('Are you sure you want to delete this rule?')) {
-      deleteRule(ruleId)
-      setRules(getRulesByMess(messId))
-    }
+  const handleRuleDelete = async (ruleId: string) => {
+    const ok = await confirm({
+      title: t('rules.deleteTitle'),
+      description: t('rules.deleteDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    deleteRule(ruleId)
+    setRules(getRulesByMess(messId))
   }
 
   const handleAcceptRule = (rule: MessRule) => {
-    const student = mockStudents.find(s => s.id === currentStudentId)
+    const student = students?.find(s => s.id === currentStudentId)
     if (student) {
       acceptRule(rule.id, currentStudentId, student.name)
       setRules(getRulesByMess(messId))
-      alert('Rule accepted successfully!')
+      toast.success(t('rules.acceptSuccess'))
     }
   }
 
   const handleResolveViolation = (violation: RuleViolation) => {
-    const notes = prompt('Enter resolution notes:')
+    const notes = prompt(t('rules.resolutionPrompt'))
     if (notes) {
       updateViolation(violation.id, {
         status: 'resolved',
         resolutionNotes: notes,
-        resolvedBy: role === 'owner' ? 'owner1' : currentStudentId,
+        resolvedBy: role === 'owner' ? ownerId : currentStudentId,
       })
       setViolations(getViolationsByMess(messId))
     }
@@ -128,7 +144,9 @@ export default function RulesManagementPage() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Rules & Regulations</h1>
+            <h1 className="text-2xl font-bold mb-2">
+              {t('rules.managementTitle')}
+            </h1>
             <p className="text-muted-foreground">{mess.name}</p>
           </div>
           {isOwner && (
@@ -139,7 +157,7 @@ export default function RulesManagementPage() {
               }}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Rule
+              {t('rules.createRule')}
             </Button>
           )}
         </div>
@@ -149,18 +167,18 @@ export default function RulesManagementPage() {
           <TabsList>
             <TabsTrigger value="rules">
               <FileText className="h-4 w-4 mr-2" />
-              Rules
+              {t('rules.tabs.rules')}
             </TabsTrigger>
             {isOwner && (
               <TabsTrigger value="violations">
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                Violations
+                {t('rules.tabs.violations')}
               </TabsTrigger>
             )}
             {isRenter && (
               <TabsTrigger value="my-violations">
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                My Violations
+                {t('rules.tabs.myViolations')}
               </TabsTrigger>
             )}
           </TabsList>
@@ -184,12 +202,12 @@ export default function RulesManagementPage() {
                 <CardContent className="py-12 text-center">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-muted-foreground mb-4">
-                    No rules defined yet
+                    {t('rules.emptyRules')}
                   </p>
                   {isOwner && (
                     <Button onClick={() => setIsRuleDialogOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Create First Rule
+                      {t('rules.createFirstRule')}
                     </Button>
                   )}
                 </CardContent>
@@ -201,18 +219,30 @@ export default function RulesManagementPage() {
           {isOwner && (
             <TabsContent value="violations" className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Rule Violations</h2>
+                <h2 className="text-xl font-semibold">
+                  {t('rules.violationsTitle')}
+                </h2>
                 <div className="flex gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[150px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                      <SelectItem value="appealed">Appealed</SelectItem>
-                      <SelectItem value="dismissed">Dismissed</SelectItem>
+                      <SelectItem value="all">
+                        {t('rules.allStatus')}
+                      </SelectItem>
+                      <SelectItem value="pending">
+                        {tc('status.pending')}
+                      </SelectItem>
+                      <SelectItem value="resolved">
+                        {tc('status.resolved')}
+                      </SelectItem>
+                      <SelectItem value="appealed">
+                        {t('rules.status.appealed')}
+                      </SelectItem>
+                      <SelectItem value="dismissed">
+                        {t('rules.status.dismissed')}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <Select
@@ -223,11 +253,21 @@ export default function RulesManagementPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Severity</SelectItem>
-                      <SelectItem value="minor">Minor</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="major">Major</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
+                      <SelectItem value="all">
+                        {t('rules.allSeverity')}
+                      </SelectItem>
+                      <SelectItem value="minor">
+                        {t('rules.severity.minor')}
+                      </SelectItem>
+                      <SelectItem value="moderate">
+                        {t('rules.severity.moderate')}
+                      </SelectItem>
+                      <SelectItem value="major">
+                        {t('rules.severity.major')}
+                      </SelectItem>
+                      <SelectItem value="critical">
+                        {t('rules.severity.critical')}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -247,7 +287,9 @@ export default function RulesManagementPage() {
                 <Card>
                   <CardContent className="py-12 text-center">
                     <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                    <p className="text-muted-foreground">No violations found</p>
+                    <p className="text-muted-foreground">
+                      {t('rules.emptyViolations')}
+                    </p>
                   </CardContent>
                 </Card>
               )}
@@ -275,7 +317,7 @@ export default function RulesManagementPage() {
                   <CardContent className="py-12 text-center">
                     <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                     <p className="text-muted-foreground">
-                      No violations recorded
+                      {t('rules.emptyMyViolations')}
                     </p>
                   </CardContent>
                 </Card>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,22 +29,39 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import {
-  mockMess,
-  mockNotices,
-  addNotice,
-  updateNotice,
-  deleteNotice,
-  acknowledgeNotice,
-} from '@/data/mockMess'
+  fetchAllNotices,
+  fetchMessList,
+  createNotice,
+  removeNotice,
+  acknowledgeMessNotice,
+} from '@/lib/api/mess'
+import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import type { Notice } from '@/types/mess'
 import { format } from 'date-fns'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 export default function NoticesPage() {
+  const { confirm } = useConfirm()
   const router = useRouter()
+  const t = useTranslations('tools.notices')
+  const tc = useTranslations('common')
   const role = getStoredRole()
-  const [notices, setNotices] = useState<Notice[]>(mockNotices)
+  const currentUserId = getDemoOwnerId()
+
+  const loadNotices = useCallback(() => fetchAllNotices(), [])
+  const { data: initialNotices, refetch: refetchNotices } = useMockQuery(loadNotices)
+  const loadMesses = useCallback(() => fetchMessList(), [])
+  const { data: messList } = useMockQuery(loadMesses)
+  const messes = messList ?? []
+
+  const [notices, setNotices] = useState<Notice[]>([])
+  useEffect(() => {
+    if (initialNotices) setNotices(initialNotices)
+  }, [initialNotices])
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isBulkNoticeDialogOpen, setIsBulkNoticeDialogOpen] = useState(false)
   const [isBulkSMSDialogOpen, setIsBulkSMSDialogOpen] = useState(false)
@@ -52,10 +70,6 @@ export default function NoticesPage() {
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedMess, setSelectedMess] = useState<string>('all')
-
-  // Mock current user ID (in real app, get from auth context)
-  const currentUserId = 'owner1'
-
   // Filter notices
   const filteredNotices = useMemo(() => {
     return notices.filter(notice => {
@@ -125,7 +139,7 @@ export default function NoticesPage() {
       content: data.content,
       date: new Date().toISOString(),
       priority: data.priority,
-      messId: selectedMess !== 'all' ? selectedMess : mockMess[0].id,
+      messId: selectedMess !== 'all' ? selectedMess : messes[0]?.id ?? '',
       category: data.category,
       expiryDate: data.expiryDate ? data.expiryDate.toISOString() : undefined,
       pdfUrl: data.pdfFile ? URL.createObjectURL(data.pdfFile) : undefined,
@@ -137,38 +151,36 @@ export default function NoticesPage() {
       acknowledgments: [],
     }
 
-    addNotice(newNotice)
-    setNotices([...notices, newNotice])
+    void createNotice(newNotice).then(result => {
+      if (result.ok) {
+        setNotices(prev => [...prev, result.data])
+        void refetchNotices()
+      }
+    })
     setIsCreateDialogOpen(false)
   }
 
-  const handleDeleteNotice = (noticeId: string) => {
-    if (confirm('Are you sure you want to delete this notice?')) {
-      deleteNotice(noticeId)
-      setNotices(notices.filter(n => n.id !== noticeId))
-    }
+  const handleDeleteNotice = async (noticeId: string) => {
+    const ok = await confirm({
+      title: t('deleteConfirmTitle'),
+      description: t('deleteConfirmDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    void removeNotice(noticeId).then(result => {
+      if (result.ok) {
+        setNotices(notices.filter(n => n.id !== noticeId))
+        void refetchNotices()
+      }
+    })
   }
 
   const handleAcknowledge = (noticeId: string) => {
-    acknowledgeNotice(noticeId, currentUserId, 'Current User')
-    setNotices(
-      notices.map(n => {
-        if (n.id === noticeId) {
-          return {
-            ...n,
-            acknowledgments: [
-              ...(n.acknowledgments || []),
-              {
-                userId: currentUserId,
-                userName: 'Current User',
-                acknowledgedAt: new Date().toISOString(),
-              },
-            ],
-          }
-        }
-        return n
-      })
-    )
+    void acknowledgeMessNotice(noticeId, currentUserId).then(result => {
+      if (result.ok) {
+        setNotices(notices.map(n => (n.id === noticeId ? result.data : n)))
+      }
+    })
   }
 
   if (role !== 'owner') {
@@ -178,7 +190,7 @@ export default function NoticesPage() {
           <Card>
             <CardContent className="py-8 text-center">
               <p className="text-muted-foreground">
-                You don't have permission to access this page.
+                {t('noPermission')}
               </p>
             </CardContent>
           </Card>
@@ -192,29 +204,27 @@ export default function NoticesPage() {
       <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Notice Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Create and manage notices for your mess/hostel
-            </p>
+            <h1 className="text-2xl font-bold">{t('titleManagement')}</h1>
+            <p className="text-muted-foreground mt-1">{t('descriptionManagement')}</p>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Create Notice
+              {t('createNotice')}
             </Button>
             <Button
               onClick={() => setIsBulkNoticeDialogOpen(true)}
               variant="outline"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Bulk Notice
+              {t('bulkNotice')}
             </Button>
             <Button
               onClick={() => setIsBulkSMSDialogOpen(true)}
               variant="outline"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Bulk SMS
+              {t('bulkSms')}
             </Button>
           </div>
         </div>
@@ -222,7 +232,7 @@ export default function NoticesPage() {
         {/* Filters */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Filters</CardTitle>
+            <CardTitle className="text-lg">{tc('filters')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -230,7 +240,7 @@ export default function NoticesPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder="Search notices..."
+                    placeholder={t('searchPlaceholder')}
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -240,11 +250,11 @@ export default function NoticesPage() {
 
               <Select value={selectedMess} onValueChange={setSelectedMess}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Mess" />
+                  <SelectValue placeholder={t('selectMess')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Mess</SelectItem>
-                  {mockMess.map(mess => (
+                  <SelectItem value="all">{t('allMess')}</SelectItem>
+                  {messes.map(mess => (
                     <SelectItem key={mess.id} value={mess.id}>
                       {mess.name}
                     </SelectItem>
@@ -254,29 +264,29 @@ export default function NoticesPage() {
 
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Category" />
+                  <SelectValue placeholder={t('category')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="payment">Payment</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="event">Event</SelectItem>
-                  <SelectItem value="announcement">Announcement</SelectItem>
-                  <SelectItem value="rule">Rule</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="all">{t('allCategories')}</SelectItem>
+                  <SelectItem value="general">{t('categories.general')}</SelectItem>
+                  <SelectItem value="payment">{t('categories.payment')}</SelectItem>
+                  <SelectItem value="maintenance">{t('categories.maintenance')}</SelectItem>
+                  <SelectItem value="event">{t('categories.event')}</SelectItem>
+                  <SelectItem value="announcement">{t('categories.announcement')}</SelectItem>
+                  <SelectItem value="rule">{t('categories.rule')}</SelectItem>
+                  <SelectItem value="other">{t('categories.other')}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Priority" />
+                  <SelectValue placeholder={t('priority')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="all">{t('allPriorities')}</SelectItem>
+                  <SelectItem value="high">{t('priorities.high')}</SelectItem>
+                  <SelectItem value="medium">{t('priorities.medium')}</SelectItem>
+                  <SelectItem value="low">{t('priorities.low')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -287,13 +297,13 @@ export default function NoticesPage() {
         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
           <TabsList>
             <TabsTrigger value="all">
-              All ({filteredNotices.length})
+              {t('tabs.all')} ({filteredNotices.length})
             </TabsTrigger>
             <TabsTrigger value="active">
-              Active ({activeNotices.length})
+              {t('tabs.active')} ({activeNotices.length})
             </TabsTrigger>
             <TabsTrigger value="expired">
-              Expired ({expiredNotices.length})
+              {t('tabs.expired')} ({expiredNotices.length})
             </TabsTrigger>
           </TabsList>
 
@@ -328,7 +338,7 @@ export default function NoticesPage() {
         {/* Notice Management Table */}
         <Card>
           <CardHeader>
-            <CardTitle>All Notices</CardTitle>
+            <CardTitle>{t('allNotices')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -350,7 +360,7 @@ export default function NoticesPage() {
                             variant="outline"
                             className="bg-red-50 text-red-600"
                           >
-                            Expired
+                            {t('expired')}
                           </Badge>
                         )}
                       </div>
@@ -375,7 +385,7 @@ export default function NoticesPage() {
                             <span>•</span>
                             <span className="flex items-center gap-1">
                               <CheckCircle2 className="h-3 w-3" />
-                              {ackCount} acknowledged
+                              {t('acknowledged', { count: ackCount })}
                             </span>
                           </>
                         )}
@@ -396,7 +406,7 @@ export default function NoticesPage() {
 
               {filteredNotices.length === 0 && (
                 <div className="py-8 text-center text-muted-foreground">
-                  <p>No notices found</p>
+                  <p>{t('noNoticesFound')}</p>
                 </div>
               )}
             </div>
@@ -406,7 +416,7 @@ export default function NoticesPage() {
         <CreateNoticeDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
-          messId={selectedMess !== 'all' ? selectedMess : mockMess[0].id}
+          messId={selectedMess !== 'all' ? selectedMess : messes[0]?.id ?? ''}
           onSubmit={handleCreateNotice}
         />
         <BulkNoticeDialog
@@ -414,8 +424,10 @@ export default function NoticesPage() {
           onOpenChange={setIsBulkNoticeDialogOpen}
           onSubmit={data => {
             // Handle bulk notice sending
-            alert(
-              `Bulk notice sent to ${data.buildingId || data.messId ? 'multiple' : 'all'} recipients`
+            toast.success(
+              t('bulkNoticeSuccess', {
+                target: data.buildingId || data.messId ? 'multiple' : 'all',
+              })
             )
             // In a real app, this would send notices to all selected recipients
           }}
@@ -425,7 +437,9 @@ export default function NoticesPage() {
           onOpenChange={setIsBulkSMSDialogOpen}
           onSubmit={data => {
             // Handle bulk SMS sending
-            alert(`Bulk SMS sent to ${data.recipientType} recipients`)
+            toast.success(
+              t('bulkSmsSuccess', { target: data.recipientType })
+            )
             // In a real app, this would send SMS to all selected recipients
           }}
         />

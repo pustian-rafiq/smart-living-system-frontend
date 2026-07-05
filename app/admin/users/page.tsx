@@ -1,42 +1,67 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { UserManagementTable } from '@/components/admin/UserManagementTable'
-import { mockUsers } from '@/data/mockAdmin'
-import type { UserStatus } from '@/types/admin'
+import { fetchManagedUsers } from '@/lib/api/admin'
+import type { UserManagement, UserStatus } from '@/types/admin'
+import { hasAdminPermission } from '@/lib/admin/permissions'
+import { getStoredAdminRole } from '@/utils/auth'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState(mockUsers)
+  const { confirm } = useConfirm()
+  const t = useTranslations('admin.users')
+  const [users, setUsers] = useState<UserManagement[]>([])
+  const adminRole = getStoredAdminRole()
+  const canManage = hasAdminPermission(adminRole, 'users.manage')
+  const canBan = hasAdminPermission(adminRole, 'users.ban')
 
-  const handleStatusChange = (userId: string, status: UserStatus) => {
-    if (confirm(`Are you sure you want to ${status} this user?`)) {
-      setUsers(users.map(u => (u.id === userId ? { ...u, status } : u)))
-      // TODO: API call
-      alert(`User status updated to ${status}`)
-    }
+  useEffect(() => {
+    fetchManagedUsers().then(result => {
+      if (result.ok) setUsers(result.data)
+    })
+  }, [])
+
+  const handleStatusChange = async (userId: string, status: UserStatus) => {
+    if (status === 'banned' && !canBan) return
+    if (!canManage && status !== 'banned') return
+    const ok = await confirm({
+      title: t('statusChangeTitle', { status }),
+      description: t('statusChangeDesc', { status }),
+      variant: status === 'banned' ? 'destructive' : 'default',
+    })
+    if (!ok) return
+    setUsers(users.map(u => (u.id === userId ? { ...u, status } : u)))
+    toast.success(t('statusUpdated', { status }))
   }
 
-  const handleVerify = (userId: string) => {
-    if (confirm('Verify this user?')) {
-      setUsers(users.map(u => (u.id === userId ? { ...u, verified: true } : u)))
-      // TODO: API call
-      alert('User verified')
-    }
+  const handleVerify = async (userId: string) => {
+    if (!canManage) return
+    const ok = await confirm({
+      title: t('verifyTitle'),
+    })
+    if (!ok) return
+    setUsers(users.map(u => (u.id === userId ? { ...u, verified: true } : u)))
+    toast.success(t('userVerified'))
   }
 
   const handleViewDetails = (userId: string) => {
-    // TODO: Navigate to user details page
-    alert(`View details for user ${userId}`)
+    toast.info(t('viewDetailsFor', { id: userId }))
   }
 
   return (
     <AdminLayout>
       <div className="max-w-7xl">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">User Management</h2>
+          <h2 className="text-2xl font-bold mb-2">{t('title')}</h2>
           <p className="text-muted-foreground">
-            Manage all platform users, their status, and verification
+            {t('description')}
+            {!canBan && canManage && (
+              <span className="block text-xs mt-1">{t('moderatorNote')}</span>
+            )}
           </p>
         </div>
 
@@ -45,6 +70,8 @@ export default function AdminUsersPage() {
           onStatusChange={handleStatusChange}
           onVerify={handleVerify}
           onViewDetails={handleViewDetails}
+          canBan={canBan}
+          canManage={canManage}
         />
       </div>
     </AdminLayout>

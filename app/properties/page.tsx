@@ -20,10 +20,13 @@ import { fetchFeaturedProperties } from '@/lib/api/properties'
 import { createBooking } from '@/lib/api/bookings'
 import type { Property } from '@/types/property'
 import type { Booking, BookingFormData } from '@/types/booking'
+import { useTranslations } from 'next-intl'
 import { SlidersHorizontal, Sparkles } from 'lucide-react'
 
 export default function PropertiesPage() {
   const router = useRouter()
+  const t = useTranslations('property.listings')
+  const tc = useTranslations('common')
   const load = useCallback(() => fetchFeaturedProperties(12), [])
   const { data: properties, loading, error, refetch } = useMockQuery(load)
   const [selected, setSelected] = useState<Property | null>(null)
@@ -61,20 +64,20 @@ export default function PropertiesPage() {
     <Layout>
       <PageContainer>
         <PageHeader
-          title="Browse listings"
-          description="Top verified mess, hostel, and apartment listings across Bangladesh."
+          title={t('title')}
+          description={t('description')}
           actions={
             <>
               <Button variant="outline" asChild>
                 <Link href="/search">
                   <SlidersHorizontal className="mr-2 h-4 w-4" />
-                  Advanced search
+                  {t('advancedSearch')}
                 </Link>
               </Button>
               <Button asChild>
                 <Link href="/hotels">
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Hotels &amp; stays
+                  {t('hotelsStays')}
                 </Link>
               </Button>
             </>
@@ -83,31 +86,33 @@ export default function PropertiesPage() {
 
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-normal">
-            Featured · ratings & instant book
+            {t('featured')}
           </Badge>
           <Button variant="ghost" size="sm" onClick={() => refetch()}>
-            Refresh
+            {tc('refresh')}
           </Button>
         </div>
 
-        {loading && <LoadingState label="Loading listings…" />}
+        {loading && (
+          <LoadingState label={t('loading')} variant="skeleton" skeletonCount={6} />
+        )}
         {error && (
           <EmptyState
-            title="Could not load listings"
+            title={t('errorTitle')}
             description={error}
             icon={Sparkles}
           >
-            <Button onClick={() => refetch()}>Try again</Button>
+            <Button onClick={() => refetch()}>{tc('tryAgain')}</Button>
           </EmptyState>
         )}
         {!loading && !error && properties && properties.length === 0 && (
           <EmptyState
-            title="No properties yet"
-            description="Check back soon for new listings."
+            title={t('emptyTitle')}
+            description={t('emptyDesc')}
             icon={Sparkles}
           >
             <Button asChild>
-              <Link href="/search">Open search</Link>
+              <Link href="/search">{t('openSearch')}</Link>
             </Button>
           </EmptyState>
         )}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,10 +24,12 @@ import { ReviewCard } from '@/components/hotel/ReviewCard'
 import { RoomCard } from '@/components/hotel/RoomCard'
 import { CancellationPolicyCard } from '@/components/hotel/CancellationPolicyCard'
 import {
-  mockHotels,
-  getRoomsByHotelId,
-  getReviewsByHotelId,
-} from '@/data/mockHotels'
+  fetchHotelById,
+  fetchHotelRooms,
+  fetchHotelReviews,
+} from '@/lib/api/hotels'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import { LoadingState } from '@/components/page'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -39,15 +42,32 @@ const amenityIcons: Record<string, React.ReactNode> = {
 }
 
 export default function HotelDetailPage() {
+  const t = useTranslations('hotels')
+  const tc = useTranslations('common')
   const params = useParams()
   const router = useRouter()
   const hotelId = params.hotelId as string
 
-  const hotel = mockHotels.find(h => h.id === hotelId)
-  const rooms = hotel ? getRoomsByHotelId(hotelId) : []
-  const reviews = hotel ? getReviewsByHotelId(hotelId) : []
+  const loadHotel = useCallback(() => fetchHotelById(hotelId), [hotelId])
+  const { data: hotel, loading: hotelLoading } = useMockQuery(loadHotel)
+
+  const loadRooms = useCallback(() => fetchHotelRooms(hotelId), [hotelId])
+  const { data: rooms } = useMockQuery(loadRooms)
+
+  const loadReviews = useCallback(() => fetchHotelReviews(hotelId), [hotelId])
+  const { data: reviews } = useMockQuery(loadReviews)
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
+  if (hotelLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-6">
+          <LoadingState label={t('detail.notFoundTitle')} />
+        </div>
+      </Layout>
+    )
+  }
 
   if (!hotel) {
     return (
@@ -56,14 +76,14 @@ export default function HotelDetailPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-lg font-semibold text-muted-foreground">
-                Hotel not found
+                {t('detail.notFoundTitle')}
               </p>
               <Button
                 variant="outline"
                 onClick={() => router.push('/hotels')}
                 className="mt-4"
               >
-                Back to Hotels
+                {t('detail.backToHotels')}
               </Button>
             </CardContent>
           </Card>
@@ -77,7 +97,7 @@ export default function HotelDetailPage() {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Back Button */}
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
-          ← Back
+          ← {tc('back')}
         </Button>
 
         {/* Image Gallery */}
@@ -133,12 +153,12 @@ export default function HotelDetailPage() {
                       {hotel.verified && (
                         <Badge variant="default">
                           <Verified className="mr-1 h-3 w-3" />
-                          Verified
+                          {t('detail.verified')}
                         </Badge>
                       )}
                       {hotel.featured && (
                         <Badge variant="default" className="bg-yellow-500">
-                          Featured
+                          {t('detail.featured')}
                         </Badge>
                       )}
                     </div>
@@ -152,7 +172,11 @@ export default function HotelDetailPage() {
                       {hotel.starRating && (
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span>{hotel.starRating} Star</span>
+                          <span>
+                            {t('detail.starRating', {
+                              count: hotel.starRating,
+                            })}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -163,7 +187,7 @@ export default function HotelDetailPage() {
                 <div className="mb-4 flex items-center gap-4">
                   <RatingDisplay rating={hotel.averageRating} size="md" />
                   <span className="text-sm text-muted-foreground">
-                    ({hotel.totalReviews} reviews)
+                    ({t('detail.reviews', { count: hotel.totalReviews })})
                   </span>
                 </div>
 
@@ -171,7 +195,9 @@ export default function HotelDetailPage() {
 
                 {/* Amenities */}
                 <div>
-                  <h3 className="mb-3 font-semibold">Amenities</h3>
+                  <h3 className="mb-3 font-semibold">
+                    {t('detail.amenities')}
+                  </h3>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {hotel.amenities.map((amenity, idx) => (
                       <div
@@ -192,18 +218,18 @@ export default function HotelDetailPage() {
             {/* Rooms */}
             <Card>
               <CardHeader>
-                <CardTitle>Available Rooms</CardTitle>
+                <CardTitle>{t('detail.availableRooms')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {rooms
+                  {(rooms ?? [])
                     .filter(r => r.available)
                     .map(room => (
                       <RoomCard key={room.id} room={room} />
                     ))}
-                  {rooms.filter(r => r.available).length === 0 && (
+                  {(rooms ?? []).filter(r => r.available).length === 0 && (
                     <p className="text-center text-muted-foreground">
-                      No rooms available
+                      {t('detail.noRoomsAvailable')}
                     </p>
                   )}
                 </div>
@@ -215,16 +241,18 @@ export default function HotelDetailPage() {
             {/* Reviews */}
             <Card>
               <CardHeader>
-                <CardTitle>Reviews ({reviews.length})</CardTitle>
+                <CardTitle>
+                  {t('detail.reviewsTitle', { count: reviews?.length ?? 0 })}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {reviews.map(review => (
+                  {(reviews ?? []).map(review => (
                     <ReviewCard key={review.id} review={review} />
                   ))}
-                  {reviews.length === 0 && (
+                  {(reviews ?? []).length === 0 && (
                     <p className="text-center text-muted-foreground">
-                      No reviews yet
+                      {t('detail.noReviews')}
                     </p>
                   )}
                 </div>
@@ -237,40 +265,59 @@ export default function HotelDetailPage() {
             {/* Booking Card */}
             <Card className="sticky top-4">
               <CardHeader>
-                <CardTitle>Book Now</CardTitle>
+                <CardTitle>{t('detail.bookNow')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Starting from</p>
-                  <p className="text-2xl font-bold text-primary">
-                    ৳{Math.min(...rooms.map(r => r.basePrice)).toLocaleString()}
+                  <p className="text-sm text-muted-foreground">
+                    {t('detail.startingFrom')}
                   </p>
-                  <p className="text-xs text-muted-foreground">per night</p>
+                  <p className="text-2xl font-bold text-primary">
+                    ৳{(rooms?.length
+                      ? Math.min(...rooms.map(r => r.basePrice))
+                      : 0
+                    ).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('detail.perNight')}
+                  </p>
                 </div>
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Check-in:</span>
+                    <span className="text-muted-foreground">
+                      {t('book.checkIn')}:
+                    </span>
                     <span className="font-medium">{hotel.checkInTime}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Check-out:</span>
+                    <span className="text-muted-foreground">
+                      {t('book.checkOut')}:
+                    </span>
                     <span className="font-medium">{hotel.checkOutTime}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Minimum Stay:</span>
+                    <span className="text-muted-foreground">
+                      {t('detail.minimumStay')}
+                    </span>
                     <span className="font-medium">
-                      {hotel.minimumStay} night(s)
+                      {t('detail.minimumStayNights', {
+                        count: hotel.minimumStay,
+                      })}
                     </span>
                   </div>
                 </div>
 
                 <Button className="w-full" asChild>
-                  <Link href={`/hotels/${hotelId}/book`}>Book Now</Link>
+                  <Link href={`/hotels/${hotelId}/book`}>
+                    {t('detail.bookNow')}
+                  </Link>
                 </Button>
 
                 <div className="pt-4 border-t">
-                  <h4 className="mb-2 font-semibold text-sm">Contact</h4>
+                  <h4 className="mb-2 font-semibold text-sm">
+                    {t('detail.contact')}
+                  </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />

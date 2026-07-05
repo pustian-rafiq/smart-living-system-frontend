@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useLanguage } from '@/components/language/LanguageProvider'
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { LanguageSwitcher } from '@/components/i18n'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -11,23 +13,35 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Check } from 'lucide-react'
+import { Check, Shield } from 'lucide-react'
 import { UserRole } from '@/types'
+import {
+  getAdminRoleForPhone,
+  ADMIN_ROLE_LABELS,
+} from '@/lib/admin/permissions'
+import { setAdminSession, setUserSession } from '@/utils/auth'
 
 export default function RoleSelection() {
   const router = useRouter()
-  const { t, language, toggle: toggleLang } = useLanguage()
+  const t = useTranslations('auth.role')
+  const tc = useTranslations('common')
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(false)
+  const [loginPhone, setLoginPhone] = useState<string | null>(null)
+  const adminRoleForPhone = loginPhone
+    ? getAdminRoleForPhone(loginPhone)
+    : null
 
-  // Check if OTP is verified
   useEffect(() => {
     const isVerified =
       typeof window !== 'undefined' &&
       sessionStorage.getItem('otpVerified') === 'true'
     if (!isVerified) {
       router.push('/otp-verify')
+      return
     }
+    const phone = sessionStorage.getItem('loginPhone')
+    setLoginPhone(phone)
   }, [router])
 
   const handleRoleSelect = (role: UserRole) => {
@@ -39,14 +53,21 @@ export default function RoleSelection() {
 
     setLoading(true)
 
-    // Simulate API call to save role
     setTimeout(() => {
       setLoading(false)
-      // Store role in sessionStorage
-      sessionStorage.setItem('userRole', selectedRole)
-      sessionStorage.setItem('isLoggedIn', 'true')
+      if (selectedRole === 'admin' && loginPhone && adminRoleForPhone) {
+        setAdminSession({
+          phone: loginPhone,
+          adminRole: adminRoleForPhone,
+        })
+        router.push('/admin')
+        return
+      }
 
-      // Navigate to dashboard
+      setUserSession({
+        role: selectedRole,
+        phone: loginPhone || undefined,
+      })
       router.push('/dashboard')
     }, 500)
   }
@@ -54,29 +75,27 @@ export default function RoleSelection() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-[480px]">
-        {/* Language Toggle */}
         <div className="flex justify-end mb-4">
-          <Button onClick={toggleLang} variant="outline" size="sm">
-            {language === 'bn' ? 'English' : 'বাংলা'}
-          </Button>
+          <LanguageSwitcher />
         </div>
 
-        {/* Role Selection Card */}
         <Card className="w-full">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl sm:text-3xl">
-              {t.role.title}
-            </CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl">{t('title')}</CardTitle>
             <CardDescription className="text-sm sm:text-base">
-              {t.role.subtitle}
+              {t('subtitle')}
             </CardDescription>
+            {loginPhone && (
+              <p className="text-center text-sm font-medium text-primary pt-2">
+                +{loginPhone.slice(0, 3)} {loginPhone.slice(3)}
+              </p>
+            )}
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* Role Options */}
             <div className="space-y-4">
-              {/* Student/Renter Option */}
               <button
+                type="button"
                 onClick={() => handleRoleSelect('renter')}
                 className={`w-full p-4 sm:p-6 rounded-xl border-2 transition-all text-left ${
                   selectedRole === 'renter'
@@ -98,17 +117,17 @@ export default function RoleSelection() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg sm:text-xl font-semibold mb-1">
-                      {t.role.student}
+                      {t('student')}
                     </h3>
                     <p className="text-sm sm:text-base text-muted-foreground">
-                      {t.role.studentDesc}
+                      {t('studentDesc')}
                     </p>
                   </div>
                 </div>
               </button>
 
-              {/* Owner/Manager Option */}
               <button
+                type="button"
                 onClick={() => handleRoleSelect('owner')}
                 className={`w-full p-4 sm:p-6 rounded-xl border-2 transition-all text-left ${
                   selectedRole === 'owner'
@@ -130,24 +149,67 @@ export default function RoleSelection() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg sm:text-xl font-semibold mb-1">
-                      {t.role.owner}
+                      {t('owner')}
                     </h3>
                     <p className="text-sm sm:text-base text-muted-foreground">
-                      {t.role.ownerDesc}
+                      {t('ownerDesc')}
                     </p>
                   </div>
                 </div>
               </button>
+
+              {adminRoleForPhone && (
+                <button
+                  type="button"
+                  onClick={() => handleRoleSelect('admin')}
+                  className={`w-full p-4 sm:p-6 rounded-xl border-2 transition-all text-left ${
+                    selectedRole === 'admin'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex items-start">
+                    <div
+                      className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 ${
+                        selectedRole === 'admin'
+                          ? 'border-primary bg-primary'
+                          : 'border-muted-foreground/50'
+                      }`}
+                    >
+                      {selectedRole === 'admin' && (
+                        <Check className="w-4 h-4 text-primary-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg sm:text-xl font-semibold mb-1 flex items-center gap-2">
+                        <Shield className="h-5 w-5" />
+                        {t('admin')}
+                      </h3>
+                      <p className="text-sm sm:text-base text-muted-foreground">
+                        {t('adminDesc', {
+                          role: ADMIN_ROLE_LABELS[adminRoleForPhone],
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              )}
             </div>
 
-            {/* Continue Button */}
+            <p className="text-center text-xs text-muted-foreground">
+              {t('staffAdmin')}{' '}
+              <Link href="/admin/login" className="text-link hover:underline">
+                {t('adminSignIn')}
+              </Link>
+            </p>
+
             <Button
               onClick={handleContinue}
               disabled={!selectedRole || loading}
               className="w-full h-12 sm:h-14 text-base sm:text-lg"
               size="lg"
             >
-              {loading ? t.common.loading : t.role.continue}
+              {loading ? tc('loading') : t('continue')}
             </Button>
           </CardContent>
         </Card>

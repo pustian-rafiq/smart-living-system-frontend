@@ -1,14 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Edit, Trash2, Bed } from 'lucide-react'
 import { RoomCard } from '@/components/hotel/RoomCard'
-import { mockHotels, getRoomsByHotelId } from '@/data/mockHotels'
+import { fetchHotelById, fetchHotelRooms } from '@/lib/api/hotels'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import {
   Dialog,
   DialogContent,
@@ -36,6 +38,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 const roomSchema = z.object({
   roomNumber: z.string().min(1, 'Room number is required'),
@@ -49,12 +53,19 @@ const roomSchema = z.object({
 type RoomFormData = z.infer<typeof roomSchema>
 
 export default function RoomManagementPage() {
+  const t = useTranslations('hotels')
+  const tc = useTranslations('common')
+  const { confirm } = useConfirm()
   const params = useParams()
   const router = useRouter()
   const hotelId = params.hotelId as string
 
-  const hotel = mockHotels.find(h => h.id === hotelId)
-  const rooms = hotel ? getRoomsByHotelId(hotelId) : []
+  const loadHotel = useCallback(() => fetchHotelById(hotelId), [hotelId])
+  const { data: hotel } = useMockQuery(loadHotel)
+
+  const loadRooms = useCallback(() => fetchHotelRooms(hotelId), [hotelId])
+  const { data: roomsData } = useMockQuery(loadRooms)
+  const rooms = roomsData ?? []
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingRoom, setEditingRoom] = useState<string | null>(null)
@@ -93,20 +104,22 @@ export default function RoomManagementPage() {
     }
   }
 
-  const handleDeleteRoom = (roomId: string) => {
-    if (confirm('Are you sure you want to delete this room?')) {
-      // TODO: Implement deletion
-      alert('Room deleted')
-    }
+  const handleDeleteRoom = async (roomId: string) => {
+    const ok = await confirm({
+      title: t('rooms.deleteTitle'),
+      description: t('rooms.deleteDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    toast.success(t('rooms.deleted'))
   }
 
   const handleSubmit = (data: RoomFormData) => {
     if (editingRoom) {
       // TODO: Update room
-      alert('Room updated')
+      toast.success(t('rooms.updated'))
     } else {
-      // TODO: Create room
-      alert('Room added')
+      toast.success(t('rooms.added'))
     }
     setIsDialogOpen(false)
     form.reset()
@@ -119,14 +132,14 @@ export default function RoomManagementPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-lg font-semibold text-muted-foreground">
-                Hotel not found
+                {t('pricing.notFoundTitle')}
               </p>
               <Button
                 variant="outline"
                 onClick={() => router.push('/my-hotels')}
                 className="mt-4"
               >
-                Back to Hotels
+                {t('myHotels.backToHotels')}
               </Button>
             </CardContent>
           </Card>
@@ -146,14 +159,16 @@ export default function RoomManagementPage() {
               onClick={() => router.back()}
               className="mb-2"
             >
-              ← Back
+              ← {tc('back')}
             </Button>
-            <h1 className="text-2xl font-bold">Room Management</h1>
+            <h1 className="text-2xl font-bold">
+              {t('rooms.managementTitle')}
+            </h1>
             <p className="text-muted-foreground">{hotel.name}</p>
           </div>
           <Button onClick={handleAddRoom}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Room
+            {t('rooms.addRoom')}
           </Button>
         </div>
 
@@ -164,14 +179,14 @@ export default function RoomManagementPage() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Bed className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-lg font-semibold text-muted-foreground">
-                  No rooms added yet
+                  {t('rooms.emptyRooms')}
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Add your first room to get started
+                  {t('rooms.emptyRoomsDesc')}
                 </p>
                 <Button onClick={handleAddRoom} className="mt-4">
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Room
+                  {t('rooms.addRoom')}
                 </Button>
               </CardContent>
             </Card>
@@ -211,12 +226,12 @@ export default function RoomManagementPage() {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingRoom ? 'Edit Room' : 'Add New Room'}
+                {editingRoom ? t('rooms.editRoom') : t('rooms.addNewRoom')}
               </DialogTitle>
               <DialogDescription>
                 {editingRoom
-                  ? 'Update room information'
-                  : 'Add a new room to your hotel'}
+                  ? t('rooms.editRoomDesc')
+                  : t('rooms.addRoomDesc')}
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -230,7 +245,7 @@ export default function RoomManagementPage() {
                     name="roomNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Room Number *</FormLabel>
+                        <FormLabel>{t('rooms.roomNumber')}</FormLabel>
                         <FormControl>
                           <Input placeholder="101" {...field} />
                         </FormControl>
@@ -243,21 +258,29 @@ export default function RoomManagementPage() {
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Room Type *</FormLabel>
+                        <FormLabel>{t('rooms.roomType')}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select type" />
+                              <SelectValue placeholder={t('rooms.selectType')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="single">Single</SelectItem>
-                            <SelectItem value="double">Double</SelectItem>
-                            <SelectItem value="suite">Suite</SelectItem>
-                            <SelectItem value="family">Family</SelectItem>
+                            <SelectItem value="single">
+                              {t('rooms.types.single')}
+                            </SelectItem>
+                            <SelectItem value="double">
+                              {t('rooms.types.double')}
+                            </SelectItem>
+                            <SelectItem value="suite">
+                              {t('rooms.types.suite')}
+                            </SelectItem>
+                            <SelectItem value="family">
+                              {t('rooms.types.family')}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -272,7 +295,7 @@ export default function RoomManagementPage() {
                     name="floor"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Floor *</FormLabel>
+                        <FormLabel>{t('rooms.floor')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -292,7 +315,7 @@ export default function RoomManagementPage() {
                     name="capacity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Max Guests *</FormLabel>
+                        <FormLabel>{t('rooms.maxGuests')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -313,7 +336,7 @@ export default function RoomManagementPage() {
                     name="basePrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Base Price (৳) *</FormLabel>
+                        <FormLabel>{t('rooms.basePrice')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -335,10 +358,10 @@ export default function RoomManagementPage() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t('rooms.descriptionLabel')}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Room description..."
+                          placeholder={t('rooms.descriptionPlaceholder')}
                           className="min-h-[100px]"
                           {...field}
                         />
@@ -354,10 +377,10 @@ export default function RoomManagementPage() {
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
                   >
-                    Cancel
+                    {tc('cancel')}
                   </Button>
                   <Button type="submit">
-                    {editingRoom ? 'Update Room' : 'Add Room'}
+                    {editingRoom ? t('rooms.updateRoom') : t('rooms.addRoom')}
                   </Button>
                 </div>
               </form>

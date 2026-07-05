@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Layout } from '@/components/layout/Layout'
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
@@ -33,17 +33,23 @@ import {
   Users,
   AlertCircle,
   Plus,
+  LogOut,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useTheme } from '@/components/theme/ThemeProvider'
-import { useLanguage } from '@/components/language/LanguageProvider'
+import { useTranslations } from 'next-intl'
+import { LanguageSwitcher, useLocaleLabel } from '@/components/i18n'
 import { useStoredRole } from '@/hooks/useStoredRole'
+import { UserVerificationPanel } from '@/components/auth/UserVerificationPanel'
+import { getVerificationStatus, logout } from '@/utils/auth'
 import {
-  getUserProfile,
-  updateUserProfile,
-  getProfileUserId,
-  type UserProfile,
-} from '@/data/mockRenterProfile'
-import { getRenterHistory } from '@/data/mockRenterHistory'
+  fetchRenterProfile,
+  saveRenterProfile,
+  fetchRenterHistory,
+} from '@/lib/api/profile'
+import { getDemoUserId, getDemoChatUserId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import type { RenterProfile } from '@/types/renterProfile'
 import { RenterHistoryDialog } from '@/components/renter/RenterHistoryDialog'
 import type { UserRole } from '@/types'
 import type {
@@ -52,6 +58,8 @@ import type {
   FamilyMember,
   EmergencyContact,
 } from '@/types/renterProfile'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 interface ProfileData {
   name: string
@@ -62,23 +70,47 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
+  const router = useRouter()
+  const { confirm } = useConfirm()
   const { theme, toggle: toggleTheme } = useTheme()
-  const { language, toggle: toggleLanguage } = useLanguage()
+  const localeLabel = useLocaleLabel()
+  const tp = useTranslations('profile')
   const { role, ready } = useStoredRole()
-  const profileUserId = getProfileUserId(role)
+  const profileUserId =
+    role === 'owner' || role === 'admin'
+      ? getDemoUserId(role)
+      : getDemoChatUserId()
+  const loadProfile = useCallback(
+    () => fetchRenterProfile(profileUserId),
+    [profileUserId]
+  )
+  const { data: profileData, refetch: refetchProfile } = useMockQuery(loadProfile)
+  const renterHistoryUserId = getDemoUserId('renter')
+  const loadHistory = useCallback(
+    () => fetchRenterHistory(renterHistoryUserId),
+    [renterHistoryUserId]
+  )
+  const { data: renterHistory } = useMockQuery(loadHistory)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [profile, setProfile] = useState<ProfileData>({
     name: 'Rahim Uddin',
     phone: '+8801712345678',
     email: 'rahim@example.com',
     role: 'renter',
-    verified: true,
+    verified: getVerificationStatus() === 'verified',
   })
+  const [verificationStatus, setVerificationStatusState] = useState(
+    getVerificationStatus()
+  )
 
   // Extended profile (documents, job, family) — works for renter and owner
-  const [userProfile, setUserProfile] = useState<UserProfile>(() =>
-    getUserProfile('user1')
-  )
+  const [userProfile, setUserProfile] = useState<RenterProfile>(() => ({
+    userId: profileUserId,
+    documents: [],
+    familyMembers: [],
+    emergencyContacts: [],
+    updatedAt: new Date().toISOString(),
+  }))
   const [showDocumentUpload, setShowDocumentUpload] = useState(false)
   const [showJobInfoDialog, setShowJobInfoDialog] = useState(false)
   const [showFamilyMemberDialog, setShowFamilyMemberDialog] = useState(false)
@@ -94,12 +126,16 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!ready) return
     const storedPhone = sessionStorage.getItem('loginPhone')
-    const uid = getProfileUserId(role)
 
+    if (profileData) {
+      setUserProfile(profileData)
+    }
+    setVerificationStatusState(getVerificationStatus())
     setProfile(prev => ({
       ...prev,
       role,
       phone: storedPhone || prev.phone,
+      verified: getVerificationStatus() === 'verified',
       name:
         role === 'owner'
           ? 'Property Owner'
@@ -109,12 +145,12 @@ export default function ProfilePage() {
       email:
         role === 'owner' ? 'owner@smartliving.bd' : prev.email || 'rahim@example.com',
     }))
-    setUserProfile(getUserProfile(uid))
-  }, [ready, role])
+  }, [ready, role, profileData])
 
-  const persistProfile = (updated: UserProfile) => {
+  const persistProfile = async (updated: RenterProfile) => {
     setUserProfile(updated)
-    updateUserProfile(profileUserId, updated)
+    await saveRenterProfile(profileUserId, updated)
+    refetchProfile()
   }
 
   const handleSave = (data: { name: string; phone: string; email?: string }) => {
@@ -126,7 +162,7 @@ export default function ProfilePage() {
       sessionStorage.setItem('userName', data.name)
       window.dispatchEvent(new Event('profile-updated'))
     }
-    alert('Profile updated successfully!')
+    toast.success('Profile updated successfully!')
   }
 
   // Document handlers
@@ -153,13 +189,17 @@ export default function ProfilePage() {
     })
   }
 
-  const handleDocumentDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this document?')) {
-      persistProfile({
-        ...userProfile,
-        documents: userProfile.documents.filter(doc => doc.id !== id),
-      })
-    }
+  const handleDocumentDelete = async (id: string) => {
+    const ok = await confirm({
+      title: 'Delete document?',
+      description: 'Are you sure you want to delete this document?',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    persistProfile({
+      ...userProfile,
+      documents: userProfile.documents.filter(doc => doc.id !== id),
+    })
   }
 
   // Job info handlers
@@ -200,13 +240,17 @@ export default function ProfilePage() {
     setEditingFamilyMember(null)
   }
 
-  const handleFamilyMemberDelete = (id: string) => {
-    if (confirm('Are you sure you want to remove this family member?')) {
-      persistProfile({
-        ...userProfile,
-        familyMembers: userProfile.familyMembers.filter(m => m.id !== id),
-      })
-    }
+  const handleFamilyMemberDelete = async (id: string) => {
+    const ok = await confirm({
+      title: 'Remove family member?',
+      description: 'Are you sure you want to remove this family member?',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    persistProfile({
+      ...userProfile,
+      familyMembers: userProfile.familyMembers.filter(m => m.id !== id),
+    })
   }
 
   // Emergency contact handlers
@@ -226,15 +270,17 @@ export default function ProfilePage() {
     setEditingEmergencyContact(null)
   }
 
-  const handleEmergencyContactDelete = (id: string) => {
-    if (confirm('Are you sure you want to remove this emergency contact?')) {
-      persistProfile({
-        ...userProfile,
-        emergencyContacts: userProfile.emergencyContacts.filter(
-          c => c.id !== id
-        ),
-      })
-    }
+  const handleEmergencyContactDelete = async (id: string) => {
+    const ok = await confirm({
+      title: 'Remove emergency contact?',
+      description: 'Are you sure you want to remove this emergency contact?',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    persistProfile({
+      ...userProfile,
+      emergencyContacts: userProfile.emergencyContacts.filter(c => c.id !== id),
+    })
   }
 
   const isRenter = profile.role === 'renter'
@@ -269,9 +315,10 @@ export default function ProfilePage() {
 
         <Tabs defaultValue="profile" className="space-y-6">
             <TabsList
-              className={`grid w-full ${isRenter ? 'grid-cols-5' : 'grid-cols-4'}`}
+              className={`grid w-full ${isRenter ? 'grid-cols-6' : 'grid-cols-5'}`}
             >
               <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="verification">Verification</TabsTrigger>
               <TabsTrigger value="documents">Documents</TabsTrigger>
               <TabsTrigger value="family">Family</TabsTrigger>
               {isRenter && <TabsTrigger value="history">History</TabsTrigger>}
@@ -312,6 +359,12 @@ export default function ProfilePage() {
                           >
                             <Check className="mr-1 h-3 w-3" />
                             Verified
+                          </Badge>
+                        )}
+                        {!profile.verified && verificationStatus === 'pending' && (
+                          <Badge variant="secondary">
+                            <Shield className="mr-1 h-3 w-3" />
+                            Verification pending
                           </Badge>
                         )}
                       </div>
@@ -355,6 +408,10 @@ export default function ProfilePage() {
                 jobInfo={userProfile.jobInfo}
                 onEdit={() => setShowJobInfoDialog(true)}
               />
+            </TabsContent>
+
+            <TabsContent value="verification" className="space-y-6">
+              <UserVerificationPanel />
             </TabsContent>
 
             {/* Documents Tab */}
@@ -550,9 +607,7 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent>
                   {(() => {
-                    // Get current user ID (in real app, get from auth context)
-                    const currentUserId = 'r1' // This should come from auth
-                    const history = getRenterHistory(currentUserId)
+                    const history = renterHistory
 
                     if (!history || history.rentalHistories.length === 0) {
                       return (
@@ -699,10 +754,9 @@ export default function ProfilePage() {
                 {/* Preferences Card */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Preferences</CardTitle>
+                    <CardTitle>{tp('preferences')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Language Toggle */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Globe className="h-5 w-5 text-muted-foreground" />
@@ -711,21 +765,14 @@ export default function ProfilePage() {
                             htmlFor="language-toggle"
                             className="text-base font-medium"
                           >
-                            Language
+                            {tp('language')}
                           </Label>
                           <p className="text-xs text-muted-foreground">
-                            {language === 'bn' ? 'বাংলা' : 'English'}
+                            {localeLabel}
                           </p>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={toggleLanguage}
-                        id="language-toggle"
-                      >
-                        {language === 'bn' ? 'EN' : 'BN'}
-                      </Button>
+                      <LanguageSwitcher id="language-toggle" />
                     </div>
 
                     {/* Theme Toggle */}
@@ -763,17 +810,33 @@ export default function ProfilePage() {
                     <CardTitle>Account</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <Button variant="outline" className="w-full justify-start">
-                      Change Password
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      Privacy Settings
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      asChild
+                    >
+                      <Link href="/account/change-phone">
+                        <Phone className="mr-2 h-4 w-4" />
+                        Change phone number
+                      </Link>
                     </Button>
                     <Button
-                      variant="destructive"
+                      variant="outline"
                       className="w-full justify-start"
+                      asChild
                     >
-                      Delete Account
+                      <Link href="/privacy">Privacy policy</Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        logout()
+                        router.push('/login')
+                      }}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log out
                     </Button>
                   </CardContent>
                 </Card>
@@ -825,7 +888,7 @@ export default function ProfilePage() {
 
       {isRenter && (
         <RenterHistoryDialog
-          renterId="r1"
+          renterId={renterHistoryUserId}
           renterName={profile.name}
           open={isHistoryDialogOpen}
           onOpenChange={setIsHistoryDialogOpen}

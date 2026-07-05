@@ -19,6 +19,7 @@ import {
   getQuickActionsForRole,
   isChildActive,
   isNavItemActive,
+  useNavLabels,
 } from '@/lib/navigation'
 import type { NavItem } from '@/lib/navigation'
 import type { UserRole } from '@/types'
@@ -29,12 +30,6 @@ interface MobileNavDrawerProps {
   userRole: UserRole
   userName: string
   isVerified?: boolean
-}
-
-const roleLabels: Record<UserRole, string> = {
-  renter: 'Renter',
-  owner: 'Property owner',
-  admin: 'Administrator',
 }
 
 function linkClass(active: boolean) {
@@ -55,6 +50,7 @@ function NavSection({
   pathname: string
   onNavigate: () => void
 }) {
+  const { label } = useNavLabels()
   const Icon = item.icon
   const sectionActive = isNavItemActive(pathname, item)
 
@@ -66,7 +62,7 @@ function NavSection({
         className={linkClass(sectionActive)}
       >
         {Icon && <Icon className="h-4 w-4 shrink-0 opacity-80" />}
-        <span className="flex-1">{item.label}</span>
+        <span className="flex-1">{label(item.labelKey)}</span>
         <ChevronRight className="h-4 w-4 shrink-0 opacity-40" />
       </Link>
     )
@@ -81,7 +77,7 @@ function NavSection({
         )}
       >
         {Icon && <Icon className="h-3.5 w-3.5" />}
-        {item.label}
+        {label(item.labelKey)}
       </div>
       {item.href && (
         <Link
@@ -91,7 +87,7 @@ function NavSection({
             isNavItemActive(pathname, { ...item, children: undefined })
           )}
         >
-          <span className="flex-1 pl-7">Overview</span>
+          <span className="flex-1 pl-7">{label('drawer.overview')}</span>
           <ChevronRight className="h-4 w-4 shrink-0 opacity-40" />
         </Link>
       )}
@@ -103,10 +99,10 @@ function NavSection({
           className={linkClass(isChildActive(pathname, child))}
         >
           <div className="min-w-0 flex-1 pl-7">
-            <div>{child.label}</div>
-            {child.description && (
+            <div>{label(child.labelKey)}</div>
+            {child.descriptionKey && (
               <div className="truncate text-xs text-muted-foreground">
-                {child.description}
+                {label(child.descriptionKey)}
               </div>
             )}
           </div>
@@ -125,6 +121,7 @@ export function MobileNavDrawer({
   isVerified = false,
 }: MobileNavDrawerProps) {
   const pathname = usePathname()
+  const { label } = useNavLabels()
 
   const navItems = getPrimaryNavForRole(userRole)
   const utilityLinks = getMobileUtilityLinksForRole(userRole)
@@ -143,7 +140,7 @@ export function MobileNavDrawer({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <span className="text-sm font-bold">SL</span>
             </div>
-            All menus
+            {label('drawer.allMenus')}
           </SheetTitle>
           <SheetDescription asChild>
             <div className="space-y-1 pt-1">
@@ -157,12 +154,12 @@ export function MobileNavDrawer({
                     className="border-emerald-200 bg-emerald-50 px-1.5 py-0 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
                   >
                     <Check className="mr-0.5 h-2.5 w-2.5" />
-                    Verified
+                    {label('drawer.verified')}
                   </Badge>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                {roleLabels[userRole]}
+                {label(`roles.${userRole}`)}
               </p>
             </div>
           </SheetDescription>
@@ -173,7 +170,7 @@ export function MobileNavDrawer({
             {quickActions.length > 0 && (
               <div className="space-y-2">
                 <p className="px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Quick actions
+                  {label('quickActions.title')}
                 </p>
                 <div className="grid grid-cols-2 gap-2 px-1">
                   {quickActions.map(action => (
@@ -185,7 +182,7 @@ export function MobileNavDrawer({
                     >
                       <Plus className="h-4 w-4 text-primary" />
                       <span className="text-xs font-medium leading-tight">
-                        {action.label}
+                        {label(action.labelKey)}
                       </span>
                     </Link>
                   ))}
@@ -195,11 +192,11 @@ export function MobileNavDrawer({
 
             <div className="space-y-4">
               <p className="px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Navigation
+                {label('drawer.navigation')}
               </p>
               {navItems.map(item => (
                 <NavSection
-                  key={item.label}
+                  key={item.labelKey}
                   item={item}
                   pathname={pathname}
                   onNavigate={close}
@@ -210,7 +207,7 @@ export function MobileNavDrawer({
             {utilityLinks.length > 0 && (
               <div className="space-y-1 border-t pt-4">
                 <p className="px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Shortcuts
+                  {label('drawer.shortcuts')}
                 </p>
                 {utilityLinks.map(link => {
                   const Icon = link.icon
@@ -226,7 +223,7 @@ export function MobileNavDrawer({
                       className={linkClass(active)}
                     >
                       <Icon className="h-4 w-4 shrink-0 opacity-80" />
-                      <span className="flex-1">{link.label}</span>
+                      <span className="flex-1">{label(link.labelKey)}</span>
                       <ChevronRight className="h-4 w-4 shrink-0 opacity-40" />
                     </Link>
                   )

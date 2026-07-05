@@ -77,10 +77,26 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
+                  href="/safety"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  Safety & anti-scam
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/terms"
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  Privacy Policy
                 </Link>
               </li>
             </ul>

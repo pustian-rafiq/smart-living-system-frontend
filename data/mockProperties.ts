@@ -43,6 +43,10 @@ const baseProperties: Property[] = [
     ownerName: 'Abdul Karim',
     ownerPhone: '+8801712345678',
     createdAt: '2024-01-15',
+    published: true,
+    listingStatus: 'published',
+    featured: true,
+    featuredUntil: '2026-08-01',
   },
   {
     id: '2',

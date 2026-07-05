@@ -34,7 +34,10 @@ export async function fetchFeaturedProperties(
   await mockDelay()
   const verifiedFirst = [...getPublishedProperties()].sort((a, b) => {
     const score = (p: Property) =>
-      (p.verified ? 2 : 0) + (p.rating || 0) + (p.instantBook ? 0.5 : 0)
+      (p.featured ? 4 : 0) +
+      (p.verified ? 2 : 0) +
+      (p.rating || 0) +
+      (p.instantBook ? 0.5 : 0)
     return score(b) - score(a)
   })
   return ok(verifiedFirst.slice(0, limit))
@@ -177,3 +180,6 @@ export async function fetchPropertiesByIds(
 export function getAllMockProperties(): Property[] {
   return [...mockProperties]
 }
+
+/** Server/SSG helper — sync lookup for generateMetadata */
+export { getPropertyById } from '@/data/mockProperties'

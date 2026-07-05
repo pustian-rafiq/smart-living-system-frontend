@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import {
   Card,
@@ -24,7 +25,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { mockSystemSettings } from '@/data/mockAdmin'
+import { fetchSystemSettings, saveSystemSettings } from '@/lib/api/admin'
+import type { SystemSettings } from '@/types/admin'
+import { toast } from '@/lib/feedback/toast'
 
 const settingsSchema = z.object({
   platformName: z.string().min(1, 'Platform name is required'),
@@ -36,55 +39,79 @@ const settingsSchema = z.object({
 type SettingsFormData = z.infer<typeof settingsSchema>
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState(mockSystemSettings)
+  const t = useTranslations('admin.settings')
+  const [settings, setSettings] = useState<SystemSettings | null>(null)
   const [loading, setLoading] = useState(false)
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      platformName: settings.platformName,
-      platformEmail: settings.platformEmail,
-      platformPhone: settings.platformPhone,
-      commissionRate: settings.commissionRate,
+      platformName: '',
+      platformEmail: '',
+      platformPhone: '',
+      commissionRate: 0,
     },
   })
 
+  useEffect(() => {
+    fetchSystemSettings().then(result => {
+      if (result.ok) {
+        setSettings(result.data)
+        form.reset({
+          platformName: result.data.platformName,
+          platformEmail: result.data.platformEmail,
+          platformPhone: result.data.platformPhone,
+          commissionRate: result.data.commissionRate,
+        })
+      }
+    })
+  }, [form])
+
   const handleSubmit = async (data: SettingsFormData) => {
+    if (!settings) return
     setLoading(true)
-    // TODO: API call
-    setTimeout(() => {
-      setLoading(false)
-      alert('Settings saved successfully')
-    }, 1000)
+    const result = await saveSystemSettings({ ...settings, ...data })
+    setLoading(false)
+    if (result.ok) {
+      setSettings(result.data)
+      toast.success(t('savedSuccess'))
+    }
   }
 
   const handleFeatureToggle = (feature: string) => {
-    setSettings({
+    if (!settings) return
+    const updated = {
       ...settings,
       featureFlags: {
         ...settings.featureFlags,
         [feature]: !settings.featureFlags[feature],
       },
-    })
-    // TODO: API call
+    }
+    setSettings(updated)
+    saveSystemSettings(updated)
+  }
+
+  if (!settings) {
+    return (
+      <AdminLayout>
+        <div className="max-w-7xl p-8 text-muted-foreground">Loading...</div>
+      </AdminLayout>
+    )
   }
 
   return (
     <AdminLayout>
       <div className="max-w-7xl">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">System Settings</h2>
-          <p className="text-muted-foreground">
-            Configure platform settings and preferences
-          </p>
+          <h2 className="text-2xl font-bold mb-2">{t('systemTitle')}</h2>
+          <p className="text-muted-foreground">{t('systemDesc')}</p>
         </div>
 
         <div className="space-y-6">
-          {/* Platform Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Platform Information</CardTitle>
-              <CardDescription>Basic platform details</CardDescription>
+              <CardTitle>{t('platformInfo')}</CardTitle>
+              <CardDescription>{t('platformInfoDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -97,7 +124,7 @@ export default function AdminSettingsPage() {
                     name="platformName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Platform Name</FormLabel>
+                        <FormLabel>{t('platformName')}</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -110,7 +137,7 @@ export default function AdminSettingsPage() {
                     name="platformEmail"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Platform Email</FormLabel>
+                        <FormLabel>{t('platformEmail')}</FormLabel>
                         <FormControl>
                           <Input type="email" {...field} />
                         </FormControl>
@@ -123,7 +150,7 @@ export default function AdminSettingsPage() {
                     name="platformPhone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Platform Phone</FormLabel>
+                        <FormLabel>{t('platformPhone')}</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -136,7 +163,7 @@ export default function AdminSettingsPage() {
                     name="commissionRate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Commission Rate (%)</FormLabel>
+                        <FormLabel>{t('commissionRate')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -153,28 +180,27 @@ export default function AdminSettingsPage() {
                     )}
                   />
                   <Button type="submit" disabled={loading}>
-                    {loading ? 'Saving...' : 'Save Changes'}
+                    {loading ? t('saving') : t('saveChanges')}
                   </Button>
                 </form>
               </Form>
             </CardContent>
           </Card>
 
-          {/* Subscription Plans */}
           <Card>
             <CardHeader>
-              <CardTitle>Subscription Plans</CardTitle>
-              <CardDescription>Configure subscription pricing</CardDescription>
+              <CardTitle>{t('subscriptionPlans')}</CardTitle>
+              <CardDescription>{t('subscriptionPlansDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="rounded border p-4">
-                  <h4 className="font-semibold mb-2">Free Plan</h4>
+                  <h4 className="font-semibold mb-2">{t('freePlan')}</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Max Flats: {settings.subscriptionPlans.free.maxFlats}
+                    {t('maxFlats', { count: settings.subscriptionPlans.free.maxFlats })}
                   </p>
                   <div className="text-sm">
-                    <p className="font-medium mb-1">Features:</p>
+                    <p className="font-medium mb-1">{t('features')}</p>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                       {settings.subscriptionPlans.free.features.map(
                         (feature, idx) => (
@@ -185,15 +211,15 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
                 <div className="rounded border p-4">
-                  <h4 className="font-semibold mb-2">Basic Plan</h4>
+                  <h4 className="font-semibold mb-2">{t('basicPlan')}</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Price: ৳{settings.subscriptionPlans.basic.price}/month
+                    {t('pricePerMonth', { price: settings.subscriptionPlans.basic.price })}
                   </p>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Max Flats: {settings.subscriptionPlans.basic.maxFlats}
+                    {t('maxFlats', { count: settings.subscriptionPlans.basic.maxFlats })}
                   </p>
                   <div className="text-sm">
-                    <p className="font-medium mb-1">Features:</p>
+                    <p className="font-medium mb-1">{t('features')}</p>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                       {settings.subscriptionPlans.basic.features.map(
                         (feature, idx) => (
@@ -204,18 +230,20 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
                 <div className="rounded border p-4">
-                  <h4 className="font-semibold mb-2">Premium Plan</h4>
+                  <h4 className="font-semibold mb-2">{t('premiumPlan')}</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Price: ৳{settings.subscriptionPlans.premium.price}/month
+                    {t('pricePerMonth', { price: settings.subscriptionPlans.premium.price })}
                   </p>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Max Flats:{' '}
-                    {settings.subscriptionPlans.premium.maxFlats === -1
-                      ? 'Unlimited'
-                      : settings.subscriptionPlans.premium.maxFlats}
+                    {t('maxFlats', {
+                      count:
+                        settings.subscriptionPlans.premium.maxFlats === -1
+                          ? t('unlimited')
+                          : settings.subscriptionPlans.premium.maxFlats,
+                    })}
                   </p>
                   <div className="text-sm">
-                    <p className="font-medium mb-1">Features:</p>
+                    <p className="font-medium mb-1">{t('features')}</p>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                       {settings.subscriptionPlans.premium.features.map(
                         (feature, idx) => (
@@ -229,13 +257,10 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Feature Flags */}
           <Card>
             <CardHeader>
-              <CardTitle>Feature Flags</CardTitle>
-              <CardDescription>
-                Enable or disable platform features
-              </CardDescription>
+              <CardTitle>{t('featureFlags')}</CardTitle>
+              <CardDescription>{t('featureFlagsDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -250,7 +275,7 @@ export default function AdminSettingsPage() {
                           {feature.replace(/([A-Z])/g, ' $1').trim()}
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          {enabled ? 'Enabled' : 'Disabled'}
+                          {enabled ? t('enabled') : t('disabled')}
                         </p>
                       </div>
                       <Switch
@@ -264,28 +289,27 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Service Configuration */}
           <Card>
             <CardHeader>
-              <CardTitle>Service Configuration</CardTitle>
-              <CardDescription>Third-party service settings</CardDescription>
+              <CardTitle>{t('serviceConfig')}</CardTitle>
+              <CardDescription>{t('serviceConfigDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="font-medium">SMS Gateway</Label>
+                    <Label className="font-medium">{t('smsGateway')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      Provider: {settings.smsGateway.provider}
+                      {t('provider', { name: settings.smsGateway.provider })}
                     </p>
                   </div>
                   <Switch checked={settings.smsGateway.enabled} />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="font-medium">Email Service</Label>
+                    <Label className="font-medium">{t('emailService')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      Provider: {settings.emailService.provider}
+                      {t('provider', { name: settings.emailService.provider })}
                     </p>
                   </div>
                   <Switch checked={settings.emailService.enabled} />

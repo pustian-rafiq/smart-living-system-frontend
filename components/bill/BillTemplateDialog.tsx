@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -33,9 +33,10 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Plus, Trash2 } from 'lucide-react'
-import { mockBuildings } from '@/data/mockBuildings'
-import { mockMess } from '@/data/mockMess'
 import type { BillTemplate, BillTemplateItem } from '@/types/bill'
+import { fetchOwnerPortfolioSnapshot } from '@/lib/api/buildings'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 const billTemplateSchema = z.object({
   name: z.string().min(1, 'Template name is required'),
@@ -80,6 +81,14 @@ export function BillTemplateDialog({
   const [selectedPropertyType, setSelectedPropertyType] = useState<
     'apartment' | 'mess'
   >(template?.propertyType || 'apartment')
+  const loadPortfolio = useCallback(
+    () =>
+      open
+        ? fetchOwnerPortfolioSnapshot()
+        : Promise.resolve(ok({ buildings: [], flats: [], messList: [] })),
+    [open]
+  )
+  const { data: portfolio } = useMockQuery(loadPortfolio)
 
   const form = useForm<BillTemplateFormData>({
     resolver: zodResolver(billTemplateSchema) as never,
@@ -134,7 +143,9 @@ export function BillTemplateDialog({
   }
 
   const properties =
-    selectedPropertyType === 'apartment' ? mockBuildings : mockMess
+    selectedPropertyType === 'apartment'
+      ? (portfolio?.buildings ?? [])
+      : (portfolio?.messList ?? [])
   const items = form.watch('items')
 
   return (

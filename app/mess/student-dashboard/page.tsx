@@ -1,14 +1,16 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
   PageHeader,
   EmptyState,
+  LoadingState,
 } from '@/components/page'
 import { EnhancedNoticeBoard } from '@/components/notice/EnhancedNoticeBoard'
 import { PayBillDialog } from '@/components/payment/PayBillDialog'
@@ -29,53 +31,83 @@ import {
   Wallet,
   ScrollText,
 } from 'lucide-react'
-import { mockStudents, mockNotices, mockMess } from '@/data/mockMess'
-import { getOrCreateMessBill } from '@/data/mockBills'
-import { getDemoRenterId } from '@/lib/api/demoUser'
+import {
+  fetchMessStudents,
+  fetchMessById,
+  fetchNoticesByMess,
+  fetchOrCreateMessBill,
+} from '@/lib/api/mess'
+import { getDemoTenantId } from '@/lib/api/demoUser'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import { useAppFormat } from '@/hooks/useAppFormat'
 import type { Bill } from '@/types/bill'
 
 export default function StudentDashboardPage() {
+  const t = useTranslations('mess')
+  const tc = useTranslations('common')
+  const { formatDate } = useAppFormat()
   const router = useRouter()
-  const student = mockStudents[0]
-  const mess = mockMess.find(m => m.id === 'm1')
-  const notices = mockNotices.filter(n => n.messId === mess?.id)
-  const tenantId = getDemoRenterId()
+  const tenantId = getDemoTenantId()
 
-  const [messBill, setMessBill] = useState<Bill | null>(() => {
-    if (!student || !mess) return null
-    return getOrCreateMessBill({
+  const loadStudents = useCallback(() => fetchMessStudents(), [])
+  const { data: students, loading: studentsLoading } = useMockQuery(loadStudents)
+  const student = students?.[0]
+
+  const loadMess = useCallback(() => fetchMessById('m1'), [])
+  const { data: mess, loading: messLoading } = useMockQuery(loadMess)
+
+  const loadNotices = useCallback(
+    () => (mess ? fetchNoticesByMess(mess.id) : Promise.resolve(ok([]))),
+    [mess]
+  )
+  const { data: notices } = useMockQuery(loadNotices)
+
+  const [messBill, setMessBill] = useState<Bill | null>(null)
+  const [isPayOpen, setIsPayOpen] = useState(false)
+
+  useEffect(() => {
+    if (!student || !mess) return
+    fetchOrCreateMessBill({
       tenantId,
       tenantName: student.name,
       messId: mess.id,
       messName: mess.name,
       seatNumber: student.seatNumber,
       monthlyFee: student.monthlyFee,
+    }).then(result => {
+      if (result.ok) setMessBill(result.data)
     })
-  })
-  const [isPayOpen, setIsPayOpen] = useState(false)
+  }, [student, mess, tenantId])
 
   const isPaid = messBill?.status === 'paid'
 
   const dueLabel = useMemo(() => {
     if (!messBill) return '—'
-    return new Date(messBill.dueDate).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })
-  }, [messBill])
+    return formatDate(messBill.dueDate, { style: 'medium' })
+  }, [messBill, formatDate])
+
+  if (studentsLoading || messLoading) {
+    return (
+      <Layout>
+        <PageContainer>
+          <LoadingState label={t('loading')} />
+        </PageContainer>
+      </Layout>
+    )
+  }
 
   if (!student || !mess) {
     return (
       <Layout>
         <PageContainer>
           <EmptyState
-            title="No student information found"
-            description="You are not assigned to a mess yet."
+            title={t('studentDashboard.emptyTitle')}
+            description={t('studentDashboard.emptyDesc')}
             icon={GraduationCap}
           >
             <Button variant="outline" onClick={() => router.push('/mess')}>
-              Back to mess
+              {t('studentDashboard.backToMess')}
             </Button>
           </EmptyState>
         </PageContainer>
@@ -83,30 +115,40 @@ export default function StudentDashboardPage() {
     )
   }
 
+  const statusLabel =
+    isPaid
+      ? tc('status.paid')
+      : messBill?.status === 'overdue'
+        ? messBill.status
+        : tc('status.unpaid')
+
   return (
     <Layout>
       <PageContainer>
         <PageHeader
-          title="Student dashboard"
-          description={`${mess.name} · Seat ${student.seatNumber || '—'}`}
+          title={t('studentDashboard.title')}
+          description={t('studentDashboard.headerSubtitle', {
+            mess: mess.name,
+            seat: student.seatNumber || '—',
+          })}
           actions={
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" asChild>
                 <Link href="/mess/student-dashboard/menu">
                   <UtensilsCrossed className="mr-2 h-4 w-4" />
-                  Menu
+                  {t('studentDashboard.tabs.menu')}
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/mess/student-dashboard/attendance">
                   <Calendar className="mr-2 h-4 w-4" />
-                  Attendance
+                  {t('studentDashboard.tabs.attendance')}
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/payments">
                   <Wallet className="mr-2 h-4 w-4" />
-                  Payments
+                  {t('studentDashboard.payments')}
                 </Link>
               </Button>
             </div>
@@ -119,7 +161,7 @@ export default function StudentDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Student information
+                  {t('studentDashboard.studentInfo')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -131,7 +173,9 @@ export default function StudentDashboardPage() {
                     <h3 className="text-lg font-semibold">{student.name}</h3>
                     {student.studentId && (
                       <p className="text-sm text-muted-foreground">
-                        ID: {student.studentId}
+                        {t('studentDashboard.studentId', {
+                          id: student.studentId,
+                        })}
                       </p>
                     )}
                   </div>
@@ -141,7 +185,9 @@ export default function StudentDashboardPage() {
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Phone</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t('studentDashboard.phone')}
+                      </p>
                       <p className="font-medium">{student.phone}</p>
                     </div>
                   </div>
@@ -149,7 +195,9 @@ export default function StudentDashboardPage() {
                     <div className="flex items-center gap-3">
                       <Mail className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t('studentDashboard.email')}
+                        </p>
                         <p className="font-medium">{student.email}</p>
                       </div>
                     </div>
@@ -159,7 +207,7 @@ export default function StudentDashboardPage() {
                       <GraduationCap className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          University
+                          {t('studentDashboard.university')}
                         </p>
                         <p className="font-medium">{student.university}</p>
                       </div>
@@ -168,9 +216,11 @@ export default function StudentDashboardPage() {
                   <div className="flex items-center gap-3">
                     <Home className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Seat</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t('studentDashboard.seatLabel')}
+                      </p>
                       <p className="font-medium">
-                        {student.seatNumber || 'Not assigned'}
+                        {student.seatNumber || t('studentDashboard.notAssigned')}
                       </p>
                     </div>
                   </div>
@@ -182,7 +232,7 @@ export default function StudentDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Home className="h-5 w-5" />
-                  Mess details
+                  {t('studentDashboard.messDetails')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -216,7 +266,7 @@ export default function StudentDashboardPage() {
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/mess/${mess.id}/rules`}>
                       <ScrollText className="mr-2 h-4 w-4" />
-                      Mess rules
+                      {t('studentDashboard.messRules')}
                     </Link>
                   </Button>
                 </div>
@@ -224,7 +274,7 @@ export default function StudentDashboardPage() {
             </Card>
 
             <EnhancedNoticeBoard
-              notices={notices}
+              notices={notices ?? []}
               userId={student.id}
               onAcknowledge={() => {}}
               showAcknowledgment
@@ -236,7 +286,7 @@ export default function StudentDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
-                  Monthly fee
+                  {t('studentDashboard.monthlyFee')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -257,23 +307,29 @@ export default function StudentDashboardPage() {
                           : 'mt-2 border-amber-200 bg-amber-50 text-amber-900'
                     }
                   >
-                    {isPaid ? 'Paid' : messBill?.status || 'unpaid'}
+                    {statusLabel}
                   </Badge>
                 </div>
 
                 <div className="space-y-2 rounded-lg border p-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Due date</span>
+                    <span className="text-muted-foreground">
+                      {t('studentDashboard.dueDate')}
+                    </span>
                     <span className="font-medium">{dueLabel}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Seat</span>
+                    <span className="text-muted-foreground">
+                      {t('studentDashboard.seatLabel')}
+                    </span>
                     <span className="font-medium">
                       {student.seatNumber || '—'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Late fee</span>
+                    <span className="text-muted-foreground">
+                      {t('studentDashboard.lateFee')}
+                    </span>
                     <span className="font-medium">৳200</span>
                   </div>
                 </div>
@@ -284,14 +340,14 @@ export default function StudentDashboardPage() {
                     onClick={() => setIsPayOpen(true)}
                   >
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Pay Now
+                    {tc('payNow')}
                   </Button>
                 ) : (
                   messBill && (
                     <DownloadBillButton
                       bill={messBill}
                       className="w-full"
-                      label="Download receipt"
+                      label={t('studentDashboard.downloadReceipt')}
                     />
                   )
                 )}
@@ -299,7 +355,7 @@ export default function StudentDashboardPage() {
                 <Button variant="outline" className="w-full" asChild>
                   <Link href="/payments">
                     <Wallet className="mr-2 h-4 w-4" />
-                    Payment history
+                    {t('studentDashboard.paymentHistory')}
                   </Link>
                 </Button>
               </CardContent>
@@ -309,15 +365,17 @@ export default function StudentDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <UtensilsCrossed className="h-5 w-5" />
-                  Meal menu
+                  {t('studentDashboard.mealMenu')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Today&apos;s menu and weekly schedule
+                  {t('studentDashboard.mealMenuDesc')}
                 </p>
                 <Button className="w-full" asChild>
-                  <Link href="/mess/student-dashboard/menu">View menu</Link>
+                  <Link href="/mess/student-dashboard/menu">
+                    {t('studentDashboard.viewMenu')}
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -326,16 +384,16 @@ export default function StudentDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Calendar className="h-5 w-5" />
-                  Attendance
+                  {t('studentDashboard.tabs.attendance')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Your attendance records and calendar
+                  {t('studentDashboard.viewAttendance')}
                 </p>
                 <Button variant="outline" className="w-full" asChild>
                   <Link href="/mess/student-dashboard/attendance">
-                    View attendance
+                    {t('studentDashboard.viewAttendance')}
                   </Link>
                 </Button>
               </CardContent>

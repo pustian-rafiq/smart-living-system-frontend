@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AttendanceCalendar } from '@/components/attendance/AttendanceCalendar'
 import { AttendanceTable } from '@/components/attendance/AttendanceTable'
@@ -10,24 +10,35 @@ import { AttendanceSummaryCard } from '@/components/attendance/AttendanceSummary
 import {
   getAttendanceByStudent,
   getAttendanceSummary,
-} from '@/data/mockAttendance'
-import { mockMess, mockStudents } from '@/data/mockMess'
+} from '@/lib/api/messDomain'
+import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { Calendar, FileText } from 'lucide-react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 
 export default function StudentAttendancePage() {
+  const t = useTranslations('mess')
   const router = useRouter()
   const role = getStoredRole()
 
-  // In real app, get from auth
-  const student = mockStudents[0]
-  const mess = mockMess.find(m => m.id === 'm1')
+  const loadStudents = useCallback(() => fetchMessStudents(), [])
+  const { data: students } = useMockQuery(loadStudents)
+  const student = students?.[0]
+
+  const loadMess = useCallback(() => fetchMessById('m1'), [])
+  const { data: mess } = useMockQuery(loadMess)
 
   const [attendanceRecords, setAttendanceRecords] = useState(
     getAttendanceByStudent(student?.id || '', mess?.id || '')
   )
+
+  useEffect(() => {
+    if (student?.id && mess?.id) {
+      setAttendanceRecords(getAttendanceByStudent(student.id, mess.id))
+    }
+  }, [student?.id, mess?.id])
 
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
   const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
@@ -51,7 +62,9 @@ export default function StudentAttendancePage() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p className="text-center">Student information not found</p>
+          <p className="text-center">
+            {t('studentDashboard.emptyStudentInfo')}
+          </p>
         </div>
       </Layout>
     )
@@ -60,33 +73,31 @@ export default function StudentAttendancePage() {
   return (
     <Layout userRole="renter">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">My Attendance</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            {t('studentDashboard.myAttendance')}
+          </h1>
           <p className="text-muted-foreground">{mess.name}</p>
         </div>
 
-        {/* Summary Card */}
         {attendanceSummary && (
           <div className="mb-6">
             <AttendanceSummaryCard summary={attendanceSummary} />
           </div>
         )}
 
-        {/* Tabs */}
         <Tabs defaultValue="calendar" className="space-y-6">
           <TabsList>
             <TabsTrigger value="calendar">
               <Calendar className="h-4 w-4 mr-2" />
-              Calendar
+              {t('studentDashboard.tabs.calendar')}
             </TabsTrigger>
             <TabsTrigger value="records">
               <FileText className="h-4 w-4 mr-2" />
-              Records
+              {t('studentDashboard.tabs.records')}
             </TabsTrigger>
           </TabsList>
 
-          {/* Calendar Tab */}
           <TabsContent value="calendar" className="space-y-4">
             <AttendanceCalendar
               records={attendanceRecords}
@@ -94,7 +105,6 @@ export default function StudentAttendancePage() {
             />
           </TabsContent>
 
-          {/* Records Tab */}
           <TabsContent value="records" className="space-y-4">
             <AttendanceTable
               records={attendanceRecords}

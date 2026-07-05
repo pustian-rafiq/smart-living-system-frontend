@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { PageHeader, LoadingState } from '@/components/page'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,12 +13,13 @@ import {
 } from '@/components/payment/PaymentResultView'
 import { ReceiptViewDialog } from '@/components/payment/ReceiptViewDialog'
 import { fetchPaymentByTxnId } from '@/lib/api/payments'
-import { getBillById } from '@/data/mockBills'
+import { fetchBillById } from '@/lib/api/bills'
 import type { PaymentTransaction } from '@/types/payment'
 import type { Bill } from '@/types/bill'
 import { ArrowLeft, Receipt } from 'lucide-react'
 
 export function PaymentResultContent() {
+  const t = useTranslations('payments.result')
   const searchParams = useSearchParams()
   const router = useRouter()
   const txn = searchParams.get('txn')
@@ -33,10 +35,13 @@ export function PaymentResultContent() {
       setLoading(false)
       return
     }
-    fetchPaymentByTxnId(txn).then(result => {
+    fetchPaymentByTxnId(txn).then(async result => {
       if (result.ok && result.data) {
         setPayment(result.data)
-        setBill(getBillById(result.data.billId) ?? null)
+        const billResult = await fetchBillById(result.data.billId)
+        if (billResult.ok && billResult.data) {
+          setBill(billResult.data)
+        }
       }
       setLoading(false)
     })
@@ -51,26 +56,21 @@ export function PaymentResultContent() {
         : 'failed')
 
   if (loading) {
-    return <LoadingState label="Loading payment…" />
+    return <LoadingState label={t('loading')} />
   }
 
   return (
     <>
-      <PageHeader
-        title="Payment status"
-        description="Track your payment confirmation and receipt."
-      />
+      <PageHeader title={t('statusTitle')} description={t('statusDesc')} />
 
       {!payment ? (
         <Card>
           <CardContent className="space-y-4 py-10 text-center">
-            <p className="text-muted-foreground">
-              Payment not found. It may still be processing.
-            </p>
+            <p className="text-muted-foreground">{t('notFound')}</p>
             <Button asChild variant="outline">
               <Link href="/payments">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to payments
+                {t('backToPayments')}
               </Link>
             </Button>
           </CardContent>
@@ -93,7 +93,7 @@ export function PaymentResultContent() {
                     onClick={() => setReceiptOpen(true)}
                   >
                     <Receipt className="mr-2 h-4 w-4" />
-                    View & download receipt
+                    {t('viewReceiptDownload')}
                   </Button>
                 ) : undefined
               }

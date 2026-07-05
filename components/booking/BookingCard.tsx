@@ -8,6 +8,7 @@ import { Calendar, MapPin, Phone, User, X, Check, XCircle, Zap } from 'lucide-re
 import { format } from 'date-fns'
 import Image from 'next/image'
 import type { Booking } from '@/types/booking'
+import { BookingCommissionInline } from '@/components/monetization'
 
 interface BookingCardProps {
   booking: Booking
@@ -143,6 +144,12 @@ export function BookingCard({
                 </div>
               )}
             </div>
+
+            {showActions &&
+              (booking.status === 'approved' ||
+                booking.status === 'completed') && (
+                <BookingCommissionInline totalAmount={booking.totalAmount} />
+              )}
 
             {/* Message Preview */}
             {booking.message && (

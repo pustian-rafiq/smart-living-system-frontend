@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
+import { EmptyState, LoadingState } from '@/components/page'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,11 +17,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReminderCard } from '@/components/reminder/ReminderCard'
 import { ReminderSettingsDialog } from '@/components/reminder/ReminderSettingsDialog'
 import {
-  getReminderSettings,
-  updateReminderSettings,
-  getReminders,
-  getReminderHistory,
-} from '@/data/mockReminders'
+  fetchReminderSettings,
+  saveReminderSettings,
+  fetchReminders,
+  fetchReminderHistory,
+} from '@/lib/api/reminders'
+import { getDemoTenantId } from '@/lib/api/demoUser'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import {
@@ -30,33 +33,58 @@ import {
   Clock,
   XCircle,
 } from 'lucide-react'
-import type { ReminderSettings } from '@/types/reminder'
+import type { Reminder, ReminderHistory, ReminderSettings } from '@/types/reminder'
 
 export default function RemindersPage() {
   const router = useRouter()
   const role = getStoredRole()
+  const t = useTranslations('tools.reminders')
+  const tc = useTranslations('common')
 
-  const [settings, setSettings] = useState<ReminderSettings>(
-    getReminderSettings('r1')
-  )
+  const userId = getDemoTenantId()
+  const [settings, setSettings] = useState<ReminderSettings | null>(null)
+  const [reminders, setReminders] = useState<Reminder[]>([])
+  const [history, setHistory] = useState<ReminderHistory | null>(null)
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [isLoading, setIsLoading] = useState(true)
 
-  const reminders = useMemo(
-    () =>
-      getReminders('r1', {
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        type: typeFilter !== 'all' ? typeFilter : undefined,
+  const loadReminders = useCallback(async () => {
+    const result = await fetchReminders(userId, {
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      type: typeFilter !== 'all' ? typeFilter : undefined,
+    })
+    if (result.ok) setReminders(result.data)
+  }, [userId, statusFilter, typeFilter])
+
+  useEffect(() => {
+    if (role !== 'renter') return
+    let mounted = true
+    setIsLoading(true)
+    Promise.all([
+      fetchReminderSettings(userId).then(result => {
+        if (result.ok) setSettings(result.data)
       }),
-    [statusFilter, typeFilter]
-  )
+      fetchReminderHistory(userId).then(result => {
+        if (result.ok) setHistory(result.data)
+      }),
+      loadReminders(),
+    ]).finally(() => {
+      if (mounted) setIsLoading(false)
+    })
+    return () => {
+      mounted = false
+    }
+  }, [role, userId, loadReminders])
 
-  const history = useMemo(() => getReminderHistory('r1'), [])
+  useEffect(() => {
+    if (role === 'renter' && !isLoading) loadReminders()
+  }, [role, loadReminders])
 
-  const handleSettingsUpdate = (newSettings: ReminderSettings) => {
-    updateReminderSettings('r1', newSettings)
-    setSettings(newSettings)
+  const handleSettingsUpdate = async (newSettings: ReminderSettings) => {
+    const result = await saveReminderSettings(userId, newSettings)
+    if (result.ok) setSettings(result.data)
   }
 
   useEffect(() => {
@@ -69,30 +97,36 @@ export default function RemindersPage() {
     return null
   }
 
+  if (isLoading || !settings || !history) {
+    return (
+      <Layout userRole="renter">
+        <div className="container mx-auto max-w-7xl px-4 py-6">
+          <LoadingState label={tc('loading')} variant="skeleton" />
+        </div>
+      </Layout>
+    )
+  }
+
   return (
     <Layout userRole="renter">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Reminders</h1>
-            <p className="text-muted-foreground">
-              Manage your automatic reminders and notification preferences
-            </p>
+            <h1 className="text-2xl font-bold mb-2">{t('title')}</h1>
+            <p className="text-muted-foreground">{t('description')}</p>
           </div>
           <Button onClick={() => setIsSettingsDialogOpen(true)}>
             <Settings className="h-4 w-4 mr-2" />
-            Settings
+            {tc('settings')}
           </Button>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mb-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
-                Sent
+                {t('stats.sent')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -103,7 +137,7 @@ export default function RemindersPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock className="h-5 w-5 text-yellow-600" />
-                Pending
+                {t('stats.pending')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -114,7 +148,7 @@ export default function RemindersPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <XCircle className="h-5 w-5 text-red-600" />
-                Failed
+                {t('stats.failed')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -123,13 +157,12 @@ export default function RemindersPage() {
           </Card>
         </div>
 
-        {/* Reminders */}
         <Tabs defaultValue="all" className="space-y-6">
           <div className="flex items-center justify-between">
             <TabsList>
-              <TabsTrigger value="all">All Reminders</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="all">{t('tabs.all')}</TabsTrigger>
+              <TabsTrigger value="pending">{t('tabs.pending')}</TabsTrigger>
+              <TabsTrigger value="history">{t('tabs.history')}</TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -137,11 +170,11 @@ export default function RemindersPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="rent_due">Rent Due</SelectItem>
-                  <SelectItem value="bill_due">Bill Due</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                  <SelectItem value="all">{t('types.all')}</SelectItem>
+                  <SelectItem value="rent_due">{t('types.rentDue')}</SelectItem>
+                  <SelectItem value="bill_due">{t('types.billDue')}</SelectItem>
+                  <SelectItem value="maintenance">{t('types.maintenance')}</SelectItem>
+                  <SelectItem value="custom">{t('types.custom')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -155,12 +188,11 @@ export default function RemindersPage() {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground">No reminders found</p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Bell}
+                title={t('emptyTitle')}
+                description={t('noRemindersFound')}
+              />
             )}
           </TabsContent>
 
@@ -174,12 +206,11 @@ export default function RemindersPage() {
                   ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground">No pending reminders</p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Clock}
+                title={t('tabs.pending')}
+                description={t('noPendingReminders')}
+              />
             )}
           </TabsContent>
 
@@ -195,17 +226,15 @@ export default function RemindersPage() {
                   ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <History className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground">No reminder history</p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={History}
+                title={t('tabs.history')}
+                description={t('noReminderHistory')}
+              />
             )}
           </TabsContent>
         </Tabs>
 
-        {/* Settings Dialog */}
         <ReminderSettingsDialog
           settings={settings}
           open={isSettingsDialogOpen}

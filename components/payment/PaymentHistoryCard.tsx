@@ -1,12 +1,13 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PaymentTransaction } from '@/types/payment'
-import { format } from 'date-fns'
 import { CheckCircle2, XCircle, Clock, Receipt } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAppFormat } from '@/hooks/useAppFormat'
 
 interface PaymentHistoryCardProps {
   payment: PaymentTransaction
@@ -14,33 +15,33 @@ interface PaymentHistoryCardProps {
   className?: string
 }
 
-const statusConfig: Record<
+const statusStyles: Record<
   PaymentTransaction['status'],
-  { label: string; className: string; icon: typeof CheckCircle2 }
+  { className: string; icon: typeof CheckCircle2; labelKey: string }
 > = {
   completed: {
-    label: 'Completed',
     className:
       'bg-emerald-100 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200',
     icon: CheckCircle2,
+    labelKey: 'completed',
   },
   failed: {
-    label: 'Failed',
     className:
       'bg-red-100 text-red-900 border-red-200 dark:bg-red-950/40 dark:text-red-200',
     icon: XCircle,
+    labelKey: 'failed',
   },
   processing: {
-    label: 'Processing',
     className:
       'bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200',
     icon: Clock,
+    labelKey: 'processing',
   },
   pending: {
-    label: 'Pending',
     className:
       'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-900/40 dark:text-slate-200',
     icon: Clock,
+    labelKey: 'pending',
   },
 }
 
@@ -49,7 +50,10 @@ export function PaymentHistoryCard({
   onViewReceipt,
   className,
 }: PaymentHistoryCardProps) {
-  const status = statusConfig[payment.status]
+  const t = useTranslations('payments.historyCard')
+  const tc = useTranslations('common.status')
+  const { formatCurrency, formatDateTime } = useAppFormat()
+  const status = statusStyles[payment.status]
   const StatusIcon = status.icon
 
   return (
@@ -61,7 +65,7 @@ export function PaymentHistoryCard({
           </CardTitle>
           <Badge variant="outline" className={cn('shrink-0', status.className)}>
             <StatusIcon className="mr-1 h-3 w-3" />
-            {status.label}
+            {tc(status.labelKey)}
           </Badge>
         </div>
         {payment.propertyName && (
@@ -77,14 +81,16 @@ export function PaymentHistoryCard({
             )}
           </div>
           <p className="text-xl font-bold text-primary">
-            ৳{payment.amount.toLocaleString()}
+            {formatCurrency(payment.amount)}
           </p>
         </div>
 
         <div className="rounded-md bg-muted/50 px-3 py-2 text-xs">
-          <p className="font-medium">Txn: {payment.transactionId}</p>
+          <p className="font-medium">
+            {t('txn', { id: payment.transactionId })}
+          </p>
           <p className="mt-1 text-muted-foreground">
-            {format(new Date(payment.completedAt || payment.createdAt), 'PPp')}
+            {formatDateTime(payment.completedAt || payment.createdAt)}
           </p>
         </div>
 
@@ -100,12 +106,12 @@ export function PaymentHistoryCard({
             onClick={() => onViewReceipt(payment)}
           >
             <Receipt className="mr-2 h-4 w-4" />
-            View receipt
+            {t('viewReceipt')}
           </Button>
         )}
         {payment.status === 'pending' && (
           <p className="text-center text-xs text-muted-foreground">
-            Awaiting owner confirmation (cash)
+            {t('cashPending')}
           </p>
         )}
       </CardContent>

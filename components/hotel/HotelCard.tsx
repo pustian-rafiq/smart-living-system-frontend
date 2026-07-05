@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MapPin, Star, Verified } from 'lucide-react'
+import { FeaturedBadge } from '@/components/monetization/FeaturedBadge'
 import { RatingDisplay } from './RatingDisplay'
 import type { Hotel } from '@/types/hotel'
 import Image from 'next/image'
@@ -49,11 +50,7 @@ export function HotelCard({ hotel, onViewDetails }: HotelCardProps) {
               Verified
             </Badge>
           )}
-          {hotel.featured && (
-            <Badge variant="default" className="bg-yellow-500 text-white">
-              Featured
-            </Badge>
-          )}
+          {hotel.featured && <FeaturedBadge />}
         </div>
         {hotel.starRating && (
           <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-background/90 px-2 py-1 backdrop-blur">

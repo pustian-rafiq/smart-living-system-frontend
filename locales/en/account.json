@@ -1,0 +1,35 @@
+{
+  "changePhone": {
+    "title": "Change phone number",
+    "description": "Update the mobile number used for login and OTP verification.",
+    "phoneLabel": "New phone number",
+    "phonePlaceholder": "01712345678",
+    "submit": "Update phone",
+    "confirmSubmit": "Confirm new number",
+    "success": "Phone number updated successfully.",
+    "successTitle": "Phone number updated",
+    "successDetail": "Your login number has been changed successfully.",
+    "otpHint": "An OTP will be sent to your new number for verification.",
+    "newPhoneTitle": "New phone number",
+    "newPhoneDescription": "We will send an OTP to confirm the new number. Demo OTP: 123456.",
+    "currentPhone": "Current phone",
+    "currentNumber": "Current number",
+    "invalidPhone": "Enter a valid Bangladesh mobile number.",
+    "backToProfile": "Back to profile"
+  },
+  "recover": {
+    "title": "Recover your account",
+    "description": "Verify your registered phone number to regain access. Demo uses OTP 123456.",
+    "phoneLabel": "Registered phone number",
+    "phonePlaceholder": "01712345678",
+    "submit": "Recover account",
+    "success": "Account recovered. Redirecting to dashboard…",
+    "otpHint": "Enter the OTP sent to your registered number.",
+    "cardTitle": "Phone verification",
+    "cardDescription": "Enter the mobile number linked to your Smart Living account.",
+    "noAccount": "Don't have access to this number?",
+    "lostAccess": "Lost access to your number?",
+    "contactSupport": "Contact support",
+    "backToLogin": "Back to login"
+  }
+}

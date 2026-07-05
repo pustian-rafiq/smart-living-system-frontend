@@ -35,6 +35,16 @@ export const mockAdminUsers: AdminUser[] = [
     lastLogin: '2024-03-20T09:30:00',
     isActive: true,
   },
+  {
+    id: 'admin3',
+    name: 'Support Agent',
+    email: 'support@smartliving.com',
+    phone: '+8801733333333',
+    role: 'support',
+    createdAt: '2024-02-01',
+    lastLogin: '2024-03-20T08:00:00',
+    isActive: true,
+  },
 ]
 
 export const mockVerificationRequests: VerificationRequest[] = [
@@ -374,4 +384,8 @@ export function getPropertiesByStatus(status: PropertyModeration['status']) {
 
 export function getUsersByStatus(status: UserManagement['status']) {
   return mockUsers.filter(u => u.status === status)
+}
+
+export function getFraudReportsByStatus(status: FraudReport['status']) {
+  return mockFraudReports.filter(r => r.status === status)
 }

@@ -1,15 +1,20 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
+import { LoadingState } from '@/components/page'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { SearchHistoryItem } from '@/components/search/SearchHistoryItem'
 import {
-  getSearchHistoryByUserId,
-  clearSearchHistory,
-} from '@/data/mockSearchHistory'
+  fetchSearchHistory,
+  clearUserSearchHistory,
+  deleteSearchHistoryEntry,
+} from '@/lib/api/search'
+import { getDemoChatUserId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { SearchHistory } from '@/types/favorites'
 import { Search, Clock, Trash2 } from 'lucide-react'
 import {
@@ -25,17 +30,17 @@ import {
 
 export default function SearchHistoryPage() {
   const router = useRouter()
+  const t = useTranslations('search.history')
+  const tc = useTranslations('common')
   const [showClearDialog, setShowClearDialog] = useState(false)
 
-  // Get current user ID (in real app, this would come from auth)
-  const currentUserId = 'user1' // Mock user ID
+  const userId = getDemoChatUserId()
+  const load = useCallback(() => fetchSearchHistory(userId), [userId])
+  const { data: history, loading, refetch } = useMockQuery(load)
 
-  const history = useMemo(() => {
-    return getSearchHistoryByUserId(currentUserId)
-  }, [currentUserId])
+  const historyList = history ?? []
 
   const handleSearch = (historyItem: SearchHistory) => {
-    // Navigate to search page with filters
     const params = new URLSearchParams()
     if (
       historyItem.filters.propertyType &&
@@ -59,74 +64,73 @@ export default function SearchHistoryPage() {
     router.push(`/search?${params.toString()}`)
   }
 
-  const handleRemove = (id: string) => {
-    // In real app, this would call an API
-    const index = getSearchHistoryByUserId(currentUserId).findIndex(
-      h => h.id === id
-    )
-    if (index > -1) {
-      // Remove from mock data
-      const allHistory = getSearchHistoryByUserId(currentUserId)
-      allHistory.splice(index, 1)
-    }
+  const handleRemove = async (id: string) => {
+    await deleteSearchHistoryEntry(id)
+    refetch()
   }
 
-  const handleClearAll = () => {
-    clearSearchHistory(currentUserId)
+  const handleClearAll = async () => {
+    await clearUserSearchHistory(userId)
     setShowClearDialog(false)
+    refetch()
+  }
+
+  if (loading) {
+    return (
+      <Layout>
+        <LoadingState label={t('title')} />
+      </Layout>
+    )
   }
 
   return (
     <Layout>
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold sm:text-3xl">Search History</h1>
+              <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {history.length} {history.length === 1 ? 'search' : 'searches'}{' '}
-                in history
+                {t('countInHistory', { count: historyList.length })}
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {history.length > 0 && (
+              {historyList.length > 0 && (
                 <Button
                   variant="outline"
                   onClick={() => setShowClearDialog(true)}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Clear All
+                  {tc('clearAll')}
                 </Button>
               )}
               <Button onClick={() => router.push('/search')}>
                 <Search className="mr-2 h-4 w-4" />
-                New Search
+                {tc('newSearch')}
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Search History List */}
-        {history.length === 0 ? (
+        {historyList.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Clock className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-lg font-semibold text-muted-foreground">
-                No search history
+                {t('emptyTitle')}
               </p>
               <p className="mt-2 text-sm text-muted-foreground text-center">
-                Your recent searches will appear here
+                {t('emptyDesc')}
               </p>
               <Button className="mt-4" onClick={() => router.push('/search')}>
                 <Search className="mr-2 h-4 w-4" />
-                Start Searching
+                {t('startSearching')}
               </Button>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
-            {history.map(historyItem => (
+            {historyList.map(historyItem => (
               <SearchHistoryItem
                 key={historyItem.id}
                 history={historyItem}
@@ -137,23 +141,21 @@ export default function SearchHistoryPage() {
           </div>
         )}
 
-        {/* Clear All Dialog */}
         <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Clear Search History?</AlertDialogTitle>
+              <AlertDialogTitle>{t('clearConfirmTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete all your search history. This
-                action cannot be undone.
+                {t('clearConfirmDesc')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleClearAll}
                 className="bg-destructive text-destructive-foreground"
               >
-                Clear All
+                {tc('clearAll')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

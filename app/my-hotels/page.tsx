@@ -1,21 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus, MapPin, Star, TrendingUp, Users, Calendar } from 'lucide-react'
 import { RatingDisplay } from '@/components/hotel/RatingDisplay'
-import { mockHotels, getBookingsByHotelId } from '@/data/mockHotels'
+import { fetchOwnerHotels, getBookingsByHotelId } from '@/lib/api/hotels'
+import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { format } from 'date-fns'
 import Link from 'next/link'
 import Image from 'next/image'
+import { EmptyState, PageContainer, PageHeader, LoadingState } from '@/components/page'
+import { HotelOnboardingDialog } from '@/components/onboarding'
+import { useAppFormat } from '@/hooks/useAppFormat'
+import { Hotel as HotelIcon } from 'lucide-react'
 
 export default function MyHotelsPage() {
-  // In real app, get from auth context
-  const ownerId = 'owner1'
-  const myHotels = mockHotels.filter(h => h.ownerId === ownerId)
+  const t = useTranslations('hotels')
+  const { formatCurrency } = useAppFormat()
+  const ownerId = getDemoOwnerId()
+
+  const loadHotels = useCallback(() => fetchOwnerHotels(ownerId), [ownerId])
+  const { data: myHotels, loading } = useMockQuery(loadHotels)
 
   const getHotelStats = (hotelId: string) => {
     const bookings = getBookingsByHotelId(hotelId)
@@ -37,24 +47,34 @@ export default function MyHotelsPage() {
     }
   }
 
+  if (loading) {
+    return (
+      <Layout>
+        <PageContainer>
+          <LoadingState label={t('myHotels.title')} />
+        </PageContainer>
+      </Layout>
+    )
+  }
+
+  const hotels = myHotels ?? []
+
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">My Hotels</h1>
-            <p className="text-muted-foreground">
-              Manage your hotels and bookings
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/my-hotels/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Hotel
-            </Link>
-          </Button>
-        </div>
+      <HotelOnboardingDialog />
+      <PageContainer>
+        <PageHeader
+          title={t('myHotels.title')}
+          description={t('myHotels.description')}
+          actions={
+            <Button asChild>
+              <Link href="/my-hotels/new">
+                <Plus className="mr-2 h-4 w-4" />
+                {t('myHotels.addHotelShort')}
+              </Link>
+            </Button>
+          }
+        />
 
         {/* Stats Overview */}
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -62,8 +82,10 @@ export default function MyHotelsPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Hotels</p>
-                  <p className="text-2xl font-bold">{myHotels.length}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('myHotels.totalHotels')}
+                  </p>
+                  <p className="text-2xl font-bold">{hotels.length}</p>
                 </div>
                 <div className="rounded-full bg-primary/10 p-3">
                   <Star className="h-6 w-6 text-primary" />
@@ -76,10 +98,10 @@ export default function MyHotelsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Total Bookings
+                    {t('myHotels.totalBookings')}
                   </p>
                   <p className="text-2xl font-bold">
-                    {myHotels.reduce(
+                    {hotels.reduce(
                       (sum, h) => sum + getHotelStats(h.id).totalBookings,
                       0
                     )}
@@ -95,12 +117,16 @@ export default function MyHotelsPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Revenue</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('myHotels.totalRevenue')}
+                  </p>
                   <p className="text-2xl font-bold">
-                    ৳
-                    {myHotels
-                      .reduce((sum, h) => sum + getHotelStats(h.id).revenue, 0)
-                      .toLocaleString()}
+                    {formatCurrency(
+                      myHotels.reduce(
+                        (sum, h) => sum + getHotelStats(h.id).revenue,
+                        0
+                      )
+                    )}
                   </p>
                 </div>
                 <div className="rounded-full bg-blue-500/10 p-3">
@@ -112,26 +138,22 @@ export default function MyHotelsPage() {
         </div>
 
         {/* Hotels List */}
-        {myHotels.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-lg font-semibold text-muted-foreground">
-                No hotels found
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Add your first hotel to get started
-              </p>
-              <Button asChild className="mt-4">
-                <Link href="/my-hotels/new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Hotel
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+        {hotels.length === 0 ? (
+          <EmptyState
+            icon={HotelIcon}
+            title={t('myHotels.emptyTitle')}
+            description={t('myHotels.emptyDesc')}
+          >
+            <Button asChild>
+              <Link href="/my-hotels/new">
+                <Plus className="mr-2 h-4 w-4" />
+                {t('myHotels.addHotelShort')}
+              </Link>
+            </Button>
+          </EmptyState>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {myHotels.map(hotel => {
+            {hotels.map(hotel => {
               const stats = getHotelStats(hotel.id)
 
               return (
@@ -152,7 +174,9 @@ export default function MyHotelsPage() {
                     )}
                     <div className="absolute right-2 top-2">
                       {hotel.verified && (
-                        <Badge variant="default">Verified</Badge>
+                        <Badge variant="default">
+                          {t('detail.verified')}
+                        </Badge>
                       )}
                     </div>
                   </div>
@@ -167,24 +191,28 @@ export default function MyHotelsPage() {
                     <div className="mb-4 flex items-center gap-2">
                       <RatingDisplay rating={hotel.averageRating} size="sm" />
                       <span className="text-xs text-muted-foreground">
-                        ({hotel.totalReviews} reviews)
+                        {t('myHotels.reviews', { count: hotel.totalReviews })}
                       </span>
                     </div>
 
                     {/* Stats */}
                     <div className="mb-4 grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <p className="text-xs text-muted-foreground">Rooms</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('myHotels.rooms')}
+                        </p>
                         <p className="font-semibold">{hotel.totalRooms}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">
-                          Bookings
+                          {t('myHotels.bookings')}
                         </p>
                         <p className="font-semibold">{stats.totalBookings}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Revenue</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('myHotels.revenue')}
+                        </p>
                         <p className="font-semibold">
                           ৳{(stats.revenue / 1000).toFixed(0)}k
                         </p>
@@ -194,21 +222,23 @@ export default function MyHotelsPage() {
                     {/* Actions */}
                     <div className="grid grid-cols-2 gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/my-hotels/${hotel.id}/rooms`}>Rooms</Link>
+                        <Link href={`/my-hotels/${hotel.id}/rooms`}>
+                          {t('myHotels.viewRooms')}
+                        </Link>
                       </Button>
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/my-hotels/${hotel.id}/bookings`}>
-                          Bookings
+                          {t('myHotels.viewBookings')}
                         </Link>
                       </Button>
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/my-hotels/${hotel.id}/calendar`}>
-                          Calendar
+                          {t('myHotels.viewCalendar')}
                         </Link>
                       </Button>
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/my-hotels/${hotel.id}/pricing`}>
-                          Pricing
+                          {t('myHotels.viewPricing')}
                         </Link>
                       </Button>
                     </div>
@@ -218,7 +248,7 @@ export default function MyHotelsPage() {
             })}
           </div>
         )}
-      </div>
+      </PageContainer>
     </Layout>
   )
 }

@@ -1,0 +1,112 @@
+{
+  "owner": {
+    "title": "বিল ব্যবস্থাপনা",
+    "description": "বিল, টেমপ্লেট, মিটার রিডিং ও স্বয়ংক্রিয় ব্যবস্থাপনা করুন।"
+  },
+  "renter": {
+    "title": "আমার বিল",
+    "description": "আপনার মাসিক বিল দেখুন ও পরিচালনা করুন।"
+  },
+  "loading": "বিল লোড হচ্ছে…",
+  "tabs": {
+    "bills": "বিল",
+    "templates": "টেমপ্লেট",
+    "meterReadings": "মিটার রিডিং",
+    "automation": "স্বয়ংক্রিয়"
+  },
+  "filters": {
+    "status": "অবস্থা অনুযায়ী ফিল্টার:",
+    "all": "সব ({count})",
+    "paid": "পরিশোধিত ({count})",
+    "unpaid": "অপরিশোধিত ({count})",
+    "overdue": "মেয়াদোত্তীর্ণ ({count})"
+  },
+  "actions": {
+    "generateBill": "বিল তৈরি করুন",
+    "bulkGenerate": "একসাথে তৈরি",
+    "createTemplate": "টেমপ্লেট তৈরি",
+    "createRule": "নিয়ম তৈরি",
+    "addReading": "রিডিং যোগ",
+    "recordCash": "নগদ পেমেন্ট রেকর্ড",
+    "schedulePayment": "পেমেন্ট সময়সূচি",
+    "payNow": "এখনই পরিশোধ",
+    "markPaid": "পরিশোধিত চিহ্নিত",
+    "edit": "সম্পাদনা",
+    "delete": "মুছুন",
+    "viewDetails": "বিস্তারিত দেখুন"
+  },
+  "empty": {
+    "billsTitle": "কোনো বিল পাওয়া যায়নি",
+    "billsDescFiltered": "\"{status}\" অবস্থায় কোনো বিল নেই",
+    "billsDescDefault": "শুরু করতে প্রথম বিল তৈরি করুন।",
+    "templatesTitle": "কোনো টেমপ্লেট নেই",
+    "templatesDesc": "স্বয়ংক্রিয় বিল তৈরির জন্য পুনঃব্যবহারযোগ্য টেমপ্লেট তৈরি করুন।",
+    "readingsTitle": "কোনো মিটার রিডিং নেই",
+    "readingsDesc": "ইউটিলিটি চার্জ হিসাবের জন্য মিটার রিডিং যোগ করুন।",
+    "rulesTitle": "কোনো স্বয়ংক্রিয় নিয়ম নেই",
+    "rulesDesc": "প্রতি মাসে স্বয়ংক্রিয়ভাবে বিল তৈরির নিয়ম সেট করুন।",
+    "renterTitle": "এখনো কোনো বিল নেই",
+    "renterDesc": "আপনার মাসিক ভাড়া ও ইউটিলিটি বিল এখানে দেখাবে।"
+  },
+  "templates": {
+    "title": "বিল টেমপ্লেট",
+    "description": "স্বয়ংক্রিয় বিল তৈরির জন্য পুনঃব্যবহারযোগ্য টেমপ্লেট তৈরি করুন।",
+    "active": "সক্রিয়",
+    "inactive": "নিষ্ক্রিয়",
+    "items": "{count, plural, one {#টি আইটেম} other {#টি আইটেম}}",
+    "noDescription": "কোনো বিবরণ নেই",
+    "propertyLabel": "সম্পত্তি:",
+    "typeLabel": "ধরন:",
+    "itemsLabel": "আইটেম:"
+  },
+  "meterReadings": {
+    "title": "মিটার রিডিং",
+    "description": "বিদ্যুৎ, গ্যাস ও পানির মিটার রিডিং ট্র্যাক করুন।",
+    "recordDesc": "ইউটিলিটি বিল হিসাবের জন্য মিটার রিডিং রেকর্ড করুন",
+    "previous": "পূর্ববর্তী",
+    "current": "বর্তমান",
+    "consumption": "ব্যবহার",
+    "electricity": "বিদ্যুৎ:",
+    "gas": "গ্যাস:",
+    "water": "পানি:",
+    "units": "{count} ইউনিট"
+  },
+  "automation": {
+    "title": "বিল স্বয়ংক্রিয়করণ",
+    "rulesTitle": "স্বয়ংক্রিয় নিয়ম",
+    "description": "আপনার সম্পত্তির জন্য স্বয়ংক্রিয় বিল তৈরির সময়সূচি দিন।",
+    "rulesDescription": "স্বয়ংক্রিয় বিল তৈরির সময়সূচি কনফিগার করুন",
+    "nextRun": "পরবর্তী চালান",
+    "lastRun": "শেষ চালান",
+    "schedule": "সময়সূচি",
+    "templateLabel": "টেমপ্লেট:",
+    "scheduleLabel": "সময়সূচি:",
+    "dayOfMonth": "দিন {day}"
+  },
+  "misc": {
+    "unknownProperty": "অজানা সম্পত্তি",
+    "unknownTenant": "অজানা ভাড়াটে",
+    "notAvailable": "প্রযোজ্য নয়",
+    "flatPrefix": "ফ্ল্যাট {number}"
+  },
+  "confirm": {
+    "deleteTemplateTitle": "টেমপ্লেট মুছবেন?",
+    "deleteTemplateDesc": "আপনি কি \"{name}\" টেমপ্লেট মুছতে চান?",
+    "deleteRuleTitle": "নিয়ম মুছবেন?",
+    "deleteRuleDesc": "আপনি কি \"{name}\" নিয়ম মুছতে চান?"
+  },
+  "status": {
+    "paid": "পরিশোধিত",
+    "unpaid": "অপরিশোধিত",
+    "overdue": "মেয়াদোত্তীর্ণ",
+    "partial": "আংশিক পরিশোধ"
+  },
+  "billCard": {
+    "dueDate": "মেয়াদ {date}",
+    "monthYear": "{month} {year}",
+    "tenant": "ভাড়াটে",
+    "property": "সম্পত্তি",
+    "flat": "ফ্ল্যাট {number}",
+    "amount": "পরিমাণ"
+  }
+}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -25,20 +26,30 @@ import {
   markAttendance,
   bulkMarkAttendance,
   generateAttendanceReport,
-} from '@/data/mockAttendance'
-import { mockMess, mockStudents } from '@/data/mockMess'
+} from '@/lib/api/messDomain'
+import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
+import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, Calendar, FileText, Users } from 'lucide-react'
 import type { AttendanceRecord } from '@/types/attendance'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
+import { toast } from '@/lib/feedback/toast'
 
 export default function AttendanceManagementPage() {
+  const t = useTranslations('mess')
+  const tc = useTranslations('common')
   const params = useParams()
   const router = useRouter()
   const role = getStoredRole()
   const messId = params.messId as string
+  const ownerId = getDemoOwnerId()
 
-  const mess = mockMess.find(m => m.id === messId)
+  const loadMess = useCallback(() => fetchMessById(messId), [messId])
+  const { data: mess } = useMockQuery(loadMess)
+
+  const loadStudents = useCallback(() => fetchMessStudents(messId), [messId])
+  const { data: allStudents } = useMockQuery(loadStudents)
   const [selectedDate, setSelectedDate] = useState(
     format(new Date(), 'yyyy-MM-dd')
   )
@@ -66,13 +77,13 @@ export default function AttendanceManagementPage() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p className="text-center">Mess not found</p>
+          <p className="text-center">{t('notFound')}</p>
         </div>
       </Layout>
     )
   }
 
-  const messStudents = mockStudents.filter(s => s.seatNumber)
+  const messStudents = (allStudents ?? []).filter(s => s.seatNumber)
 
   const filteredRecords = useMemo(() => {
     let records = attendanceRecords
@@ -115,7 +126,7 @@ export default function AttendanceManagementPage() {
         : undefined,
       mealCategory: data.mealCategory,
       notes: data.notes,
-      markedBy: 'owner1',
+      markedBy: ownerId,
     }))
 
     bulkMarkAttendance(records)
@@ -128,9 +139,11 @@ export default function AttendanceManagementPage() {
       data.reportType,
       data.startDate,
       data.endDate,
-      'owner1'
+      ownerId
     )
-    alert(`Report generated: ${report.fileName}`)
+    toast.success(
+      t('attendance.reportGenerated', { fileName: report.fileName ?? '' })
+    )
     // In real app, download the report
   }
 
@@ -145,7 +158,9 @@ export default function AttendanceManagementPage() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Attendance Management</h1>
+            <h1 className="text-2xl font-bold mb-2">
+              {t('attendance.managementTitle')}
+            </h1>
             <p className="text-muted-foreground">{mess.name}</p>
           </div>
           <div className="flex gap-2">
@@ -154,11 +169,11 @@ export default function AttendanceManagementPage() {
               onClick={() => setIsReportDialogOpen(true)}
             >
               <FileText className="h-4 w-4 mr-2" />
-              Generate Report
+              {t('attendance.generateReport')}
             </Button>
             <Button onClick={() => setIsMarkDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Mark Attendance
+              {t('attendance.markAttendance')}
             </Button>
           </div>
         </div>
@@ -169,7 +184,7 @@ export default function AttendanceManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-600" />
-                Total Students
+                {t('attendance.totalStudents')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -180,7 +195,7 @@ export default function AttendanceManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-green-600" />
-                Today's Present
+                {t('attendance.todayPresent')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -193,7 +208,7 @@ export default function AttendanceManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Users className="h-5 w-5 text-red-600" />
-                Today's Absent
+                {t('attendance.todayAbsent')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -206,7 +221,7 @@ export default function AttendanceManagementPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <FileText className="h-5 w-5 text-purple-600" />
-                Total Records
+                {t('attendance.totalRecords')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -219,16 +234,24 @@ export default function AttendanceManagementPage() {
         <Tabs defaultValue="calendar" className="space-y-6">
           <div className="flex items-center justify-between">
             <TabsList>
-              <TabsTrigger value="calendar">Calendar</TabsTrigger>
-              <TabsTrigger value="records">Records</TabsTrigger>
-              <TabsTrigger value="summaries">Summaries</TabsTrigger>
+              <TabsTrigger value="calendar">
+                {t('attendance.tabs.calendar')}
+              </TabsTrigger>
+              <TabsTrigger value="records">
+                {t('attendance.tabs.records')}
+              </TabsTrigger>
+              <TabsTrigger value="summaries">
+                {t('attendance.tabs.summaries')}
+              </TabsTrigger>
             </TabsList>
             <Select value={selectedStudent} onValueChange={setSelectedStudent}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Students</SelectItem>
+                <SelectItem value="all">
+                  {t('attendance.allStudents')}
+                </SelectItem>
                 {messStudents.map(student => (
                   <SelectItem key={student.id} value={student.id}>
                     {student.name}
@@ -277,7 +300,7 @@ export default function AttendanceManagementPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <p className="text-muted-foreground">
-                    No attendance summaries available
+                    {t('attendance.emptySummaries')}
                   </p>
                 </CardContent>
               </Card>

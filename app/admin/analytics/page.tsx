@@ -1,144 +1,163 @@
 'use client'
 
+import { useEffect, useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AnalyticsChart } from '@/components/admin/AnalyticsChart'
-import { mockAnalytics } from '@/data/mockAdmin'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { fetchAdminAnalytics } from '@/lib/api/admin'
+import type { AnalyticsData } from '@/types/admin'
+import { TrendingUp } from 'lucide-react'
 
 export default function AdminAnalyticsPage() {
+  const t = useTranslations('admin.analytics')
+  const td = useTranslations('admin.dashboard')
+  const ts = useTranslations('search.page.propertyTypes')
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+
+  const load = useCallback(async () => {
+    const result = await fetchAdminAnalytics()
+    if (result.ok) setAnalytics(result.data)
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  if (!analytics) {
+    return (
+      <AdminLayout>
+        <div className="max-w-7xl p-8 text-muted-foreground">Loading...</div>
+      </AdminLayout>
+    )
+  }
+
   return (
     <AdminLayout>
       <div className="max-w-7xl">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Analytics Dashboard</h2>
-          <p className="text-muted-foreground">
-            Platform statistics and insights
-          </p>
+          <h2 className="text-2xl font-bold mb-2">{t('dashboardTitle')}</h2>
+          <p className="text-muted-foreground">{t('dashboardDesc')}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* User Distribution */}
           <AnalyticsChart
-            title="User Distribution"
+            title={t('userDistribution')}
             data={[
               {
-                label: 'Renters',
-                value: mockAnalytics.usersByRole.renters,
+                label: td('renters'),
+                value: analytics.usersByRole.renters,
                 color: 'blue',
               },
               {
-                label: 'Owners',
-                value: mockAnalytics.usersByRole.owners,
+                label: td('owners'),
+                value: analytics.usersByRole.owners,
                 color: 'green',
               },
               {
-                label: 'Admins',
-                value: mockAnalytics.usersByRole.admins,
+                label: td('admins'),
+                value: analytics.usersByRole.admins,
                 color: 'purple',
               },
             ]}
-            total={mockAnalytics.totalUsers}
+            total={analytics.totalUsers}
           />
 
-          {/* Property Distribution */}
           <AnalyticsChart
-            title="Property Distribution"
+            title={t('propertyDistribution')}
             data={[
               {
-                label: 'Mess',
-                value: mockAnalytics.propertiesByType.mess,
+                label: ts('mess'),
+                value: analytics.propertiesByType.mess,
                 color: 'blue',
               },
               {
-                label: 'Apartment',
-                value: mockAnalytics.propertiesByType.apartment,
+                label: ts('apartment'),
+                value: analytics.propertiesByType.apartment,
                 color: 'green',
               },
               {
-                label: 'Hotel',
-                value: mockAnalytics.propertiesByType.hotel,
+                label: ts('hotel'),
+                value: analytics.propertiesByType.hotel,
                 color: 'purple',
               },
             ]}
-            total={mockAnalytics.totalProperties}
+            total={analytics.totalProperties}
           />
         </div>
 
-        {/* Growth Metrics */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Users Growth</CardTitle>
+              <CardTitle className="text-base">{t('usersGrowth')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-500" />
                 <span className="text-2xl font-bold">
-                  +{mockAnalytics.growthMetrics.usersGrowth}%
+                  +{analytics.growthMetrics.usersGrowth}%
                 </span>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Properties Growth</CardTitle>
+              <CardTitle className="text-base">{t('propertiesGrowth')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-500" />
                 <span className="text-2xl font-bold">
-                  +{mockAnalytics.growthMetrics.propertiesGrowth}%
+                  +{analytics.growthMetrics.propertiesGrowth}%
                 </span>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Bookings Growth</CardTitle>
+              <CardTitle className="text-base">{t('bookingsGrowth')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-500" />
                 <span className="text-2xl font-bold">
-                  +{mockAnalytics.growthMetrics.bookingsGrowth}%
+                  +{analytics.growthMetrics.bookingsGrowth}%
                 </span>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Revenue Growth</CardTitle>
+              <CardTitle className="text-base">{t('revenueGrowth')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-500" />
                 <span className="text-2xl font-bold">
-                  +{mockAnalytics.growthMetrics.revenueGrowth}%
+                  +{analytics.growthMetrics.revenueGrowth}%
                 </span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* City-wise Statistics */}
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>City-wise Statistics</CardTitle>
+            <CardTitle>{t('cityWiseStats')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-2">City</th>
-                    <th className="text-right p-2">Properties</th>
-                    <th className="text-right p-2">Bookings</th>
-                    <th className="text-right p-2">Revenue</th>
+                    <th className="text-left p-2">{t('city')}</th>
+                    <th className="text-right p-2">{t('properties')}</th>
+                    <th className="text-right p-2">{t('bookings')}</th>
+                    <th className="text-right p-2">{t('revenue')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {mockAnalytics.cityWiseStats.map((city, index) => (
+                  {analytics.cityWiseStats.map((city, index) => (
                     <tr key={index} className="border-b">
                       <td className="p-2 font-medium">{city.city}</td>
                       <td className="p-2 text-right">{city.properties}</td>

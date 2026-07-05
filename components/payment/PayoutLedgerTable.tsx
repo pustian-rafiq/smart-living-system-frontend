@@ -1,36 +1,37 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { OwnerPayout } from '@/types/payment'
-import { format } from 'date-fns'
-import { markPayoutSettled } from '@/data/mockPayouts'
+import { settlePayout } from '@/lib/api/payments'
 import { cn } from '@/lib/utils'
+import { useAppFormat } from '@/hooks/useAppFormat'
 
 interface PayoutLedgerTableProps {
   payouts: OwnerPayout[]
   onUpdated?: () => void
 }
 
-const statusStyle: Record<
+const statusLabelKeys: Record<
   OwnerPayout['status'],
-  { label: string; className: string }
+  { labelKey: string; className: string }
 > = {
   pending: {
-    label: 'Pending',
+    labelKey: 'pending',
     className: 'bg-amber-100 text-amber-900 border-amber-200',
   },
   processing: {
-    label: 'Processing',
+    labelKey: 'processing',
     className: 'bg-blue-100 text-blue-900 border-blue-200',
   },
   paid: {
-    label: 'Settled',
+    labelKey: 'settled',
     className: 'bg-emerald-100 text-emerald-900 border-emerald-200',
   },
   held: {
-    label: 'On hold',
+    labelKey: 'onHold',
     className: 'bg-red-100 text-red-900 border-red-200',
   },
 }
@@ -39,11 +40,15 @@ export function PayoutLedgerTable({
   payouts,
   onUpdated,
 }: PayoutLedgerTableProps) {
+  const t = useTranslations('payments.payoutLedger')
+  const tc = useTranslations('common.status')
+  const { formatCurrency, formatDate } = useAppFormat()
+
   if (payouts.length === 0) {
     return (
       <Card>
         <CardContent className="py-10 text-center text-muted-foreground">
-          No payout records yet. They appear when tenants pay bills.
+          {t('empty')}
         </CardContent>
       </Card>
     )
@@ -52,7 +57,7 @@ export function PayoutLedgerTable({
   return (
     <div className="space-y-3">
       {payouts.map(payout => {
-        const st = statusStyle[payout.status]
+        const st = statusLabelKeys[payout.status]
         return (
           <Card key={payout.id}>
             <CardHeader className="pb-2">
@@ -64,30 +69,33 @@ export function PayoutLedgerTable({
                   </p>
                 </div>
                 <Badge variant="outline" className={cn(st.className)}>
-                  {st.label}
+                  {tc(st.labelKey)}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-                <Cell label="Gross" value={`৳${payout.grossAmount.toLocaleString()}`} />
                 <Cell
-                  label={`Fee (${payout.commissionRate}%)`}
-                  value={`−৳${payout.commissionAmount.toLocaleString()}`}
+                  label={t('gross')}
+                  value={formatCurrency(payout.grossAmount)}
                 />
                 <Cell
-                  label="Net"
-                  value={`৳${payout.netAmount.toLocaleString()}`}
+                  label={t('fee', { rate: payout.commissionRate })}
+                  value={`−${formatCurrency(payout.commissionAmount)}`}
+                />
+                <Cell
+                  label={t('net')}
+                  value={formatCurrency(payout.netAmount)}
                   highlight
                 />
-                <Cell label="Method" value={payout.paymentMethod} />
+                <Cell label={t('method')} value={payout.paymentMethod} />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span className="font-mono">{payout.transactionId}</span>
                 <span>
-                  {format(new Date(payout.paidAt), 'PP')}
+                  {formatDate(payout.paidAt)}
                   {payout.payoutDate &&
-                    ` · Settled ${format(new Date(payout.payoutDate), 'PP')}`}
+                    ` · ${t('settled', { date: formatDate(payout.payoutDate) })}`}
                 </span>
               </div>
               {payout.status === 'pending' && (
@@ -95,11 +103,10 @@ export function PayoutLedgerTable({
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    markPayoutSettled(payout.id)
-                    onUpdated?.()
+                    settlePayout(payout.id).then(() => onUpdated?.())
                   }}
                 >
-                  Mark as settled (demo)
+                  {t('markSettled')}
                 </Button>
               )}
             </CardContent>

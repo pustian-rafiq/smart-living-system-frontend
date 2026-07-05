@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -41,6 +42,8 @@ import type { Booking, BookingStatus } from '@/types/booking'
 import { Calendar, CheckCircle2, Clock, Plus } from 'lucide-react'
 
 export default function OwnerBookingsPage() {
+  const t = useTranslations('portfolio.bookingRequests')
+  const tc = useTranslations('common')
   const [selectedStatus, setSelectedStatus] = useState<BookingStatus | 'all'>(
     'all'
   )
@@ -115,13 +118,13 @@ export default function OwnerBookingsPage() {
     <Layout>
       <PageContainer>
         <PageHeader
-          title="Booking requests"
-          description="Approve, reject, and track bookings for your listings."
+          title={t('title')}
+          description={t('manageDesc')}
           actions={
             <Button asChild variant="outline">
               <Link href="/my-listings">
                 <Plus className="mr-2 h-4 w-4" />
-                Manage listings
+                {t('manageListings')}
               </Link>
             </Button>
           }
@@ -136,7 +139,7 @@ export default function OwnerBookingsPage() {
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('pending')}</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -145,7 +148,7 @@ export default function OwnerBookingsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('approved')}</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -156,7 +159,7 @@ export default function OwnerBookingsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('total')}</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -173,27 +176,27 @@ export default function OwnerBookingsPage() {
             }
           >
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={tc('filterByStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="all">{tc('allStatus')}</SelectItem>
+              <SelectItem value="pending">{tc('status.pending')}</SelectItem>
+              <SelectItem value="approved">{tc('status.approved')}</SelectItem>
+              <SelectItem value="rejected">{tc('status.rejected')}</SelectItem>
+              <SelectItem value="cancelled">{tc('status.cancelled')}</SelectItem>
+              <SelectItem value="completed">{tc('status.completed')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {loading && <LoadingState label="Loading requests…" />}
+        {loading && <LoadingState label={t('loading')} />}
         {error && (
           <EmptyState
-            title="Could not load bookings"
+            title={t('errorTitle')}
             description={error}
             icon={Calendar}
           >
-            <Button onClick={() => refetch()}>Retry</Button>
+            <Button onClick={() => refetch()}>{tc('retry')}</Button>
           </EmptyState>
         )}
 
@@ -201,20 +204,22 @@ export default function OwnerBookingsPage() {
           <Tabs defaultValue="pending" className="w-full">
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
               <TabsTrigger value="pending">
-                Pending ({pendingBookings.length})
+                {t('pending')} ({pendingBookings.length})
               </TabsTrigger>
               <TabsTrigger value="approved">
-                Approved ({approvedBookings.length})
+                {t('approved')} ({approvedBookings.length})
               </TabsTrigger>
-              <TabsTrigger value="calendar">Calendar</TabsTrigger>
-              <TabsTrigger value="all">All ({ownerBookings.length})</TabsTrigger>
+              <TabsTrigger value="calendar">{t('calendar')}</TabsTrigger>
+              <TabsTrigger value="all">
+                {t('all')} ({ownerBookings.length})
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="pending" className="mt-6 space-y-4">
               {pendingBookings.length === 0 ? (
                 <EmptyState
-                  title="No pending requests"
-                  description="New booking requests for your listings will show here."
+                  title={t('emptyPendingTitle')}
+                  description={t('emptyPendingAltDesc')}
                   icon={Clock}
                 />
               ) : (
@@ -298,17 +303,15 @@ export default function OwnerBookingsPage() {
         <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Reject booking request</DialogTitle>
-              <DialogDescription>
-                Provide a clear reason so the renter understands the decision.
-              </DialogDescription>
+              <DialogTitle>{t('rejectTitle')}</DialogTitle>
+              <DialogDescription>{t('rejectDesc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="reason">Rejection reason</Label>
+                <Label htmlFor="reason">{t('rejectReason')}</Label>
                 <Textarea
                   id="reason"
-                  placeholder="e.g. Seat already filled for this month"
+                  placeholder={t('rejectReasonPlaceholder')}
                   value={rejectionReason}
                   onChange={e => setRejectionReason(e.target.value)}
                   rows={4}
@@ -324,7 +327,7 @@ export default function OwnerBookingsPage() {
                     setRejectionReason('')
                   }}
                 >
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button
                   variant="destructive"
@@ -332,7 +335,7 @@ export default function OwnerBookingsPage() {
                   onClick={handleRejectConfirm}
                   disabled={!rejectionReason.trim()}
                 >
-                  Reject booking
+                  {t('rejectBooking')}
                 </Button>
               </div>
             </div>

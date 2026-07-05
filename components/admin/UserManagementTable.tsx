@@ -34,6 +34,8 @@ interface UserManagementTableProps {
   onStatusChange?: (userId: string, status: UserStatus) => void
   onVerify?: (userId: string) => void
   onViewDetails?: (userId: string) => void
+  canBan?: boolean
+  canManage?: boolean
 }
 
 export function UserManagementTable({
@@ -41,6 +43,8 @@ export function UserManagementTable({
   onStatusChange,
   onVerify,
   onViewDetails,
+  canBan = true,
+  canManage = true,
 }: UserManagementTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
@@ -181,12 +185,12 @@ export function UserManagementTable({
                         >
                           View Details
                         </DropdownMenuItem>
-                        {!user.verified && (
+                        {canManage && !user.verified && (
                           <DropdownMenuItem onClick={() => onVerify?.(user.id)}>
                             Verify User
                           </DropdownMenuItem>
                         )}
-                        {user.status === 'active' && (
+                        {canManage && user.status === 'active' && (
                           <DropdownMenuItem
                             onClick={() =>
                               onStatusChange?.(user.id, 'suspended')
@@ -195,20 +199,22 @@ export function UserManagementTable({
                             Suspend User
                           </DropdownMenuItem>
                         )}
-                        {user.status === 'suspended' && (
+                        {canManage && user.status === 'suspended' && (
                           <DropdownMenuItem
                             onClick={() => onStatusChange?.(user.id, 'active')}
                           >
                             Activate User
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem
-                          onClick={() => onStatusChange?.(user.id, 'banned')}
-                          className="text-red-600"
-                        >
-                          <Ban className="mr-2 h-4 w-4" />
-                          Ban User
-                        </DropdownMenuItem>
+                        {canBan && (
+                          <DropdownMenuItem
+                            onClick={() => onStatusChange?.(user.id, 'banned')}
+                            className="text-red-600"
+                          >
+                            <Ban className="mr-2 h-4 w-4" />
+                            Ban User
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

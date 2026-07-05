@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import type { Bill } from '@/types/bill'
 import type { PaymentTransaction } from '@/types/payment'
 import {
@@ -12,9 +13,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Download, Printer, Receipt } from 'lucide-react'
-import { format } from 'date-fns'
 import { downloadPaymentReceipt } from '@/lib/download/paymentReceipt'
 import { cn } from '@/lib/utils'
+import { useAppFormat } from '@/hooks/useAppFormat'
 
 interface ReceiptViewDialogProps {
   open: boolean
@@ -23,24 +24,24 @@ interface ReceiptViewDialogProps {
   payment: PaymentTransaction | null
 }
 
-const statusStyles: Record<
+const statusLabelKeys: Record<
   PaymentTransaction['status'],
-  { label: string; className: string }
+  { labelKey: string; className: string }
 > = {
   completed: {
-    label: 'Paid',
+    labelKey: 'paid',
     className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
   },
   pending: {
-    label: 'Pending',
+    labelKey: 'pending',
     className: 'bg-amber-100 text-amber-900 border-amber-200',
   },
   processing: {
-    label: 'Processing',
+    labelKey: 'processing',
     className: 'bg-blue-100 text-blue-900 border-blue-200',
   },
   failed: {
-    label: 'Failed',
+    labelKey: 'failed',
     className: 'bg-red-100 text-red-900 border-red-200',
   },
 }
@@ -51,9 +52,13 @@ export function ReceiptViewDialog({
   bill,
   payment,
 }: ReceiptViewDialogProps) {
+  const t = useTranslations('payments.receipt')
+  const tc = useTranslations('common.status')
+  const { formatCurrency, formatDateTime } = useAppFormat()
+
   if (!bill || !payment) return null
 
-  const status = statusStyles[payment.status]
+  const status = statusLabelKeys[payment.status]
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,7 +66,7 @@ export function ReceiptViewDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            Payment receipt
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
             {bill.month} {bill.year} · {bill.propertyName}
@@ -71,28 +76,25 @@ export function ReceiptViewDialog({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Badge variant="outline" className={cn(status.className)}>
-              {status.label}
+              {tc(status.labelKey)}
             </Badge>
             <p className="text-2xl font-bold text-primary">
-              ৳{payment.amount.toLocaleString()}
+              {formatCurrency(payment.amount)}
             </p>
           </div>
 
           <div className="rounded-lg border bg-muted/30 p-4 text-sm space-y-2">
-            <Row label="Transaction ID" value={payment.transactionId} mono />
-            <Row label="Payment method" value={payment.paymentMethod} />
+            <Row label={t('transactionId')} value={payment.transactionId} mono />
+            <Row label={t('paymentMethod')} value={payment.paymentMethod} />
             <Row
-              label="Date"
-              value={format(
-                new Date(payment.completedAt || payment.createdAt),
-                'PPp'
-              )}
+              label={t('date')}
+              value={formatDateTime(payment.completedAt || payment.createdAt)}
             />
-            <Row label="Tenant" value={bill.tenantName} />
-            <Row label="Property" value={bill.propertyName} />
+            <Row label={t('tenant')} value={bill.tenantName} />
+            <Row label={t('property')} value={bill.propertyName} />
             {payment.accountNumber && (
               <Row
-                label="Account"
+                label={t('account')}
                 value={`•••• ${payment.accountNumber.slice(-4)}`}
               />
             )}
@@ -100,22 +102,19 @@ export function ReceiptViewDialog({
 
           <div className="border-t pt-4 space-y-2">
             <p className="text-xs font-semibold uppercase text-muted-foreground">
-              Bill items
+              {t('billItems')}
             </p>
             {bill.items.map(item => (
-              <div
-                key={item.id}
-                className="flex justify-between text-sm"
-              >
+              <div key={item.id} className="flex justify-between text-sm">
                 <span>{item.description}</span>
                 <span className="font-medium">
-                  ৳{item.amount.toLocaleString()}
+                  {formatCurrency(item.amount)}
                 </span>
               </div>
             ))}
             <div className="flex justify-between border-t pt-2 font-semibold">
-              <span>Total</span>
-              <span>৳{bill.amount.toLocaleString()}</span>
+              <span>{t('total')}</span>
+              <span>{formatCurrency(bill.amount)}</span>
             </div>
           </div>
 
@@ -125,14 +124,14 @@ export function ReceiptViewDialog({
               onClick={() => downloadPaymentReceipt(bill, payment, 'html')}
             >
               <Download className="mr-2 h-4 w-4" />
-              Download
+              {t('download')}
             </Button>
             <Button
               variant="outline"
               onClick={() => downloadPaymentReceipt(bill, payment, 'print')}
             >
               <Printer className="mr-2 h-4 w-4" />
-              Print
+              {t('print')}
             </Button>
           </div>
         </div>

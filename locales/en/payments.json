@@ -1,0 +1,233 @@
+{
+  "loading": "Loading payments…",
+  "unavailable": "Payments are available for renters and owners.",
+  "renter": {
+    "title": "Payments",
+    "description": "Pay bills now, review history, and manage scheduled payments.",
+    "myBills": "My bills",
+    "schedule": "Schedule",
+    "outstandingTitle": "Pay outstanding bills",
+    "due": "Due {date}",
+    "goToBills": "Go to bills",
+    "recurringSchedules": "Recurring schedules",
+    "tabs": {
+      "scheduled": "Scheduled",
+      "history": "History",
+      "methods": "Methods"
+    },
+    "empty": {
+      "scheduledTitle": "No scheduled payments",
+      "scheduledDesc": "Schedule a payment to pay bills automatically on a set date.",
+      "historyTitle": "No payment history",
+      "historyDesc": "Completed payments will appear here.",
+      "historyEmptyTitle": "No payments yet",
+      "historyEmptyDesc": "Pay a bill from My Bills — completed payments appear here.",
+      "unpaidTitle": "All caught up",
+      "unpaidDesc": "You have no outstanding bills right now."
+    },
+    "actions": {
+      "payNow": "Pay now",
+      "schedule": "Schedule payment",
+      "viewReceipt": "View receipt",
+      "cancel": "Cancel scheduled",
+      "edit": "Edit schedule"
+    },
+    "confirmCancelTitle": "Cancel scheduled payment?",
+    "confirmCancelDesc": "Cancel this scheduled payment?",
+    "statusScheduled": "Scheduled",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed"
+  },
+  "owner": {
+    "title": "Payment collection",
+    "description": "Track incoming payments, cash records, and collection status.",
+    "panelTitle": "Payments & payouts",
+    "panelDescription": "Track collections, platform commission, and settlement status.",
+    "manageBills": "Manage bills",
+    "payoutLedger": "Payout ledger",
+    "analytics": "Analytics",
+    "tabs": {
+      "incoming": "Incoming",
+      "cash": "Cash records",
+      "summary": "Summary"
+    },
+    "empty": {
+      "incomingTitle": "No incoming payments",
+      "incomingDesc": "Payments from tenants will appear here.",
+      "cashTitle": "No cash records",
+      "cashDesc": "Record cash payments received from tenants."
+    },
+    "actions": {
+      "recordCash": "Record cash payment",
+      "sendReminder": "Send reminder",
+      "export": "Export report"
+    },
+    "stats": {
+      "collected": "Collected this month",
+      "pending": "Pending collection",
+      "overdue": "Overdue amount"
+    }
+  },
+  "result": {
+    "title": "Payment result",
+    "loading": "Loading payment…",
+    "statusTitle": "Payment status",
+    "statusDesc": "Track your payment confirmation and receipt.",
+    "notFound": "Payment not found. It may still be processing.",
+    "success": "Payment successful",
+    "successDesc": "Your payment was processed successfully.",
+    "failed": "Payment failed",
+    "failedDesc": "We could not complete your payment.",
+    "pending": "Payment pending",
+    "pendingDesc": "Your cash payment is recorded. The owner will confirm receipt shortly.",
+    "processingTitle": "Processing",
+    "processingDesc": "Payment is being processed.",
+    "backToPayments": "Back to payments",
+    "viewReceipt": "View receipt",
+    "viewReceiptDownload": "View & download receipt"
+  },
+  "payBill": {
+    "title": "Pay bill",
+    "amountDue": "Amount due",
+    "payingWith": "Paying with",
+    "walletLabel": "Wallet / account number",
+    "walletHint": "Demo mode — no real money is charged until gateway is connected.",
+    "cashPending": "Cash is recorded as pending until your property owner confirms receipt.",
+    "invalidWallet": "Enter a valid 11-digit wallet / account number",
+    "payAmount": "Pay {amount}",
+    "openStatusPage": "Open payment status page",
+    "viewReceipt": "View receipt"
+  },
+  "processing": {
+    "title": "Processing payment…",
+    "message": "Please wait while we connect to the payment gateway.",
+    "connecting": "Connecting to {method}"
+  },
+  "resultView": {
+    "transactionId": "Transaction ID",
+    "method": "Method",
+    "changeMethod": "Change method",
+    "viewHistory": "View payment history",
+    "done": "Done"
+  },
+  "scheduleDialog": {
+    "editTitle": "Edit Scheduled Payment",
+    "createTitle": "Schedule Payment",
+    "description": "Schedule a payment for a future date with automatic reminders",
+    "selectBill": "Select Bill",
+    "selectBillPlaceholder": "Select a bill",
+    "scheduledDate": "Scheduled Date",
+    "scheduledTime": "Time (Optional)",
+    "paymentMethod": "Payment Method",
+    "accountNumber": "Account Number (Optional)",
+    "accountHint": "Your payment account number for this method",
+    "accountPlaceholder": "e.g., 01712345678",
+    "remindersTitle": "Payment Reminders",
+    "remindersDesc": "Get notified before the scheduled payment",
+    "remindDaysBefore": "Remind Me (Days Before)",
+    "onDay": "On day",
+    "daysBefore": "{count, plural, one {# day} other {# days}}",
+    "autoRetryTitle": "Auto-retry on Failure",
+    "autoRetryDesc": "Automatically retry payment if it fails",
+    "maxRetries": "Maximum Retries",
+    "maxRetriesHint": "Number of times to retry if payment fails (1-5)",
+    "updatePayment": "Update Payment",
+    "schedulePayment": "Schedule Payment",
+    "billRequired": "Bill is required",
+    "dateRequired": "Scheduled date is required",
+    "defaultBillName": "Payment"
+  },
+  "recordCash": {
+    "title": "Record cash payment",
+    "billAmount": "Bill amount",
+    "amountReceived": "Amount received (৳)",
+    "receivedDate": "Received date",
+    "receivedBy": "Received by (optional)",
+    "receivedByPlaceholder": "Staff name",
+    "notes": "Notes (optional)",
+    "notesPlaceholder": "Reference or remarks",
+    "receiptPhoto": "Receipt photo (optional)",
+    "uploadPlaceholder": "Upload scan or photo",
+    "uploadHint": "Demo: filename only — real upload with backend later.",
+    "recording": "Recording…",
+    "confirm": "Confirm cash received",
+    "successTitle": "Cash payment recorded",
+    "successDesc": "Bill marked as paid. Payout ledger updated.",
+    "amountRequired": "Amount is required",
+    "dateRequired": "Date is required"
+  },
+  "methods": {
+    "bkash": "bKash",
+    "nagad": "Nagad",
+    "rocket": "Rocket",
+    "cash": "Cash",
+    "bank": "Bank transfer",
+    "card": "Card"
+  },
+  "historyCard": {
+    "viewReceipt": "View receipt",
+    "txn": "Txn: {id}",
+    "cashPending": "Awaiting owner confirmation (cash)"
+  },
+  "methodSelector": {
+    "label": "Payment method"
+  },
+  "scheduledCard": {
+    "autoRetry": "Auto-retry",
+    "scheduledDate": "Scheduled Date",
+    "time": "Time",
+    "paymentMethod": "Payment Method",
+    "account": "Account",
+    "dueToday": "Due today",
+    "dueTomorrow": "Due tomorrow",
+    "dueInDays": "Due in {count} days",
+    "overdueBy": "Overdue by {count, plural, one {# day} other {# days}}",
+    "failure": "Failure: {reason}",
+    "autoRetryAttempts": "Auto-retry: {current}/{max} attempts",
+    "transaction": "Transaction: {id}"
+  },
+  "receipt": {
+    "title": "Payment receipt",
+    "transactionId": "Transaction ID",
+    "paymentMethod": "Payment method",
+    "date": "Date",
+    "tenant": "Tenant",
+    "property": "Property",
+    "account": "Account",
+    "billItems": "Bill items",
+    "total": "Total",
+    "download": "Download",
+    "print": "Print"
+  },
+  "payoutLedger": {
+    "empty": "No payout records yet. They appear when tenants pay bills.",
+    "gross": "Gross",
+    "fee": "Fee ({rate}%)",
+    "net": "Net",
+    "method": "Method",
+    "settled": "Settled {date}",
+    "markSettled": "Mark as settled (demo)"
+  },
+  "commission": {
+    "title": "Commission breakdown",
+    "grossCollected": "Gross collected",
+    "platformFee": "Platform fee ({rate}%)",
+    "yourNet": "Your net",
+    "hint": "Rate set by platform admin. Digital payouts settle in 2–3 business days.",
+    "rateBadge": "{rate}% platform fee"
+  },
+  "analytics": {
+    "title": "Payment analytics",
+    "totalCollected": "Total collected",
+    "netEarnings": "Net earnings",
+    "commissionPaid": "Commission paid",
+    "pendingPayout": "Pending payout",
+    "monthlyChart": "Monthly collection vs net",
+    "chartCaption": "Bar chart comparing gross and net monthly collections.",
+    "month": "Month",
+    "gross": "Gross",
+    "net": "Net",
+    "byMethod": "By payment method",
+    "paymentsCount": "{count, plural, one {# payment} other {# payments}}"
+  }
+}

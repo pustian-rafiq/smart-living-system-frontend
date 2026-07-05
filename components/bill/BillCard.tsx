@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Home, User, Zap, Calculator, Clock, Wallet } from 'lucide-react'
 import type { Bill } from '@/types/bill'
 import { DownloadBillButton } from '@/components/bill/DownloadBillButton'
+import { formatCurrency } from '@/lib/format/locale'
 import { cn } from '@/lib/utils'
 
 interface BillCardProps {
@@ -90,7 +91,7 @@ export function BillCard({
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-muted-foreground">Total Amount</span>
           <span className="text-2xl font-bold text-primary sm:text-3xl">
-            ৳{bill.amount.toLocaleString()}
+            {formatCurrency(bill.amount)}
           </span>
         </div>
 
@@ -118,7 +119,7 @@ export function BillCard({
                       {item.description}
                     </span>
                     <span className="font-medium">
-                      ৳{item.amount.toLocaleString()}
+                      {formatCurrency(item.amount)}
                     </span>
                   </div>
                   {/* Show calculation details for meter-based items */}
@@ -135,7 +136,7 @@ export function BillCard({
                           )}
                         {item.unitRate && (
                           <span className="ml-1">
-                            × ৳{item.unitRate} = ৳{item.amount.toLocaleString()}
+                            × {formatCurrency(item.unitRate)} = {formatCurrency(item.amount)}
                           </span>
                         )}
                       </div>

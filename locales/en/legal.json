@@ -1,0 +1,114 @@
+{
+  "lastUpdated": "Last updated: {date}",
+  "relatedLinks": "Related pages",
+  "onThisPage": "On this page",
+  "callout": {
+    "title": "Still need help?",
+    "description": "Our team responds in Bangla and English. For urgent fraud, contact support and local authorities.",
+    "contactSupport": "Contact support",
+    "reportIssue": "Report issue"
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "description": "Rules for using Smart Living System in Bangladesh — for renters, owners, and guests."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "description": "How Smart Living collects, uses, and protects your personal information."
+  },
+  "safety": {
+    "title": "Safety & anti-scam guide",
+    "description": "Protect yourself when renting mess, flats, or hostels in Bangladesh. Updated for local scams and payment risks.",
+    "reportFraud": "Report fraud",
+    "scamAlert": {
+      "title": "If you already sent money to a scammer",
+      "body": "Contact your mobile wallet provider (bKash/Nagad/Rocket) immediately with the transaction ID. File a report with local police for significant amounts. Then notify us at info@smartliving.bd with screenshots so we can block the account."
+    },
+    "cards": {
+      "verifyFirst": {
+        "title": "Verify first",
+        "text": "Visit in person. Check NID & address."
+      },
+      "neverShareOtp": {
+        "title": "Never share OTP",
+        "text": "Support will never ask for your OTP or PIN."
+      },
+      "usePlatformPay": {
+        "title": "Use platform pay",
+        "text": "Prefer in-app payments with receipts."
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "description": "Quick answers about accounts, bookings, payments, and safety.",
+    "helpCenter": "Help Center",
+    "searchPlaceholder": "Search questions…",
+    "noResults": "No questions found.",
+    "askSupport": "Ask support",
+    "categoryAll": "All"
+  },
+  "help": {
+    "title": "Help Center",
+    "description": "Guides for renters, students, owners, and payments — in plain Bangla-friendly English.",
+    "viewAllFaq": "View all FAQ",
+    "searchPlaceholder": "Search help topics…",
+    "noResults": "No topics match your search. Try",
+    "or": "or",
+    "contactUs": "contact us",
+    "safetyBanner": {
+      "title": "Stay safe from rental scams",
+      "description": "Bangladesh-specific tips before you pay advance rent or mess fees.",
+      "cta": "Read safety guide"
+    }
+  },
+  "about": {
+    "title": "About Smart Living",
+    "description": "We are building a modern living system for Bangladesh — from discovery and booking to rent, bills, and day-to-day communication.",
+    "intro": "Whether you are a student in a mess, a professional in a flat, or a traveller needing a guest house, Smart Living brings listings and management into one consistent experience. This web app is frontend-first: data is mocked like API responses so we can plug in a real backend without rewriting screens.",
+    "pillars": {
+      "allInOne": {
+        "title": "All-in-one",
+        "text": "Mess, hostel, apartment, and short stays in one place — built for how Bangladesh actually rents."
+      },
+      "trustByDesign": {
+        "title": "Trust by design",
+        "text": "Verification, clear billing, and owner–renter tools reduce scams and WhatsApp chaos."
+      },
+      "fairForBoth": {
+        "title": "Fair for both sides",
+        "text": "Renters get transparency; owners get structured rent, notices, and records."
+      }
+    },
+    "tryFlow": {
+      "title": "Try the product flow",
+      "description": "Search listings, save favourites, and explore owner or renter dashboards with demo data.",
+      "cta": "Explore search"
+    }
+  },
+  "contact": {
+    "title": "Contact us",
+    "description": "Questions about listings, partnerships, or the platform — we read every message (demo: no backend mailer yet).",
+    "getInTouch": "Get in touch",
+    "demoNote": "Production mail delivery will connect here later. For now, submitting only confirms the UI flow.",
+    "form": {
+      "title": "Send a message",
+      "description": "Fill the form — we will respond once the API is connected.",
+      "name": "Name",
+      "email": "Email",
+      "message": "Message",
+      "submit": "Send message",
+      "success": "Thanks, {name}! Your message is recorded in the demo.",
+      "successFallbackName": "there"
+    }
+  },
+  "links": {
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "safety": "Safety & anti-scam",
+    "faq": "FAQ",
+    "help": "Help Center",
+    "about": "About us",
+    "contact": "Contact us"
+  }
+}

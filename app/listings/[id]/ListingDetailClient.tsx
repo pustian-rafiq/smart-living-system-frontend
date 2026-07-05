@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -25,6 +26,7 @@ import { RatingDisplay } from '@/components/hotel/RatingDisplay'
 import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
 import { InstantBookBadge } from '@/components/shared/InstantBookBadge'
 import { useMockQuery } from '@/hooks/useMockQuery'
+import { useAppFormat } from '@/hooks/useAppFormat'
 import {
   fetchPropertyById,
   fetchRecommendations,
@@ -37,7 +39,6 @@ import {
 import { createBooking } from '@/lib/api/bookings'
 import { getDemoRenterId } from '@/lib/api/demoUser'
 import type { Booking, BookingFormData } from '@/types/booking'
-import type { Property } from '@/types/property'
 import {
   ArrowLeft,
   Home,
@@ -51,6 +52,8 @@ import {
 } from 'lucide-react'
 
 export function ListingDetailClient({ id }: { id: string }) {
+  const t = useTranslations('property.detail')
+  const { formatCurrency } = useAppFormat()
   const router = useRouter()
   const [showBooking, setShowBooking] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
@@ -99,7 +102,7 @@ export function ListingDetailClient({ id }: { id: string }) {
   }) => {
     const result = await createPropertyReview(id, data)
     if (!result.ok) throw new Error(result.error)
-    setReviewTick(t => t + 1)
+    setReviewTick(tick => tick + 1)
     refetch()
   }
 
@@ -107,7 +110,7 @@ export function ListingDetailClient({ id }: { id: string }) {
     return (
       <Layout>
         <PageContainer>
-          <LoadingState label="Loading listing…" />
+          <LoadingState label={t('loading')} />
         </PageContainer>
       </Layout>
     )
@@ -118,12 +121,12 @@ export function ListingDetailClient({ id }: { id: string }) {
       <Layout>
         <PageContainer>
           <EmptyState
-            title="Listing not found"
-            description={error || 'This property may have been removed.'}
+            title={t('notFoundTitle')}
+            description={error || t('notFoundAltDesc')}
             icon={Home}
           >
             <Button asChild>
-              <Link href="/search">Back to search</Link>
+              <Link href="/search">{t('backToSearch')}</Link>
             </Button>
           </EmptyState>
         </PageContainer>
@@ -132,10 +135,14 @@ export function ListingDetailClient({ id }: { id: string }) {
   }
 
   const bookLabel = property.instantBook
-    ? 'Instant book now'
+    ? t('instantBookNow')
     : property.type === 'mess' || property.type === 'hostel'
-      ? 'Request this seat'
-      : 'Request this flat'
+      ? t('requestSeat')
+      : t('requestFlat')
+
+  const depositAmount =
+    property.rent *
+    (property.depositMonths ?? (property.type === 'apartment' ? 2 : 1))
 
   return (
     <Layout>
@@ -143,7 +150,7 @@ export function ListingDetailClient({ id }: { id: string }) {
         <Button variant="ghost" size="sm" className="mb-4 -ml-2" asChild>
           <Link href="/search">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to search
+            {t('backToSearch')}
           </Link>
         </Button>
 
@@ -164,7 +171,7 @@ export function ListingDetailClient({ id }: { id: string }) {
                 }
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
-                Chat owner
+                {t('chatOwner')}
               </Button>
               <Button
                 onClick={() => setShowBooking(true)}
@@ -180,11 +187,11 @@ export function ListingDetailClient({ id }: { id: string }) {
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <AvailabilityBadge available={property.available} />
           {property.instantBook && (
-            <InstantBookBadge tone="soft" label="Instant book" />
+            <InstantBookBadge tone="soft" label={t('instantBook')} />
           )}
           {property.gender && (
             <Badge variant="outline" className="capitalize">
-              {property.gender} only
+              {t('genderOnly', { gender: property.gender })}
             </Badge>
           )}
           <VerificationBadge
@@ -196,7 +203,7 @@ export function ListingDetailClient({ id }: { id: string }) {
             <span className="inline-flex items-center gap-1 text-sm">
               <RatingDisplay rating={property.rating} size="sm" />
               <span className="text-muted-foreground">
-                ({property.reviewCount} reviews)
+                ({t('reviews', { count: property.reviewCount })})
               </span>
             </span>
           ) : null}
@@ -206,15 +213,15 @@ export function ListingDetailClient({ id }: { id: string }) {
           <div className="space-y-8">
             <Tabs defaultValue="photos">
               <TabsList>
-                <TabsTrigger value="photos">Photos</TabsTrigger>
+                <TabsTrigger value="photos">{t('photos')}</TabsTrigger>
                 {property.videos && property.videos.length > 0 && (
                   <TabsTrigger value="video">
                     <Video className="mr-1 h-4 w-4" />
-                    Video
+                    {t('video')}
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="reviews">
-                  Reviews ({summary?.totalReviews ?? 0})
+                  {t('reviewsTab', { count: summary?.totalReviews ?? 0 })}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="photos" className="mt-4">
@@ -251,14 +258,14 @@ export function ListingDetailClient({ id }: { id: string }) {
             </Tabs>
 
             <section>
-              <h2 className="mb-2 text-lg font-semibold">About this place</h2>
+              <h2 className="mb-2 text-lg font-semibold">{t('aboutPlace')}</h2>
               <p className="leading-relaxed text-muted-foreground">
                 {property.description}
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-semibold">Facilities</h2>
+              <h2 className="mb-3 text-lg font-semibold">{t('facilities')}</h2>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {property.facilities.map(f => (
                   <div
@@ -273,7 +280,7 @@ export function ListingDetailClient({ id }: { id: string }) {
 
             {property.nearbyFacilities && property.nearbyFacilities.length > 0 && (
               <section>
-                <h2 className="mb-3 text-lg font-semibold">Nearby</h2>
+                <h2 className="mb-3 text-lg font-semibold">{t('nearby')}</h2>
                 <div className="flex flex-wrap gap-2">
                   {property.nearbyFacilities.map(f => (
                     <Badge key={f} variant="secondary">
@@ -288,12 +295,9 @@ export function ListingDetailClient({ id }: { id: string }) {
               <div className="flex gap-3">
                 <Shield className="h-5 w-5 shrink-0 text-primary" />
                 <div className="text-sm">
-                  <p className="font-semibold">Stay safe in Bangladesh</p>
+                  <p className="font-semibold">{t('staySafeTitle')}</p>
                   <p className="mt-1 text-muted-foreground">
-                    Prefer verified listings, visit in person before paying large
-                    deposits, and keep all agreements on the platform. Never
-                    transfer money to unknown personal accounts without a
-                    receipt.
+                    {t('staySafeDesc')}
                   </p>
                 </div>
               </div>
@@ -304,26 +308,23 @@ export function ListingDetailClient({ id }: { id: string }) {
             <div className="rounded-xl border p-5 shadow-sm">
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold text-primary">
-                  ৳{property.rent.toLocaleString()}
+                  {formatCurrency(property.rent)}
                 </span>
-                <span className="text-muted-foreground">/month</span>
+                <span className="text-muted-foreground">{t('perMonthLong')}</span>
               </div>
               {property.mealIncluded && (
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <Utensils className="h-3.5 w-3.5" />
-                  Meals included
+                  {t('mealsIncluded')}
                   {property.mealCost
-                    ? ` (+৳${property.mealCost.toLocaleString()})`
+                    ? ` ${t('mealsExtra', {
+                        amount: formatCurrency(property.mealCost),
+                      })}`
                     : ''}
                 </p>
               )}
               <p className="mt-2 text-sm text-muted-foreground">
-                Deposit: ৳
-                {(
-                  property.rent *
-                  (property.depositMonths ??
-                    (property.type === 'apartment' ? 2 : 1))
-                ).toLocaleString()}
+                {t('deposit', { amount: formatCurrency(depositAmount) })}
               </p>
 
               <div className="mt-4 flex items-start gap-2 text-sm">
@@ -354,12 +355,12 @@ export function ListingDetailClient({ id }: { id: string }) {
                 onClick={() => onCall(property.ownerPhone)}
               >
                 <Phone className="mr-2 h-4 w-4" />
-                Call {property.ownerName}
+                {t('callOwner', { name: property.ownerName })}
               </Button>
             </div>
 
             <div className="rounded-xl border p-4">
-              <p className="text-sm text-muted-foreground">Listed by</p>
+              <p className="text-sm text-muted-foreground">{t('listedBy')}</p>
               <p className="font-semibold">{property.ownerName}</p>
               <p className="text-sm text-muted-foreground">
                 {property.ownerPhone}

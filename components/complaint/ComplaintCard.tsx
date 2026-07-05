@@ -7,6 +7,7 @@ import type { Complaint } from '@/types/complaint'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { useState } from 'react'
+import { SafeText } from '@/components/security/SafeText'
 
 interface ComplaintCardProps {
   complaint: Complaint
@@ -40,7 +41,7 @@ export function ComplaintCard({ complaint }: ComplaintCardProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
             <CardTitle className="text-lg sm:text-xl">
-              {complaint.title}
+              <SafeText as="span">{complaint.title}</SafeText>
             </CardTitle>
             <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
               <User className="h-3.5 w-3.5" />
@@ -55,9 +56,9 @@ export function ComplaintCard({ complaint }: ComplaintCardProps) {
 
       <CardContent className="space-y-4">
         {/* Description */}
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <SafeText as="p" className="text-sm leading-relaxed text-muted-foreground">
           {complaint.description}
-        </p>
+        </SafeText>
 
         {/* Image */}
         {complaint.imageUrl && !imageError && (

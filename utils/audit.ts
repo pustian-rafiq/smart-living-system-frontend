@@ -5,7 +5,7 @@
  * In a real app, these would make API calls to log changes.
  */
 
-import { addAuditLog } from '@/data/mockAuditLogs'
+import { appendAuditLog } from '@/lib/api/audit'
 import type { AuditLog, AuditAction, AuditEntityType } from '@/types/audit'
 
 interface TrackChangeOptions {
@@ -36,7 +36,7 @@ interface TrackChangeOptions {
  * Track a change/action in the audit log
  */
 export function trackAuditLog(options: TrackChangeOptions): AuditLog {
-  return addAuditLog({
+  return appendAuditLog({
     action: options.action,
     entityType: options.entityType,
     entityId: options.entityId,

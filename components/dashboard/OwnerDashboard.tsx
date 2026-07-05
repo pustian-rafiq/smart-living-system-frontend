@@ -1,12 +1,19 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { StatCard } from './StatCard'
 import { ActionCard } from './ActionCard'
-import { mockBuildings, mockFlats } from '@/data/mockBuildings'
-import { mockBills } from '@/data/mockBills'
+import { useTranslations } from 'next-intl'
+import { FreeTierLimitBanner } from '@/components/monetization'
+import { OwnerOnboardingDialog } from '@/components/onboarding'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import { fetchFlatLimitStatus } from '@/lib/api/subscriptions'
+import { fetchBuildings, fetchAllFlats } from '@/lib/api/buildings'
+import { fetchBillsForOwner } from '@/lib/api/bills'
+import { ok } from '@/lib/api/http'
+import { useAppFormat } from '@/hooks/useAppFormat'
 
 interface OwnerDashboardProps {
   ownerId: string
@@ -36,11 +43,33 @@ function Icon({
 }
 
 export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
+  const td = useTranslations('dashboard')
+  const { formatCurrency } = useAppFormat()
+  const loadLimit = useCallback(() => fetchFlatLimitStatus(), [])
+  const { data: limitStatus } = useMockQuery(loadLimit)
+
+  const loadStats = useCallback(async () => {
+    const [buildings, flats, bills] = await Promise.all([
+      fetchBuildings(ownerId),
+      fetchAllFlats(),
+      fetchBillsForOwner(ownerId),
+    ])
+    if (!buildings.ok) return buildings
+    if (!flats.ok) return flats
+    if (!bills.ok) return bills
+    return ok({
+      buildings: buildings.data,
+      flats: flats.data,
+      bills: bills.data,
+    })
+  }, [ownerId])
+  const { data: dashboardData } = useMockQuery(loadStats)
+
   // Calculate owner stats
   const stats = useMemo(() => {
-    const buildings = mockBuildings.length
-    const flats = mockFlats.length
-    const dueBills = mockBills.filter(
+    const buildings = dashboardData?.buildings.length ?? 0
+    const flats = dashboardData?.flats.length ?? 0
+    const dueBills = (dashboardData?.bills ?? []).filter(
       b => b.status === 'unpaid' && new Date(b.dueDate) < new Date()
     )
     const totalDue = dueBills.reduce((sum, b) => sum + b.amount, 0)
@@ -50,7 +79,7 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
       flats,
       totalDue,
     }
-  }, [])
+  }, [dashboardData])
 
   const ownerActions = useMemo(
     () => [
@@ -101,6 +130,36 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
           'bg-gradient-to-r from-teal-200/70 via-cyan-200/60 to-sky-200/70 dark:from-teal-900/30 dark:via-cyan-900/20 dark:to-sky-900/30',
       },
       {
+        title: 'Subscription',
+        subtitle: 'Plan, flat limits & listing boosts',
+        href: '/subscription',
+        icon: (
+          <Icon path="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-amber-200/70 via-yellow-200/60 to-orange-200/70 dark:from-amber-900/30 dark:via-yellow-900/20 dark:to-orange-900/30',
+      },
+      {
+        title: 'Payments & Payouts',
+        subtitle: 'Ledger, analytics, and cash records',
+        href: '/payments',
+        icon: (
+          <Icon path="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-emerald-200/70 via-green-200/60 to-teal-200/70 dark:from-emerald-900/30 dark:via-green-900/20 dark:to-teal-900/30',
+      },
+      {
+        title: 'Manage Bills',
+        subtitle: 'Generate rent and track collections',
+        href: '/bills',
+        icon: (
+          <Icon path="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-orange-200/70 via-amber-200/60 to-yellow-200/70 dark:from-orange-900/30 dark:via-amber-900/20 dark:to-yellow-900/30',
+      },
+      {
         title: 'Generate Rent',
         subtitle: 'Create monthly rent slips',
         href: '/bills?mode=generate',
@@ -126,25 +185,28 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
 
   return (
     <div className="space-y-6 md:space-y-8">
+      <OwnerOnboardingDialog />
+      {limitStatus && <FreeTierLimitBanner status={limitStatus} compact />}
+
       {/* Overview Statistics */}
       <div>
         <h2 className="mb-4 text-lg font-bold md:mb-6 md:text-xl lg:text-2xl">
-          Overview Statistics
+          {td('overviewStats')}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
-            label="Total buildings"
+            label={td('totalBuildings')}
             value={stats.buildings.toString()}
             icon={<Icon path="M4 21V3h16v18M9 21V9h6v12" />}
           />
           <StatCard
-            label="Total flats"
+            label={td('totalFlats')}
             value={stats.flats.toString()}
             icon={<Icon path="M3 3h18v18H3V3zm6 6h6v6H9V9z" />}
           />
           <StatCard
-            label="Due rents"
-            value={`৳ ${stats.totalDue.toLocaleString()}`}
+            label={td('dueRents')}
+            value={formatCurrency(stats.totalDue)}
             icon={
               <Icon path="M12 1v22M17 5H9.5a3.5 3.5 0 000 7H14a3.5 3.5 0 010 7H6" />
             }
@@ -156,10 +218,10 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
       <div>
         <div className="mb-4 flex items-center justify-between md:mb-6">
           <h2 className="text-lg font-bold md:text-xl lg:text-2xl">
-            Quick Actions
+            {td('quickActions')}
           </h2>
           <Button asChild variant="ghost" size="sm" className="md:size-default">
-            <Link href="/my-properties">Manage Properties</Link>
+            <Link href="/my-properties">{td('manageProperties')}</Link>
           </Button>
         </div>
 

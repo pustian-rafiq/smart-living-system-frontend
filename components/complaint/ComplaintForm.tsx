@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
+import { getAcceptAttribute, validateFile } from '@/lib/security/file-upload'
 
 const complaintSchema = z.object({
   title: z
@@ -50,14 +51,21 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      form.setValue('image', file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+
+    const result = validateFile(file, 'image')
+    if (!result.valid) {
+      form.setError('image', { message: 'Invalid image file' })
+      e.target.value = ''
+      return
     }
+
+    form.setValue('image', result.file)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPreview(reader.result as string)
+    }
+    reader.readAsDataURL(result.file)
   }
 
   const removeImage = () => {
@@ -153,7 +161,7 @@ export function ComplaintForm({ onSubmit }: ComplaintFormProps) {
                   </div>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={getAcceptAttribute('image')}
                     className="hidden"
                     onChange={handleImageChange}
                   />

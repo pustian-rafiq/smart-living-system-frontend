@@ -34,7 +34,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Camera, Plus, X } from 'lucide-react'
 import type { Checklist, ChecklistItem } from '@/types/checklist'
-import { checklistCategories } from '@/data/mockChecklists'
+import { checklistCategories } from '@/lib/api/documents'
+import { toast } from '@/lib/feedback/toast'
 
 const checklistSchema = z.object({
   type: z.enum(['move_in', 'move_out']),
@@ -108,7 +109,7 @@ export function ChecklistDialog({
 
   const handleAddItem = () => {
     if (!selectedCategory) {
-      alert('Please select a category first')
+      toast.error('Please select a category first')
       return
     }
 

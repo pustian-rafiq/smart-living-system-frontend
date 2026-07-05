@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Heart } from 'lucide-react'
-import { mockFavorites, isPropertyFavorite } from '@/data/mockFavorites'
+import { checkIsFavorite, toggleFavorite } from '@/lib/api/favorites'
 import type { Property } from '@/types/property'
 
 interface FavoriteButtonProps {
@@ -24,41 +24,23 @@ export function FavoriteButton({
   className,
 }: FavoriteButtonProps) {
   const [isFavorite, setIsFavorite] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    setIsFavorite(isPropertyFavorite(userId, property.id))
+    checkIsFavorite(property.id, userId).then(result => {
+      if (result.ok) setIsFavorite(result.data)
+    })
   }, [userId, property.id])
 
-  const handleToggle = () => {
-    const newIsFavorite = !isFavorite
-
-    if (newIsFavorite) {
-      // Add to favorites
-      const newFavorite = {
-        id: `fav-${Date.now()}`,
-        userId,
-        propertyId: property.id,
-        propertyName: property.name,
-        propertyType: property.type,
-        propertyImage: property.images[0],
-        propertyRent: property.rent,
-        propertyArea: property.area,
-        propertyCity: property.city,
-        addedAt: new Date().toISOString(),
-      }
-      mockFavorites.push(newFavorite)
-    } else {
-      // Remove from favorites
-      const index = mockFavorites.findIndex(
-        fav => fav.userId === userId && fav.propertyId === property.id
-      )
-      if (index > -1) {
-        mockFavorites.splice(index, 1)
-      }
+  const handleToggle = async () => {
+    if (loading) return
+    setLoading(true)
+    const result = await toggleFavorite(property.id, userId, property)
+    setLoading(false)
+    if (result.ok) {
+      setIsFavorite(result.data.added)
+      onToggle?.(result.data.added)
     }
-
-    setIsFavorite(newIsFavorite)
-    onToggle?.(newIsFavorite)
   }
 
   return (
@@ -66,6 +48,7 @@ export function FavoriteButton({
       variant={variant}
       size={size}
       onClick={handleToggle}
+      disabled={loading}
       className={className}
       aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
     >

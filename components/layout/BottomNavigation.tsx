@@ -3,7 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { getBottomNavForRole, isHrefActive } from '@/lib/navigation'
+import {
+  getBottomNavForRole,
+  isHrefActive,
+  useNavLabels,
+} from '@/lib/navigation'
 import { useMobileNav } from '@/components/layout/MobileNavContext'
 import type { UserRole } from '@/types'
 
@@ -21,6 +25,7 @@ const tabClass = (active: boolean) =>
 export function BottomNavigation({ userRole }: BottomNavigationProps) {
   const pathname = usePathname()
   const { isOpen, openMenu } = useMobileNav()
+  const { label } = useNavLabels()
   const items = getBottomNavForRole(userRole)
 
   return (
@@ -45,7 +50,7 @@ export function BottomNavigation({ userRole }: BottomNavigationProps) {
                 >
                   <Icon className="h-5 w-5" />
                   <span className="max-w-full truncate text-center text-[10px] font-medium leading-tight sm:text-xs">
-                    {item.label}
+                    {label(item.labelKey)}
                   </span>
                 </button>
               )
@@ -59,13 +64,14 @@ export function BottomNavigation({ userRole }: BottomNavigationProps) {
 
             return (
               <Link
-                key={`${item.roles.join('-')}-${item.href}-${item.label}`}
+                key={`${item.roles.join('-')}-${item.href}-${item.labelKey}`}
                 href={item.href!}
                 className={tabClass(active)}
+                aria-current={active ? 'page' : undefined}
               >
                 <Icon className="h-5 w-5" />
                 <span className="max-w-full truncate text-center text-[10px] font-medium leading-tight sm:text-xs">
-                  {item.label}
+                  {label(item.labelKey)}
                 </span>
               </Link>
             )

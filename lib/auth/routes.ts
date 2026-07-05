@@ -1,0 +1,56 @@
+/** Routes that never require login */
+const PUBLIC_EXACT = new Set([
+  '/',
+  '/about',
+  '/contact',
+  '/terms',
+  '/privacy',
+  '/help',
+  '/faq',
+  '/safety',
+  '/login',
+  '/otp-verify',
+  '/role-selection',
+  '/search',
+  '/properties',
+  '/compare',
+  '/hotels',
+  '/account/recover',
+  '/admin/login',
+])
+
+/** Prefixes open without login (browse-only) */
+const PUBLIC_PREFIXES = ['/listings/']
+
+/** Auth flow — redirect if already fully logged in */
+export const AUTH_FLOW_PATHS = new Set([
+  '/login',
+  '/otp-verify',
+  '/role-selection',
+])
+
+export function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_EXACT.has(pathname)) return true
+  if (PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) return true
+  // Hotel detail pages (not booking checkout)
+  if (/^\/hotels\/[^/]+$/.test(pathname)) return true
+  return false
+}
+
+export function isAdminPath(pathname: string): boolean {
+  return pathname.startsWith('/admin')
+}
+
+export function isAdminPublicPath(pathname: string): boolean {
+  return pathname === '/admin/login'
+}
+
+export function isProtectedPath(pathname: string): boolean {
+  if (isPublicPath(pathname)) return false
+  if (isAdminPublicPath(pathname)) return false
+  return true
+}
+
+export function isAuthFlowPath(pathname: string): boolean {
+  return AUTH_FLOW_PATHS.has(pathname)
+}

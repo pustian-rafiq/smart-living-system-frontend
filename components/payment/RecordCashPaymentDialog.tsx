@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslations } from 'next-intl'
 import {
   Dialog,
   DialogContent,
@@ -27,15 +28,15 @@ import type { Bill } from '@/types/bill'
 import { Banknote, Upload, CheckCircle2 } from 'lucide-react'
 import { recordCashPaymentApi } from '@/lib/api/payments'
 import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { getAcceptAttribute, validateFile } from '@/lib/security/file-upload'
+import { useAppFormat } from '@/hooks/useAppFormat'
 
-const schema = z.object({
-  amount: z.coerce.number().min(1, 'Amount is required'),
-  receivedDate: z.string().min(1, 'Date is required'),
-  receivedBy: z.string().optional(),
-  receiptNote: z.string().optional(),
-})
-
-type FormValues = z.infer<typeof schema>
+type FormValues = {
+  amount: number
+  receivedDate: string
+  receivedBy?: string
+  receiptNote?: string
+}
 
 interface RecordCashPaymentDialogProps {
   bill: Bill | null
@@ -50,11 +51,25 @@ export function RecordCashPaymentDialog({
   onOpenChange,
   onSuccess,
 }: RecordCashPaymentDialogProps) {
+  const t = useTranslations('payments.recordCash')
+  const tv = useTranslations('payments.resultView')
+  const { formatCurrency } = useAppFormat()
   const [receiptFileName, setReceiptFileName] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [txnId, setTxnId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        amount: z.coerce.number().min(1, t('amountRequired')),
+        receivedDate: z.string().min(1, t('dateRequired')),
+        receivedBy: z.string().optional(),
+        receiptNote: z.string().optional(),
+      }),
+    [t]
+  )
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
@@ -115,7 +130,7 @@ export function RecordCashPaymentDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Banknote className="h-5 w-5" />
-            Record cash payment
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
             {bill.tenantName} · {bill.month} {bill.year}
@@ -128,25 +143,23 @@ export function RecordCashPaymentDialog({
               <CheckCircle2 className="h-8 w-8 text-emerald-600" />
             </div>
             <div>
-              <p className="font-semibold">Cash payment recorded</p>
-              <p className="text-sm text-muted-foreground">
-                Bill marked as paid. Payout ledger updated.
-              </p>
+              <p className="font-semibold">{t('successTitle')}</p>
+              <p className="text-sm text-muted-foreground">{t('successDesc')}</p>
               {txnId && (
                 <p className="mt-2 font-mono text-xs">{txnId}</p>
               )}
             </div>
             <Button className="w-full" onClick={() => onOpenChange(false)}>
-              Done
+              {tv('done')}
             </Button>
           </div>
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="rounded-lg border bg-muted/40 p-3">
-                <p className="text-sm text-muted-foreground">Bill amount</p>
+                <p className="text-sm text-muted-foreground">{t('billAmount')}</p>
                 <p className="text-xl font-bold text-primary">
-                  ৳{bill.amount.toLocaleString()}
+                  {formatCurrency(bill.amount)}
                 </p>
               </div>
 
@@ -155,7 +168,7 @@ export function RecordCashPaymentDialog({
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount received (৳)</FormLabel>
+                    <FormLabel>{t('amountReceived')}</FormLabel>
                     <FormControl>
                       <Input type="number" min={1} {...field} />
                     </FormControl>
@@ -169,7 +182,7 @@ export function RecordCashPaymentDialog({
                 name="receivedDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Received date</FormLabel>
+                    <FormLabel>{t('receivedDate')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -183,9 +196,9 @@ export function RecordCashPaymentDialog({
                 name="receivedBy"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Received by (optional)</FormLabel>
+                    <FormLabel>{t('receivedBy')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Staff name" {...field} />
+                      <Input placeholder={t('receivedByPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -197,11 +210,11 @@ export function RecordCashPaymentDialog({
                 name="receiptNote"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes (optional)</FormLabel>
+                    <FormLabel>{t('notes')}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={2}
-                        placeholder="Reference or remarks"
+                        placeholder={t('notesPlaceholder')}
                         {...field}
                       />
                     </FormControl>
@@ -211,25 +224,35 @@ export function RecordCashPaymentDialog({
               />
 
               <div className="space-y-2">
-                <Label>Receipt photo (optional)</Label>
+                <Label>{t('receiptPhoto')}</Label>
                 <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed p-4 text-center hover:bg-muted/50">
                   <Upload className="mb-2 h-5 w-5 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    {receiptFileName || 'Upload scan or photo'}
+                    {receiptFileName || t('uploadPlaceholder')}
                   </span>
                   <input
                     type="file"
-                    accept="image/*,.pdf"
+                    accept={getAcceptAttribute('receipt')}
                     className="hidden"
                     onChange={e => {
                       const f = e.target.files?.[0]
-                      setReceiptFileName(f?.name ?? null)
+                      if (!f) {
+                        setReceiptFileName(null)
+                        return
+                      }
+                      const result = validateFile(f, 'receipt')
+                      if (!result.valid) {
+                        setReceiptFileName(null)
+                        e.target.value = ''
+                        setError(t('uploadHint'))
+                        return
+                      }
+                      setReceiptFileName(result.file.name)
+                      setError(null)
                     }}
                   />
                 </label>
-                <p className="text-sm text-muted-foreground">
-                  Demo: filename only — real upload with backend later.
-                </p>
+                <p className="text-sm text-muted-foreground">{t('uploadHint')}</p>
               </div>
 
               {error && (
@@ -237,7 +260,7 @@ export function RecordCashPaymentDialog({
               )}
 
               <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? 'Recording…' : 'Confirm cash received'}
+                {submitting ? t('recording') : t('confirm')}
               </Button>
             </form>
           </Form>

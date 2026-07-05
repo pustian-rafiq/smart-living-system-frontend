@@ -1,0 +1,13 @@
+{
+  "accessDenied": {
+    "title": "অ্যাক্সেস প্রত্যাখ্যাত",
+    "description": "এই পৃষ্ঠা দেখার অনুমতি আপনার নেই।",
+    "backToDashboard": "ড্যাশবোর্ডে যান",
+    "backToAdmin": "অ্যাডমিনে যান"
+  },
+  "file": {
+    "fileRequired": "একটি ফাইল নির্বাচন করুন।",
+    "fileTooLarge": "ফাইল খুব বড়। {label}-এর সর্বোচ্চ আকার {max}।",
+    "fileTypeNotAllowed": "ফাইলের ধরন অনুমোদিত নয়। {label}-এর জন্য গ্রহণযোগ্য: {types}।"
+  }
+}

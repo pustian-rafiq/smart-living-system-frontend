@@ -55,6 +55,9 @@ export interface Property {
   rating?: number
   reviewCount?: number
   updatedAt?: string
+  /** Paid featured boost — higher visibility in search */
+  featured?: boolean
+  featuredUntil?: string
 }
 
 export interface PropertyListingInput {

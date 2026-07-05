@@ -6,6 +6,9 @@ import { Footer } from './Footer'
 import { Navbar } from './Navbar'
 import { BottomNavigation } from './BottomNavigation'
 import { MobileNavProvider } from './MobileNavContext'
+import { OfflineBanner } from '@/components/feedback'
+import { SkipToContent } from '@/components/a11y'
+import { InstallPrompt } from '@/components/pwa'
 import { getStoredRole, isLoggedIn } from '@/utils/auth'
 import { UserRole } from '@/types'
 
@@ -31,13 +34,17 @@ export const Layout = ({ children, userRole }: LayoutProps) => {
   return (
     <MobileNavProvider userRole={currentRole}>
       <div className="min-h-screen flex flex-col bg-background transition-colors duration-200">
+        <SkipToContent />
+        <OfflineBanner />
         <AppHeader />
         {isUserLoggedIn && (
           <div className="hidden md:block">
             <Navbar userRole={currentRole} />
           </div>
         )}
-        <main className="flex-grow pb-16 md:pb-0">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-grow pb-16 md:pb-0 outline-none">
+          {children}
+        </main>
         <div className="hidden md:block">
           <Footer />
         </div>
@@ -46,6 +53,7 @@ export const Layout = ({ children, userRole }: LayoutProps) => {
             <BottomNavigation userRole={currentRole} />
           </div>
         )}
+        <InstallPrompt />
       </div>
     </MobileNavProvider>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -34,8 +34,9 @@ import {
   TrendingUp,
   Award,
 } from 'lucide-react'
-import { getRenterHistory } from '@/data/mockRenterHistory'
-import type { RenterHistory } from '@/types/renterHistory'
+import { fetchRenterHistory } from '@/lib/api/profile'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import { LoadingState } from '@/components/page'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 
@@ -137,7 +138,21 @@ export function RenterHistoryDialog({
   open,
   onOpenChange,
 }: RenterHistoryDialogProps) {
-  const history = getRenterHistory(renterId)
+  const loadHistory = useCallback(
+    () => fetchRenterHistory(renterId),
+    [renterId]
+  )
+  const { data: history, loading } = useMockQuery(loadHistory)
+
+  if (loading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <LoadingState label="Loading renter history…" />
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   if (!history) {
     return (

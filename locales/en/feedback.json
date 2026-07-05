@@ -1,0 +1,11 @@
+{
+  "offline": {
+    "title": "You're offline.",
+    "description": "Some actions need an internet connection. Changes will sync when you're back online."
+  },
+  "confirm": {
+    "defaultTitle": "Are you sure?",
+    "defaultConfirm": "Confirm",
+    "defaultCancel": "Cancel"
+  }
+}

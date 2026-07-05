@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import type { ChatMessage } from '@/types/chat'
+import { SafeText } from '@/components/security/SafeText'
+import { sanitizeUrl } from '@/lib/security/sanitize'
 
 interface MessageBubbleProps {
   message: ChatMessage
@@ -110,9 +112,9 @@ export function MessageBubble({
         >
           {/* Text Message */}
           {message.type === 'text' && (
-            <p className="text-sm whitespace-pre-wrap break-words">
+            <SafeText as="p" className="text-sm">
               {message.content}
-            </p>
+            </SafeText>
           )}
 
           {/* Image Message */}
@@ -155,8 +157,8 @@ export function MessageBubble({
                 size="icon"
                 className="h-8 w-8 shrink-0"
                 onClick={() => {
-                  // In real app, this would download the file
-                  window.open(message.content, '_blank')
+                  const safe = sanitizeUrl(message.content)
+                  if (safe) window.open(safe, '_blank', 'noopener,noreferrer')
                 }}
               >
                 <Download className="h-4 w-4" />
@@ -166,7 +168,9 @@ export function MessageBubble({
 
           {/* System Message */}
           {message.type === 'system' && (
-            <p className="text-xs italic opacity-80">{message.content}</p>
+            <SafeText as="p" className="text-xs italic opacity-80">
+              {message.content}
+            </SafeText>
           )}
         </div>
 

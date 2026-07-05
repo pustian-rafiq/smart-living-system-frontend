@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useId } from 'react'
 import {
   GoogleMap,
   Marker,
@@ -13,6 +13,8 @@ import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
 import { MapPin, Navigation, ExternalLink } from 'lucide-react'
 import type { Property } from '@/types/property'
 import Image from 'next/image'
+import { toast } from '@/lib/feedback/toast'
+import { formatCurrency } from '@/lib/format/locale'
 
 interface PropertyMapProps {
   properties: Property[]
@@ -37,6 +39,9 @@ export function PropertyMap({
   zoom = defaultZoom,
   height = '600px',
 }: PropertyMapProps) {
+  const mapLabelId = useId()
+  const listLabelId = useId()
+  const liveRegionId = useId()
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null
   )
@@ -92,11 +97,13 @@ export function PropertyMap({
           setMapZoom(14)
         },
         () => {
-          alert('Unable to get your location. Please enable location services.')
+          toast.error(
+            'Unable to get your location. Please enable location services.'
+          )
         }
       )
     } else {
-      alert('Geolocation is not supported by your browser.')
+      toast.error('Geolocation is not supported by your browser.')
     }
   }, [])
 
@@ -110,22 +117,25 @@ export function PropertyMap({
   // Fallback map view if API key is not configured
   if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || loadError) {
     return (
-      <Card>
+      <Card role="region" aria-labelledby={mapLabelId}>
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <MapPin className="mb-4 h-12 w-12 text-muted-foreground" />
-          <p className="text-lg font-semibold text-muted-foreground">
+          <h2 id={mapLabelId} className="text-lg font-semibold text-muted-foreground">
             Map View Unavailable
-          </p>
+          </h2>
+          <MapPin className="mb-4 mt-2 h-12 w-12 text-muted-foreground" aria-hidden="true" />
           <p className="mt-2 text-sm text-muted-foreground text-center max-w-md">
             {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
               ? 'Google Maps API key is not configured. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env file.'
               : 'Error loading map. Please check your Google Maps API key configuration.'}
           </p>
-          <div className="mt-4 space-y-2 text-left text-xs text-muted-foreground">
-            <p>Properties with locations:</p>
-            <div className="max-h-64 space-y-2 overflow-y-auto">
+          <div className="mt-4 w-full max-w-md space-y-2 text-left text-xs text-muted-foreground">
+            <p id={listLabelId}>Properties with locations (keyboard accessible):</p>
+            <ul
+              className="max-h-64 space-y-2 overflow-y-auto"
+              aria-labelledby={listLabelId}
+            >
               {propertiesWithCoords.map(property => (
-                <div key={property.id} className="rounded border p-2">
+                <li key={property.id} className="rounded border p-2">
                   <p className="font-medium">{property.name}</p>
                   <p className="text-xs">
                     {property.area}, {property.city}
@@ -135,14 +145,14 @@ export function PropertyMap({
                       href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-1 text-xs text-primary hover:underline"
+                      className="mt-1 inline-block text-link text-xs hover:underline"
                     >
                       View on Google Maps →
                     </a>
                   )}
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </CardContent>
       </Card>
@@ -151,11 +161,14 @@ export function PropertyMap({
 
   if (!isLoaded) {
     return (
-      <Card>
+      <Card role="status" aria-live="polite" aria-busy="true">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent" />
-            <p className="text-sm text-muted-foreground">Loading map...</p>
+            <div
+              className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"
+              aria-hidden="true"
+            />
+            <p className="text-sm text-muted-foreground">Loading map…</p>
           </div>
         </CardContent>
       </Card>
@@ -163,22 +176,39 @@ export function PropertyMap({
   }
 
   return (
-    <div className="relative w-full" style={{ height }}>
-      {/* Map Controls */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleUseCurrentLocation}
-          className="bg-background/90 backdrop-blur"
-        >
-          <Navigation className="mr-2 h-4 w-4" />
-          My Location
-        </Button>
+    <section aria-labelledby={mapLabelId} className="space-y-3">
+      <h2 id={mapLabelId} className="sr-only">
+        Property map — {propertiesWithCoords.length} listings
+      </h2>
+      <div
+        id={liveRegionId}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {selectedProperty
+          ? `Selected: ${selectedProperty.name}, ${selectedProperty.area}, ${formatCurrency(selectedProperty.rent)} per month`
+          : ''}
       </div>
+      <div className="relative w-full" style={{ height }}>
+        {/* Map Controls */}
+        <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUseCurrentLocation}
+            className="bg-background/90 backdrop-blur"
+            aria-label="Center map on my current location"
+          >
+            <Navigation className="mr-2 h-4 w-4" aria-hidden="true" />
+            My Location
+          </Button>
+        </div>
 
-      {/* Google Map */}
-      <GoogleMap
+        {/* Google Map — visual; keyboard users use list below */}
+        <div aria-hidden="true">
+          <GoogleMap
         mapContainerStyle={{ width: '100%', height: '100%' }}
         center={mapCenter}
         zoom={mapZoom}
@@ -196,6 +226,7 @@ export function PropertyMap({
         {propertiesWithCoords.map(property => (
           <Marker
             key={property.id}
+            title={`${property.name} — ${property.area}, ${formatCurrency(property.rent)}/month`}
             position={{
               lat: property.latitude!,
               lng: property.longitude!,
@@ -261,8 +292,8 @@ export function PropertyMap({
                   </span>
                 </div>
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm font-bold text-primary">
-                    ৳{selectedProperty.rent.toLocaleString()}/month
+                  <span className="text-sm font-bold text-foreground">
+                    {formatCurrency(selectedProperty.rent)}/month
                   </span>
                   <AvailabilityBadge available={selectedProperty.available} />
                 </div>
@@ -292,6 +323,49 @@ export function PropertyMap({
             </InfoWindow>
           )}
       </GoogleMap>
-    </div>
+        </div>
+      </div>
+
+      {/* Keyboard-accessible property list */}
+      <div className="rounded-lg border bg-muted/20 p-3">
+        <p id={listLabelId} className="mb-2 text-sm font-medium">
+          Property list ({propertiesWithCoords.length}) — use Tab to browse, Enter to select
+        </p>
+        <ul
+          className="max-h-48 space-y-1 overflow-y-auto"
+          aria-labelledby={listLabelId}
+          role="listbox"
+          aria-activedescendant={
+            selectedProperty ? `map-property-${selectedProperty.id}` : undefined
+          }
+        >
+          {propertiesWithCoords.map(property => {
+            const isSelected = selectedProperty?.id === property.id
+            return (
+              <li key={property.id} role="presentation">
+                <button
+                  type="button"
+                  id={`map-property-${property.id}`}
+                  role="option"
+                  aria-selected={isSelected}
+                  className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={() => handleMarkerClick(property)}
+                >
+                  <span>
+                    <span className="font-medium">{property.name}</span>
+                    <span className="ml-2 text-muted-foreground">
+                      {property.area}, {property.city}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-medium">
+                    {formatCurrency(property.rent)}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </section>
   )
 }

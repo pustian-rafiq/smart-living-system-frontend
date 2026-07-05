@@ -127,3 +127,5 @@ export async function fetchAllBookings(): Promise<ApiResult<Booking[]>> {
   await mockDelay()
   return ok([...mockBookings])
 }
+
+export { updateBookingStatus } from '@/data/mockBookings'

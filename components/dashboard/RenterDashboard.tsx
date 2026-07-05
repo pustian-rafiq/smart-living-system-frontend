@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ProfileSummary } from './ProfileSummary'
@@ -11,10 +11,11 @@ import { LocationSearch } from './LocationSearch'
 import { StatCard } from './StatCard'
 import { ActionCard } from './ActionCard'
 import { Home, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { mockFlats, mockRenters, mockBuildings } from '@/data/mockBuildings'
-import { mockBills } from '@/data/mockBills'
-import { getRenterProfile } from '@/data/mockRenterProfile'
-import { getRenterHistory } from '@/data/mockRenterHistory'
+import { fetchAllFlats, fetchRenters, fetchAllBuildings } from '@/lib/api/buildings'
+import { fetchBillsForTenant } from '@/lib/api/bills'
+import { fetchRenterProfile, fetchRenterHistory } from '@/lib/api/profile'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import { ok } from '@/lib/api/http'
 
 interface RenterDashboardProps {
   renterId: string
@@ -66,18 +67,45 @@ export function RenterDashboard({
   onSearchChange,
   areasByCity,
 }: RenterDashboardProps) {
-  // Get current renter data
-  const currentRenter = mockRenters.find(r => r.id === renterId)
-  const currentFlat = mockFlats.find(f => f.renter?.id === renterId)
+  const loadDashboard = useCallback(async () => {
+    const [flats, renters, buildings, bills, profile, history] =
+      await Promise.all([
+        fetchAllFlats(),
+        fetchRenters(),
+        fetchAllBuildings(),
+        fetchBillsForTenant(renterId),
+        fetchRenterProfile(renterId),
+        fetchRenterHistory(renterId),
+      ])
+    if (!flats.ok) return flats
+    if (!renters.ok) return renters
+    if (!buildings.ok) return buildings
+    if (!bills.ok) return bills
+    if (!profile.ok) return profile
+    if (!history.ok) return history
+    return ok({
+      flats: flats.data,
+      renters: renters.data,
+      buildings: buildings.data,
+      bills: bills.data,
+      profile: profile.data,
+      history: history.data,
+    })
+  }, [renterId])
+
+  const { data: dashboardData } = useMockQuery(loadDashboard)
+
+  const currentRenter = dashboardData?.renters.find(r => r.id === renterId)
+  const currentFlat = dashboardData?.flats.find(f => f.renter?.id === renterId)
   const currentBuilding = currentFlat
-    ? mockBuildings.find(b => b.id === currentFlat.buildingId)
+    ? dashboardData?.buildings.find(b => b.id === currentFlat.buildingId)
     : undefined
   const renterBills = useMemo(
-    () => mockBills.filter(b => b.tenantId === renterId),
-    [renterId]
+    () => dashboardData?.bills ?? [],
+    [dashboardData?.bills]
   )
-  const renterProfile = useMemo(() => getRenterProfile('user1'), [])
-  const renterHistory = useMemo(() => getRenterHistory(renterId), [renterId])
+  const renterProfile = dashboardData?.profile ?? null
+  const renterHistory = dashboardData?.history
 
   // Calculate profile completion
   const profileCompletion = useMemo(() => {
@@ -103,6 +131,16 @@ export function RenterDashboard({
 
   const renterActions = useMemo(
     () => [
+      {
+        title: 'My Bookings',
+        subtitle: 'Track rental and hotel bookings',
+        href: '/my-bookings',
+        icon: (
+          <Icon path="M8 7V3m8 4V3M4 11h16M6 21h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-violet-200/70 via-purple-200/60 to-fuchsia-200/70 dark:from-violet-900/30 dark:via-purple-900/20 dark:to-fuchsia-900/30',
+      },
       {
         title: 'Payments',
         subtitle: 'Pay bills, history & schedules',

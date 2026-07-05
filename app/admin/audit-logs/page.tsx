@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import {
   Card,
@@ -24,11 +25,14 @@ import { AuditLogTable } from '@/components/audit/AuditLogTable'
 import { AuditLogCard } from '@/components/audit/AuditLogCard'
 import { AuditLogDetailDialog } from '@/components/audit/AuditLogDetailDialog'
 import { RollbackDialog } from '@/components/audit/RollbackDialog'
-import { getAuditLogs, rollbackAuditLog } from '@/data/mockAuditLogs'
+import { fetchAuditLogs, rollbackAudit } from '@/lib/api/admin'
 import type { AuditLog, AuditAction, AuditEntityType } from '@/types/audit'
-import { Download, Filter, X } from 'lucide-react'
+import { Download, X } from 'lucide-react'
 
 export default function AuditLogsPage() {
+  const t = useTranslations('admin.audit')
+  const tc = useTranslations('common')
+  const [allLogs, setAllLogs] = useState<AuditLog[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedAction, setSelectedAction] = useState<AuditAction | 'all'>(
     'all'
@@ -45,16 +49,45 @@ export default function AuditLogsPage() {
   const [isRollbackDialogOpen, setIsRollbackDialogOpen] = useState(false)
   const [rollbackLog, setRollbackLog] = useState<AuditLog | null>(null)
 
-  // Get all audit logs with filters
+  const loadLogs = useCallback(async () => {
+    const result = await fetchAuditLogs()
+    if (result.ok) setAllLogs(result.data)
+  }, [])
+
+  useEffect(() => {
+    loadLogs()
+  }, [loadLogs])
+
   const filteredLogs = useMemo(() => {
-    return getAuditLogs({
-      search: searchQuery || undefined,
-      action: selectedAction !== 'all' ? [selectedAction] : undefined,
-      entityType:
-        selectedEntityType !== 'all' ? [selectedEntityType] : undefined,
-      userRole: selectedUserRole !== 'all' ? selectedUserRole : undefined,
-    })
-  }, [searchQuery, selectedAction, selectedEntityType, selectedUserRole])
+    let filtered = [...allLogs]
+
+    if (selectedAction !== 'all') {
+      filtered = filtered.filter(log => log.action === selectedAction)
+    }
+
+    if (selectedEntityType !== 'all') {
+      filtered = filtered.filter(log => log.entityType === selectedEntityType)
+    }
+
+    if (selectedUserRole !== 'all') {
+      filtered = filtered.filter(log => log.userRole === selectedUserRole)
+    }
+
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        log =>
+          log.entityName.toLowerCase().includes(searchLower) ||
+          log.userName.toLowerCase().includes(searchLower) ||
+          log.id.toLowerCase().includes(searchLower)
+      )
+    }
+
+    return filtered.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
+  }, [allLogs, searchQuery, selectedAction, selectedEntityType, selectedUserRole])
 
   const handleViewDetails = (log: AuditLog) => {
     setSelectedLog(log)
@@ -66,13 +99,13 @@ export default function AuditLogsPage() {
     setIsRollbackDialogOpen(true)
   }
 
-  const handleConfirmRollback = () => {
+  const handleConfirmRollback = async () => {
     if (rollbackLog) {
-      const success = rollbackAuditLog(rollbackLog.id)
-      if (success) {
+      const result = await rollbackAudit(rollbackLog.id)
+      if (result.ok && result.data) {
         setIsRollbackDialogOpen(false)
         setRollbackLog(null)
-        // In a real app, you would refresh the logs here
+        await loadLogs()
       }
     }
   }
@@ -93,28 +126,22 @@ export default function AuditLogsPage() {
   return (
     <AdminLayout>
       <div className="max-w-7xl space-y-6">
-        {/* Header */}
         <div>
-          <h2 className="text-2xl font-bold mb-2">Audit Logs</h2>
-          <p className="text-muted-foreground">
-            Track all changes, who made them, and when they were made
-          </p>
+          <h2 className="text-2xl font-bold mb-2">{t('title')}</h2>
+          <p className="text-muted-foreground">{t('trackDesc')}</p>
         </div>
 
-        {/* Filters */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">Filters</CardTitle>
-                <CardDescription>
-                  Filter audit logs by various criteria
-                </CardDescription>
+                <CardTitle className="text-lg">{t('filters')}</CardTitle>
+                <CardDescription>{t('filtersDesc')}</CardDescription>
               </div>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
                   <X className="h-4 w-4 mr-2" />
-                  Clear Filters
+                  {t('clearFilters')}
                 </Button>
               )}
             </div>
@@ -122,16 +149,16 @@ export default function AuditLogsPage() {
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
-                <Label htmlFor="search">Search</Label>
+                <Label htmlFor="search">{tc('search')}</Label>
                 <Input
                   id="search"
-                  placeholder="Search logs..."
+                  placeholder={t('searchPlaceholder')}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="action">Action</Label>
+                <Label htmlFor="action">{t('action')}</Label>
                 <Select
                   value={selectedAction}
                   onValueChange={v =>
@@ -142,21 +169,21 @@ export default function AuditLogsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Actions</SelectItem>
-                    <SelectItem value="create">Create</SelectItem>
-                    <SelectItem value="update">Update</SelectItem>
-                    <SelectItem value="delete">Delete</SelectItem>
-                    <SelectItem value="approve">Approve</SelectItem>
-                    <SelectItem value="reject">Reject</SelectItem>
-                    <SelectItem value="verify">Verify</SelectItem>
-                    <SelectItem value="unverify">Unverify</SelectItem>
-                    <SelectItem value="payment">Payment</SelectItem>
-                    <SelectItem value="rollback">Rollback</SelectItem>
+                    <SelectItem value="all">{t('allActions')}</SelectItem>
+                    <SelectItem value="create">{t('actions.create')}</SelectItem>
+                    <SelectItem value="update">{t('actions.update')}</SelectItem>
+                    <SelectItem value="delete">{t('actions.delete')}</SelectItem>
+                    <SelectItem value="approve">{t('actions.approve')}</SelectItem>
+                    <SelectItem value="reject">{t('actions.reject')}</SelectItem>
+                    <SelectItem value="verify">{t('actions.verify')}</SelectItem>
+                    <SelectItem value="unverify">{t('actions.unverify')}</SelectItem>
+                    <SelectItem value="payment">{t('actions.payment')}</SelectItem>
+                    <SelectItem value="rollback">{t('actions.rollback')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="entityType">Entity Type</Label>
+                <Label htmlFor="entityType">{t('entityType')}</Label>
                 <Select
                   value={selectedEntityType}
                   onValueChange={v =>
@@ -167,25 +194,25 @@ export default function AuditLogsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="property">Property</SelectItem>
-                    <SelectItem value="building">Building</SelectItem>
-                    <SelectItem value="flat">Flat</SelectItem>
-                    <SelectItem value="bill">Bill</SelectItem>
-                    <SelectItem value="booking">Booking</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="verification">Verification</SelectItem>
-                    <SelectItem value="dispute">Dispute</SelectItem>
-                    <SelectItem value="complaint">Complaint</SelectItem>
-                    <SelectItem value="notice">Notice</SelectItem>
-                    <SelectItem value="mess">Mess</SelectItem>
-                    <SelectItem value="hotel">Hotel</SelectItem>
-                    <SelectItem value="room">Room</SelectItem>
+                    <SelectItem value="all">{t('allTypes')}</SelectItem>
+                    <SelectItem value="property">{t('entities.property')}</SelectItem>
+                    <SelectItem value="building">{t('entities.building')}</SelectItem>
+                    <SelectItem value="flat">{t('entities.flat')}</SelectItem>
+                    <SelectItem value="bill">{t('entities.bill')}</SelectItem>
+                    <SelectItem value="booking">{t('entities.booking')}</SelectItem>
+                    <SelectItem value="user">{t('entities.user')}</SelectItem>
+                    <SelectItem value="verification">{t('entities.verification')}</SelectItem>
+                    <SelectItem value="dispute">{t('entities.dispute')}</SelectItem>
+                    <SelectItem value="complaint">{t('entities.complaint')}</SelectItem>
+                    <SelectItem value="notice">{t('entities.notice')}</SelectItem>
+                    <SelectItem value="mess">{t('entities.mess')}</SelectItem>
+                    <SelectItem value="hotel">{t('entities.hotel')}</SelectItem>
+                    <SelectItem value="room">{t('entities.room')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="userRole">User Role</Label>
+                <Label htmlFor="userRole">{t('userRole')}</Label>
                 <Select
                   value={selectedUserRole}
                   onValueChange={v =>
@@ -198,10 +225,10 @@ export default function AuditLogsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Roles</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="owner">Owner</SelectItem>
-                    <SelectItem value="renter">Renter</SelectItem>
+                    <SelectItem value="all">{t('allRoles')}</SelectItem>
+                    <SelectItem value="admin">{t('roles.admin')}</SelectItem>
+                    <SelectItem value="owner">{t('roles.owner')}</SelectItem>
+                    <SelectItem value="renter">{t('roles.renter')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -209,17 +236,17 @@ export default function AuditLogsPage() {
           </CardContent>
         </Card>
 
-        {/* Results */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg">
-                  Audit Logs ({filteredLogs.length})
+                  {t('logsCount', { count: filteredLogs.length })}
                 </CardTitle>
                 <CardDescription>
-                  Showing {filteredLogs.length} log
-                  {filteredLogs.length !== 1 ? 's' : ''}
+                  {filteredLogs.length === 1
+                    ? t('showingLogs', { count: filteredLogs.length })
+                    : t('showingLogsPlural', { count: filteredLogs.length })}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -228,13 +255,13 @@ export default function AuditLogsPage() {
                   onValueChange={v => setViewMode(v as 'table' | 'card')}
                 >
                   <TabsList>
-                    <TabsTrigger value="table">Table</TabsTrigger>
-                    <TabsTrigger value="card">Card</TabsTrigger>
+                    <TabsTrigger value="table">{t('table')}</TabsTrigger>
+                    <TabsTrigger value="card">{t('card')}</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button variant="outline" size="sm">
                   <Download className="h-4 w-4 mr-2" />
-                  Export
+                  {tc('export')}
                 </Button>
               </div>
             </div>
@@ -261,7 +288,6 @@ export default function AuditLogsPage() {
           </CardContent>
         </Card>
 
-        {/* Dialogs */}
         <AuditLogDetailDialog
           log={selectedLog}
           open={isDetailDialogOpen}

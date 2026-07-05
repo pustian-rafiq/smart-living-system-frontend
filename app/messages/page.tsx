@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useMemo, useEffect, Suspense } from 'react'
+import { useState, useMemo, useEffect, Suspense, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
+import { EmptyState, LoadingState } from '@/components/page'
 import { ChatList } from '@/components/chat/ChatList'
 import { ChatWindow } from '@/components/chat/ChatWindow'
 import {
@@ -22,45 +24,75 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  mockChats,
-  mockMessages,
-  getChatsByUserId,
-  getMessagesByChatId,
-  getChatUser,
-  getChatById,
-} from '@/data/mockChats'
-import { mockProperties } from '@/data/mockProperties'
-import type { Chat, ChatMessage } from '@/types/chat'
+import type { Chat, ChatMessage, ChatUser } from '@/types/chat'
+import type { Property } from '@/types/property'
 import { Plus, Search } from 'lucide-react'
+import {
+  fetchUserChats,
+  fetchChatMessages,
+  fetchMessageProperties,
+  sendChatMessage,
+  createChat,
+  fetchChatUser,
+  fetchChatById,
+} from '@/lib/api/messages'
+import { getDemoChatUserId, getDemoOwnerId } from '@/lib/api/demoUser'
 
 function MessagesPageContent() {
+  const t = useTranslations('tools.messages')
+  const tc = useTranslations('common')
   const searchParams = useSearchParams()
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [showNewChatDialog, setShowNewChatDialog] = useState(false)
   const [searchProperty, setSearchProperty] = useState('')
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
+  const [userChats, setUserChats] = useState<Chat[]>([])
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
+  const [otherParticipant, setOtherParticipant] = useState<
+    ChatUser | undefined
+  >(undefined)
+  const [properties, setProperties] = useState<Property[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Get current user ID (in real app, this would come from auth)
-  const currentUserId = 'user1' // Mock user ID
+  const currentUserId = getDemoChatUserId()
 
-  const userChats = useMemo(() => {
-    return getChatsByUserId(currentUserId).sort((a, b) => {
-      const timeA = a.lastMessageTime
-        ? new Date(a.lastMessageTime).getTime()
-        : 0
-      const timeB = b.lastMessageTime
-        ? new Date(b.lastMessageTime).getTime()
-        : 0
-      return timeB - timeA
-    })
+  const loadChats = useCallback(async () => {
+    const result = await fetchUserChats(currentUserId)
+    if (result.ok) {
+      setUserChats(
+        result.data.sort((a, b) => {
+          const timeA = a.lastMessageTime
+            ? new Date(a.lastMessageTime).getTime()
+            : 0
+          const timeB = b.lastMessageTime
+            ? new Date(b.lastMessageTime).getTime()
+            : 0
+          return timeB - timeA
+        })
+      )
+    }
   }, [currentUserId])
 
-  // Check for propertyId in URL params
+  useEffect(() => {
+    let mounted = true
+    setIsLoading(true)
+    Promise.all([
+      loadChats(),
+      fetchMessageProperties().then(result => {
+        if (result.ok) setProperties(result.data)
+      }),
+    ]).finally(() => {
+      if (mounted) setIsLoading(false)
+    })
+    return () => {
+      mounted = false
+    }
+  }, [loadChats])
+
   useEffect(() => {
     const propertyId = searchParams.get('propertyId')
     if (propertyId) {
-      // Find or create chat for this property
       const existingChat = userChats.find(
         chat => chat.propertyId === propertyId
       )
@@ -73,37 +105,46 @@ function MessagesPageContent() {
     }
   }, [searchParams, userChats])
 
-  const selectedChat = useMemo(() => {
-    if (!selectedChatId) return null
-    return getChatById(selectedChatId) || null
+  useEffect(() => {
+    if (!selectedChatId) {
+      setSelectedChat(null)
+      setChatMessages([])
+      setOtherParticipant(undefined)
+      return
+    }
+
+    fetchChatById(selectedChatId).then(result => {
+      if (result.ok) setSelectedChat(result.data ?? null)
+    })
+    fetchChatMessages(selectedChatId).then(result => {
+      if (result.ok) setChatMessages(result.data)
+    })
   }, [selectedChatId])
 
-  const chatMessages = useMemo(() => {
-    if (!selectedChatId) return []
-    return getMessagesByChatId(selectedChatId)
-  }, [selectedChatId])
-
-  const otherParticipant = useMemo(() => {
-    if (!selectedChat) return undefined
+  useEffect(() => {
+    if (!selectedChat) {
+      setOtherParticipant(undefined)
+      return
+    }
     const otherId =
       selectedChat.participant1Id === currentUserId
         ? selectedChat.participant2Id
         : selectedChat.participant1Id
-    return getChatUser(otherId)
+    fetchChatUser(otherId).then(result => {
+      if (result.ok) setOtherParticipant(result.data)
+    })
   }, [selectedChat, currentUserId])
 
   const handleChatSelect = (chat: Chat) => {
     setSelectedChatId(chat.id)
-    // In real app, mark messages as read
   }
 
-  const handleSendMessage = (
+  const handleSendMessage = async (
     content: string,
     type: 'text' | 'image' | 'file' = 'text'
   ) => {
     if (!selectedChat) return
 
-    // In real app, this would call an API
     const newMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
       chatId: selectedChat.id,
@@ -118,20 +159,19 @@ function MessagesPageContent() {
       timestamp: new Date().toISOString(),
     }
 
-    // Simulate sending
     setTimeout(() => {
       newMessage.status = 'sent'
-      // In real app, update via API
     }, 500)
 
-    // Add to mock messages (in real app, this would be handled by API/WebSocket)
-    mockMessages.push(newMessage)
+    const result = await sendChatMessage(selectedChat.id, newMessage)
+    if (result.ok) {
+      setChatMessages(prev => [...prev, result.data])
+      await loadChats()
+    }
   }
 
   const handleSendFile = (file: File) => {
     if (!selectedChat) return
-
-    // In real app, upload file first, then send URL
     const fileUrl = URL.createObjectURL(file)
     handleSendMessage(fileUrl, 'file')
   }
@@ -140,11 +180,10 @@ function MessagesPageContent() {
     window.location.href = `tel:${phone}`
   }
 
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     if (selectedPropertyId) {
-      const property = mockProperties.find(p => p.id === selectedPropertyId)
+      const property = properties.find(p => p.id === selectedPropertyId)
       if (property) {
-        // Check if chat already exists
         const existingChat = userChats.find(
           chat => chat.propertyId === property.id
         )
@@ -153,11 +192,10 @@ function MessagesPageContent() {
           setSelectedChatId(existingChat.id)
           setShowNewChatDialog(false)
         } else {
-          // Create new chat (in real app, this would call an API)
           const newChat: Chat = {
             id: `chat-${Date.now()}`,
             participant1Id: currentUserId,
-            participant2Id: 'owner1', // In real app, get from property
+            participant2Id: getDemoOwnerId(),
             participant1Name: 'Current User',
             participant2Name: property.ownerName,
             lastMessage: undefined,
@@ -167,80 +205,89 @@ function MessagesPageContent() {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           }
-          mockChats.push(newChat)
-          setSelectedChatId(newChat.id)
-          setShowNewChatDialog(false)
+          const result = await createChat(newChat)
+          if (result.ok) {
+            setUserChats(prev => [result.data, ...prev])
+            setSelectedChatId(result.data.id)
+            setShowNewChatDialog(false)
+          }
         }
       }
     }
   }
 
   const filteredProperties = useMemo(() => {
-    if (!searchProperty) return mockProperties.slice(0, 10)
+    if (!searchProperty) return properties.slice(0, 10)
     const searchLower = searchProperty.toLowerCase()
-    return mockProperties.filter(
+    return properties.filter(
       p =>
         p.name.toLowerCase().includes(searchLower) ||
         p.address.toLowerCase().includes(searchLower) ||
         p.area.toLowerCase().includes(searchLower)
     )
-  }, [searchProperty])
+  }, [searchProperty, properties])
 
   return (
     <Layout>
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold sm:text-3xl">Messages</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Chat with property owners and renters
+            {t('description')}
           </p>
         </div>
 
-        {/* Chat Interface */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-12rem)]">
-          {/* Chat List */}
-          <div className="lg:col-span-1">
-            <ChatList
-              chats={userChats}
-              currentUserId={currentUserId}
-              selectedChatId={selectedChatId || undefined}
-              onChatSelect={handleChatSelect}
-              onNewChat={() => setShowNewChatDialog(true)}
-            />
-          </div>
+        {isLoading ? (
+          <LoadingState label={t('loading')} variant="skeleton" />
+        ) : userChats.length === 0 ? (
+          <EmptyState title={t('emptyTitle')} description={t('emptyDesc')}>
+            <Button onClick={() => setShowNewChatDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t('startNewChat')}
+            </Button>
+          </EmptyState>
+        ) : null}
 
-          {/* Chat Window */}
-          <div className="lg:col-span-2">
-            <ChatWindow
-              chat={selectedChat}
-              currentUserId={currentUserId}
-              messages={chatMessages}
-              otherParticipant={otherParticipant}
-              onSendMessage={handleSendMessage}
-              onSendFile={handleSendFile}
-              onCall={handleCall}
-            />
-          </div>
-        </div>
+        {!isLoading && userChats.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-12rem)]">
+            <div className="lg:col-span-1">
+              <ChatList
+                chats={userChats}
+                currentUserId={currentUserId}
+                selectedChatId={selectedChatId || undefined}
+                onChatSelect={handleChatSelect}
+                onNewChat={() => setShowNewChatDialog(true)}
+              />
+            </div>
 
-        {/* New Chat Dialog */}
+            <div className="lg:col-span-2">
+              <ChatWindow
+                chat={selectedChat}
+                currentUserId={currentUserId}
+                messages={chatMessages}
+                otherParticipant={otherParticipant}
+                onSendMessage={handleSendMessage}
+                onSendFile={handleSendFile}
+                onCall={handleCall}
+              />
+            </div>
+          </div>
+        )}
+
         <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Start New Chat</DialogTitle>
-              <DialogDescription>
-                Select a property to start chatting with the owner
-              </DialogDescription>
+              <DialogTitle>{t('startNewChat')}</DialogTitle>
+              <DialogDescription>{t('startNewChatDesc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="search">Search Property</Label>
+                <Label htmlFor="search">{t('searchProperty')}</Label>
                 <div className="relative mt-2">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="Search by name, address, or area..."
+                    placeholder={t('searchPropertyPlaceholder')}
                     value={searchProperty}
                     onChange={e => setSearchProperty(e.target.value)}
                     className="pl-9"
@@ -249,13 +296,13 @@ function MessagesPageContent() {
               </div>
 
               <div>
-                <Label>Select Property</Label>
+                <Label>{t('chooseProperty')}</Label>
                 <Select
                   value={selectedPropertyId}
                   onValueChange={setSelectedPropertyId}
                 >
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Choose a property" />
+                    <SelectValue placeholder={t('selectProperty')} />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredProperties.map(property => (
@@ -278,14 +325,14 @@ function MessagesPageContent() {
                   className="flex-1"
                   onClick={() => setShowNewChatDialog(false)}
                 >
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button
                   className="flex-1"
                   onClick={handleNewChat}
                   disabled={!selectedPropertyId}
                 >
-                  Start Chat
+                  {t('startChat')}
                 </Button>
               </div>
             </div>
@@ -297,12 +344,15 @@ function MessagesPageContent() {
 }
 
 export default function MessagesPage() {
+  const t = useTranslations('tools.messages')
+  const tc = useTranslations('common')
+
   return (
     <Suspense
       fallback={
         <Layout>
           <div className="flex min-h-[40vh] items-center justify-center p-8 text-muted-foreground">
-            Loading messages…
+            {t('loading')}
           </div>
         </Layout>
       }

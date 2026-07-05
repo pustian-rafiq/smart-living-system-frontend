@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -35,15 +35,10 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Trash2, Zap, Calculator } from 'lucide-react'
-import { mockBuildings, mockRenters, mockFlats } from '@/data/mockBuildings'
-import { mockMess } from '@/data/mockMess'
-import {
-  getTemplatesByProperty,
-  getActiveTemplates,
-  getMeterReading,
-  getPreviousMeterReading,
-} from '@/data/mockBillTemplates'
 import type { BillTemplate, MeterReading } from '@/types/bill'
+import { fetchBillsBoard } from '@/lib/api/bills'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 
 const generateBillSchema = z.object({
   propertyId: z.string().min(1, 'Property is required'),
@@ -119,6 +114,25 @@ export function GenerateBillDialog({
   const [generationMode, setGenerationMode] = useState<'manual' | 'template'>(
     'manual'
   )
+  const loadBillsBoard = useCallback(
+    () =>
+      open
+        ? fetchBillsBoard()
+        : Promise.resolve(
+            ok({
+              bills: [],
+              templates: [],
+              rules: [],
+              meterReadings: [],
+              buildings: [],
+              flats: [],
+              renters: [],
+              messList: [],
+            })
+          ),
+    [open]
+  )
+  const { data: billsBoard } = useMockQuery(loadBillsBoard)
 
   const form = useForm<GenerateBillFormData>({
     resolver: zodResolver(generateBillSchema) as never,
@@ -150,40 +164,50 @@ export function GenerateBillDialog({
   // Get available templates for selected property
   const availableTemplates = useMemo(() => {
     if (!propertyId) return []
-    return getTemplatesByProperty(propertyId).filter(t => t.isActive)
-  }, [propertyId])
+    return (billsBoard?.templates ?? []).filter(
+      t => t.propertyId === propertyId && t.isActive
+    )
+  }, [propertyId, billsBoard])
 
   // Get available flats for selected property
   const availableFlats = useMemo(() => {
     if (!propertyId || selectedPropertyType !== 'apartment') return []
-    return mockFlats.filter(f => f.buildingId === propertyId && f.renter)
-  }, [propertyId, selectedPropertyType])
+    return (billsBoard?.flats ?? []).filter(
+      f => f.buildingId === propertyId && f.renter
+    )
+  }, [propertyId, selectedPropertyType, billsBoard])
 
   // Fetch meter reading when property/flat/month changes
   useEffect(() => {
     if (propertyId && month && year) {
-      const reading = getMeterReading(
-        propertyId,
-        flatId,
-        undefined,
-        month,
-        year
+      const reading = (billsBoard?.meterReadings ?? []).find(
+        item =>
+          item.propertyId === propertyId &&
+          item.flatId === flatId &&
+          item.seatId === undefined &&
+          item.month === month &&
+          item.year === year
       )
       setMeterReading(reading)
 
-      const prev = getPreviousMeterReading(
-        propertyId,
-        flatId,
-        undefined,
-        month,
-        year
+      const currentMonthIndex = months.indexOf(month)
+      const previousMonth =
+        currentMonthIndex === 0 ? 'December' : months[currentMonthIndex - 1]
+      const previousYear = currentMonthIndex === 0 ? year - 1 : year
+      const prev = (billsBoard?.meterReadings ?? []).find(
+        item =>
+          item.propertyId === propertyId &&
+          item.flatId === flatId &&
+          item.seatId === undefined &&
+          item.month === previousMonth &&
+          item.year === previousYear
       )
       setPreviousReading(prev)
     } else {
       setMeterReading(undefined)
       setPreviousReading(undefined)
     }
-  }, [propertyId, flatId, month, year])
+  }, [propertyId, flatId, month, year, billsBoard])
 
   // Load template when selected
   useEffect(() => {
@@ -321,8 +345,10 @@ export function GenerateBillDialog({
   }
 
   const properties =
-    selectedPropertyType === 'apartment' ? mockBuildings : mockMess
-  const tenants = mockRenters
+    selectedPropertyType === 'apartment'
+      ? (billsBoard?.buildings ?? [])
+      : (billsBoard?.messList ?? [])
+  const tenants = billsBoard?.renters ?? []
 
   const totalAmount = useMemo(() => {
     return fields.reduce((sum, _, index) => {

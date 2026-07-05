@@ -1,61 +1,99 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState, LoadingState } from '@/components/page'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReportCard } from '@/components/report/ReportCard'
 import { ReportGeneratorDialog } from '@/components/report/ReportGeneratorDialog'
 import {
-  getExpenseReportsByUserId,
-  getTaxDocumentsByUserId,
-  generateExpenseReport,
-  generateTaxDocument,
-} from '@/data/mockReports'
+  fetchExpenseReports,
+  fetchTaxDocuments,
+  createExpenseReport,
+  createTaxDocument,
+} from '@/lib/api/reports'
+import { getDemoTenantId } from '@/lib/api/demoUser'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
-import { FileText, Plus, Download, Receipt } from 'lucide-react'
+import { FileText, Plus, Receipt } from 'lucide-react'
 import type { ExpenseReport, TaxDocument } from '@/types/report'
+import { toast } from '@/lib/feedback/toast'
 
 export default function ReportsPage() {
   const router = useRouter()
   const role = getStoredRole()
+  const t = useTranslations('tools.reports')
+  const tc = useTranslations('common')
 
-  const [expenseReports, setExpenseReports] = useState(
-    getExpenseReportsByUserId('r1')
-  )
-  const [taxDocuments, setTaxDocuments] = useState(
-    getTaxDocumentsByUserId('r1')
-  )
+  const userId = getDemoTenantId()
+  const [expenseReports, setExpenseReports] = useState<ExpenseReport[]>([])
+  const [taxDocuments, setTaxDocuments] = useState<TaxDocument[]>([])
   const [isGeneratorDialogOpen, setIsGeneratorDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const handleGenerateReport = (data: any) => {
+  const loadReports = useCallback(async () => {
+    const [expenseRes, taxRes] = await Promise.all([
+      fetchExpenseReports(userId),
+      fetchTaxDocuments(userId),
+    ])
+    if (expenseRes.ok) setExpenseReports(expenseRes.data)
+    if (taxRes.ok) setTaxDocuments(taxRes.data)
+  }, [userId])
+
+  useEffect(() => {
+    if (role !== 'renter') return
+    let mounted = true
+    setIsLoading(true)
+    loadReports().finally(() => {
+      if (mounted) setIsLoading(false)
+    })
+    return () => {
+      mounted = false
+    }
+  }, [role, loadReports])
+
+  const handleGenerateReport = async (data: {
+    reportType: string
+    startDate: string
+    endDate: string
+    format: 'pdf' | 'excel' | 'csv'
+    taxYear?: number
+    documentType?: 'rent_receipt' | 'expense_summary' | 'tax_certificate'
+  }) => {
     if (data.reportType === 'tax') {
-      const taxDoc = generateTaxDocument(
-        'r1',
-        data.taxYear,
-        data.documentType,
+      const result = await createTaxDocument(
+        userId,
+        data.taxYear ?? new Date().getFullYear(),
+        data.documentType ?? 'rent_receipt',
         data.startDate,
         data.endDate
       )
-      setTaxDocuments(getTaxDocumentsByUserId('r1'))
-      alert(`Tax document generated: ${taxDoc.fileName}`)
+      if (result.ok) {
+        await loadReports()
+        toast.success(
+          t('taxDocumentGenerated', { name: result.data.fileName ?? 'report' })
+        )
+      }
     } else {
-      const report = generateExpenseReport(
-        'r1',
+      const result = await createExpenseReport(
+        userId,
         data.startDate,
         data.endDate,
         data.format
       )
-      setExpenseReports(getExpenseReportsByUserId('r1'))
-      alert(`Report generated: ${report.fileName}`)
+      if (result.ok) {
+        await loadReports()
+        toast.success(
+          t('reportGenerated', { name: result.data.fileName ?? 'report' })
+        )
+      }
     }
   }
 
   const handleDownload = (report: ExpenseReport | TaxDocument) => {
-    // In a real app, this would download the file
-    alert(`Downloading ${report.fileName || 'report'}...`)
+    toast.info(t('downloading', { name: report.fileName || 'report' }))
   }
 
   useEffect(() => {
@@ -68,37 +106,42 @@ export default function ReportsPage() {
     return null
   }
 
+  if (isLoading) {
+    return (
+      <Layout userRole="renter">
+        <div className="container mx-auto max-w-7xl px-4 py-6">
+          <LoadingState label={tc('loading')} variant="skeleton" />
+        </div>
+      </Layout>
+    )
+  }
+
   return (
     <Layout userRole="renter">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Expense Reports</h1>
-            <p className="text-muted-foreground">
-              Generate and download expense reports and tax documents
-            </p>
+            <h1 className="text-2xl font-bold mb-2">{t('expenseReportsTitle')}</h1>
+            <p className="text-muted-foreground">{t('expenseReportsDesc')}</p>
           </div>
           <Button onClick={() => setIsGeneratorDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Generate Report
+            {t('generate')}
           </Button>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="expense" className="space-y-6">
           <TabsList>
             <TabsTrigger value="expense">
               <FileText className="h-4 w-4 mr-2" />
-              Expense Reports
+              {t('tabs.expense')}
             </TabsTrigger>
             <TabsTrigger value="tax">
               <Receipt className="h-4 w-4 mr-2" />
-              Tax Documents
+              {t('tabs.tax')}
             </TabsTrigger>
           </TabsList>
 
-          {/* Expense Reports Tab */}
           <TabsContent value="expense" className="space-y-4">
             {expenseReports.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -111,22 +154,19 @@ export default function ReportsPage() {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">
-                    No expense reports generated yet
-                  </p>
-                  <Button onClick={() => setIsGeneratorDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Generate Report
-                  </Button>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={FileText}
+                title={t('emptyTitle')}
+                description={t('noExpenseReports')}
+              >
+                <Button onClick={() => setIsGeneratorDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('generate')}
+                </Button>
+              </EmptyState>
             )}
           </TabsContent>
 
-          {/* Tax Documents Tab */}
           <TabsContent value="tax" className="space-y-4">
             {taxDocuments.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -139,23 +179,20 @@ export default function ReportsPage() {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Receipt className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-muted-foreground mb-4">
-                    No tax documents generated yet
-                  </p>
-                  <Button onClick={() => setIsGeneratorDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Generate Tax Document
-                  </Button>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Receipt}
+                title={t('emptyTitle')}
+                description={t('noTaxDocuments')}
+              >
+                <Button onClick={() => setIsGeneratorDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('generateTaxDocument')}
+                </Button>
+              </EmptyState>
             )}
           </TabsContent>
         </Tabs>
 
-        {/* Dialog */}
         <ReportGeneratorDialog
           open={isGeneratorDialogOpen}
           onOpenChange={setIsGeneratorDialogOpen}

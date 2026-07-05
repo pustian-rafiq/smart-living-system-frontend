@@ -1,20 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
+import { EmptyState, LoadingState } from '@/components/page'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { SavedSearchCard } from '@/components/search/SavedSearchCard'
-import { SaveSearchDialog } from '@/components/search/SaveSearchDialog'
 import {
   Dialog,
   DialogContent,
@@ -25,15 +19,21 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-  mockSavedSearches,
-  getSavedSearchesByUserId,
-  getActiveSavedSearches,
-} from '@/data/mockSavedSearches'
+  fetchSavedSearches,
+  patchSavedSearch,
+  deleteSavedSearch,
+} from '@/lib/api/search'
+import { getDemoChatUserId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { SavedSearch } from '@/types/savedSearch'
 import { Search, Bell, BellOff, Plus } from 'lucide-react'
+import { useConfirm } from '@/components/feedback'
 
 export default function SavedSearchesPage() {
+  const { confirm } = useConfirm()
   const router = useRouter()
+  const t = useTranslations('search.savedSearches')
+  const tc = useTranslations('common')
   const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'inactive'>(
     'all'
   )
@@ -41,38 +41,37 @@ export default function SavedSearchesPage() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editName, setEditName] = useState('')
 
-  // Get current user ID (in real app, this would come from auth)
-  const currentUserId = 'user1' // Mock user ID
+  const userId = getDemoChatUserId()
+  const load = useCallback(() => fetchSavedSearches(userId), [userId])
+  const { data: allSearches, loading, refetch } = useMockQuery(load)
 
-  const allSearches = useMemo(() => {
-    return getSavedSearchesByUserId(currentUserId)
-  }, [currentUserId])
+  const searchesList = allSearches ?? []
 
   const activeSearches = useMemo(() => {
-    return getActiveSavedSearches(currentUserId)
-  }, [currentUserId])
+    return searchesList.filter(search => search.isActive)
+  }, [searchesList])
 
   const inactiveSearches = useMemo(() => {
-    return allSearches.filter(search => !search.isActive)
-  }, [allSearches])
+    return searchesList.filter(search => !search.isActive)
+  }, [searchesList])
 
-  const handleToggle = (id: string, isActive: boolean) => {
-    // In real app, this would call an API
-    const search = mockSavedSearches.find(s => s.id === id)
-    if (search) {
-      search.isActive = isActive
-      search.updatedAt = new Date().toISOString()
-    }
+  const handleToggle = async (id: string, isActive: boolean) => {
+    await patchSavedSearch(id, {
+      isActive,
+      updatedAt: new Date().toISOString(),
+    })
+    refetch()
   }
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this saved search?')) {
-      // In real app, this would call an API
-      const index = mockSavedSearches.findIndex(s => s.id === id)
-      if (index > -1) {
-        mockSavedSearches.splice(index, 1)
-      }
-    }
+  const handleDelete = async (id: string) => {
+    const ok = await confirm({
+      title: t('deleteConfirmTitle'),
+      description: t('deleteConfirmDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    await deleteSavedSearch(id)
+    refetch()
   }
 
   const handleEdit = (savedSearch: SavedSearch) => {
@@ -81,19 +80,20 @@ export default function SavedSearchesPage() {
     setShowEditDialog(true)
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingSearch && editName.trim()) {
-      // In real app, this would call an API
-      editingSearch.name = editName.trim()
-      editingSearch.updatedAt = new Date().toISOString()
+      await patchSavedSearch(editingSearch.id, {
+        name: editName.trim(),
+        updatedAt: new Date().toISOString(),
+      })
       setShowEditDialog(false)
       setEditingSearch(null)
       setEditName('')
+      refetch()
     }
   }
 
   const handleSearch = (savedSearch: SavedSearch) => {
-    // Navigate to search page with filters
     const params = new URLSearchParams()
     if (
       savedSearch.filters.propertyType &&
@@ -118,49 +118,41 @@ export default function SavedSearchesPage() {
     router.push(`/search?${params.toString()}`)
   }
 
-  const getSearchesForTab = () => {
-    switch (selectedTab) {
-      case 'active':
-        return activeSearches
-      case 'inactive':
-        return inactiveSearches
-      default:
-        return allSearches
-    }
+  if (loading) {
+    return (
+      <Layout>
+        <LoadingState label={t('title')} />
+      </Layout>
+    )
   }
-
-  const searches = getSearchesForTab()
 
   return (
     <Layout>
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold sm:text-3xl">Saved Searches</h1>
+              <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Manage your saved search criteria and get notified of new
-                matches
+                {t('description')}
               </p>
             </div>
             <Button onClick={() => router.push('/search')}>
               <Plus className="mr-2 h-4 w-4" />
-              New Search
+              {tc('newSearch')}
             </Button>
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-3">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Searches
+                    {t('stats.total')}
                   </p>
-                  <p className="text-2xl font-bold">{allSearches.length}</p>
+                  <p className="text-2xl font-bold">{searchesList.length}</p>
                 </div>
                 <Search className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -171,7 +163,7 @@ export default function SavedSearchesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Active
+                    {t('stats.active')}
                   </p>
                   <p className="text-2xl font-bold">{activeSearches.length}</p>
                 </div>
@@ -184,7 +176,7 @@ export default function SavedSearchesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Inactive
+                    {t('stats.inactive')}
                   </p>
                   <p className="text-2xl font-bold">
                     {inactiveSearches.length}
@@ -196,7 +188,6 @@ export default function SavedSearchesPage() {
           </Card>
         </div>
 
-        {/* Tabs */}
         <Tabs
           value={selectedTab}
           onValueChange={value =>
@@ -206,42 +197,33 @@ export default function SavedSearchesPage() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
-              All ({allSearches.length})
+              {t('tabs.all')} ({searchesList.length})
             </TabsTrigger>
             <TabsTrigger value="active" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
-              Active ({activeSearches.length})
+              {t('tabs.active')} ({activeSearches.length})
             </TabsTrigger>
             <TabsTrigger value="inactive" className="flex items-center gap-2">
               <BellOff className="h-4 w-4" />
-              Inactive ({inactiveSearches.length})
+              {t('tabs.inactive')} ({inactiveSearches.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-6">
-            {allSearches.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Search className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold text-muted-foreground">
-                    No saved searches
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground text-center">
-                    Save your search criteria to get notified when new
-                    properties match
-                  </p>
-                  <Button
-                    className="mt-4"
-                    onClick={() => router.push('/search')}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Saved Search
-                  </Button>
-                </CardContent>
-              </Card>
+            {searchesList.length === 0 ? (
+              <EmptyState
+                icon={Search}
+                title={t('emptyAllTitle')}
+                description={t('emptyAllDesc')}
+              >
+                <Button onClick={() => router.push('/search')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('createSavedSearch')}
+                </Button>
+              </EmptyState>
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {allSearches.map(search => (
+                {searchesList.map(search => (
                   <SavedSearchCard
                     key={search.id}
                     savedSearch={search}
@@ -257,17 +239,11 @@ export default function SavedSearchesPage() {
 
           <TabsContent value="active" className="mt-6">
             {activeSearches.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Bell className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold text-muted-foreground">
-                    No active searches
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground text-center">
-                    Enable notifications on your saved searches to get updates
-                  </p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Bell}
+                title={t('emptyActiveTitle')}
+                description={t('emptyActiveDesc')}
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {activeSearches.map(search => (
@@ -286,14 +262,11 @@ export default function SavedSearchesPage() {
 
           <TabsContent value="inactive" className="mt-6">
             {inactiveSearches.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <BellOff className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold text-muted-foreground">
-                    No inactive searches
-                  </p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={BellOff}
+                title={t('emptyInactiveTitle')}
+                description={t('emptyInactiveDesc')}
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {inactiveSearches.map(search => (
@@ -311,23 +284,20 @@ export default function SavedSearchesPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Edit Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Saved Search</DialogTitle>
-              <DialogDescription>
-                Update the name of your saved search
-              </DialogDescription>
+              <DialogTitle>{t('editTitle')}</DialogTitle>
+              <DialogDescription>{t('editDesc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Search Name</Label>
+                <Label htmlFor="name">{t('searchName')}</Label>
                 <Input
                   id="name"
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
-                  placeholder="Enter search name"
+                  placeholder={t('searchNamePlaceholder')}
                   className="mt-2"
                 />
               </div>
@@ -341,14 +311,14 @@ export default function SavedSearchesPage() {
                     setEditName('')
                   }}
                 >
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button
                   className="flex-1"
                   onClick={handleSaveEdit}
                   disabled={!editName.trim()}
                 >
-                  Save
+                  {tc('save')}
                 </Button>
               </div>
             </div>

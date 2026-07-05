@@ -1,34 +1,37 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
+import { EmptyState } from '@/components/page'
 import { NotificationCard } from '@/components/notification/NotificationCard'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Bell, CheckCheck } from 'lucide-react'
-import { mockNotifications } from '@/data/mockComplaints'
 import type { Notification } from '@/types/complaint'
-import { getStoredRole } from '@/utils/auth'
+import { fetchNotifications } from '@/lib/api/complaints'
+import { getDemoTenantId } from '@/lib/api/demoUser'
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState(mockNotifications)
+  const t = useTranslations('tools.notifications')
+  const tc = useTranslations('common')
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
-  // Get user role (in real app, get from auth context)
-  const userRole = getStoredRole() || 'renter'
+  useEffect(() => {
+    fetchNotifications(getDemoTenantId()).then(result => {
+      if (result.ok) setNotifications(result.data)
+    })
+  }, [])
 
-  // Filter notifications by user (in real app, filter by logged-in user ID)
   const userNotifications = useMemo(() => {
-    return notifications.filter(n => n.userId === 'r1') // Mock: show notifications for first user
+    return notifications.filter(n => n.userId === getDemoTenantId())
   }, [notifications])
 
-  // Sort by date (newest first) and unread first
   const sortedNotifications = useMemo(() => {
     return [...userNotifications].sort((a, b) => {
-      // Unread notifications first
       if (a.read !== b.read) {
         return a.read ? 1 : -1
       }
-      // Then by date (newest first)
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
   }, [userNotifications])
@@ -50,7 +53,6 @@ export default function NotificationsPage() {
   return (
     <Layout>
       <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -65,33 +67,28 @@ export default function NotificationsPage() {
               )}
             </div>
             <div>
-              <h1 className="text-2xl font-bold sm:text-3xl">Notifications</h1>
+              <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 {unreadCount > 0
-                  ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
-                  : 'All caught up!'}
+                  ? t('unreadCount', { count: unreadCount })
+                  : t('allCaughtUp')}
               </p>
             </div>
           </div>
           {unreadCount > 0 && (
             <Button variant="outline" onClick={handleMarkAllRead}>
               <CheckCheck className="mr-2 h-4 w-4" />
-              Mark All Read
+              {tc('markAllRead')}
             </Button>
           )}
         </div>
 
-        {/* Notifications List */}
         {sortedNotifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-            <Bell className="h-12 w-12 text-muted-foreground mb-3 opacity-50" />
-            <p className="text-lg font-semibold text-muted-foreground">
-              No notifications
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              You're all caught up! New notifications will appear here.
-            </p>
-          </div>
+          <EmptyState
+            icon={Bell}
+            title={t('emptyTitle')}
+            description={t('emptyDesc')}
+          />
         ) : (
           <div className="space-y-3">
             {sortedNotifications.map(notification => (

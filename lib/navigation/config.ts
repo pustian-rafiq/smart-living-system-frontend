@@ -27,211 +27,204 @@ import type {
   QuickActionItem,
 } from './types'
 
-/** Desktop secondary header — grouped primary navigation */
 export const primaryNavItems: NavItem[] = [
-  // ── Shared ──────────────────────────────────────────────────────────────
   {
-    label: 'Dashboard',
+    labelKey: 'primary.dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
     roles: ['renter', 'owner', 'admin'],
   },
-
-  // ── Renter ──────────────────────────────────────────────────────────────
   {
-    label: 'Discover',
+    labelKey: 'primary.discover',
     icon: Search,
     roles: ['renter'],
     matchPrefixes: ['/search', '/properties', '/hotels', '/listings', '/favorites'],
     children: [
       {
-        label: 'Search',
+        labelKey: 'children.search',
         href: '/search',
-        description: 'Filter apartments, mess, and hostels',
+        descriptionKey: 'children.searchDesc',
       },
       {
-        label: 'Browse listings',
+        labelKey: 'children.browseListings',
         href: '/properties',
-        description: 'Featured verified listings',
+        descriptionKey: 'children.browseListingsDesc',
       },
       {
-        label: 'Hotels & stays',
+        labelKey: 'children.hotelsStays',
         href: '/hotels',
-        description: 'Book hotels and guest houses',
+        descriptionKey: 'children.hotelsStaysDesc',
       },
     ],
   },
   {
-    label: 'My Living',
+    labelKey: 'primary.myLiving',
     icon: Home,
     roles: ['renter'],
     matchPrefixes: ['/rentals', '/mess/student-dashboard', '/mess'],
     children: [
       {
-        label: 'My rentals',
+        labelKey: 'children.myRentals',
         href: '/rentals',
-        description: 'Active and past tenancies',
+        descriptionKey: 'children.myRentalsDesc',
       },
       {
-        label: 'My mess',
+        labelKey: 'children.myMess',
         href: '/mess/student-dashboard',
-        description: 'Seat, meals, and attendance',
+        descriptionKey: 'children.myMessDesc',
       },
     ],
   },
   {
-    label: 'Finance',
+    labelKey: 'primary.finance',
     icon: Wallet,
     roles: ['renter'],
     matchPrefixes: ['/bills', '/payments'],
     children: [
       {
-        label: 'Bills',
+        labelKey: 'children.bills',
         href: '/bills',
-        description: 'View and pay rent invoices',
+        descriptionKey: 'children.billsDesc',
       },
       {
-        label: 'Payments',
+        labelKey: 'children.payments',
         href: '/payments',
-        description: 'History and scheduled payments',
+        descriptionKey: 'children.paymentsDesc',
       },
     ],
   },
   {
-    label: 'Bookings',
+    labelKey: 'primary.bookings',
     href: '/my-bookings',
     icon: CalendarCheck,
     roles: ['renter'],
     matchPrefixes: ['/my-bookings'],
   },
   {
-    label: 'More',
+    labelKey: 'primary.more',
     icon: MoreHorizontal,
     roles: ['renter'],
     matchPrefixes: ['/compare', '/complaints', '/documents', '/reminders'],
     children: [
-      { label: 'Compare listings', href: '/compare' },
-      { label: 'Complaints', href: '/complaints' },
-      { label: 'Documents', href: '/documents' },
-      { label: 'Reminders', href: '/reminders' },
+      { labelKey: 'children.compareListings', href: '/compare' },
+      { labelKey: 'children.complaints', href: '/complaints' },
+      { labelKey: 'children.documents', href: '/documents' },
+      { labelKey: 'children.reminders', href: '/reminders' },
     ],
   },
-
-  // ── Owner ───────────────────────────────────────────────────────────────
   {
-    label: 'Properties',
+    labelKey: 'primary.properties',
     icon: Building2,
     roles: ['owner'],
-    matchPrefixes: [
-      '/my-properties',
-      '/my-listings',
-      '/listings',
-    ],
+    matchPrefixes: ['/my-properties', '/my-listings', '/listings'],
     children: [
       {
-        label: 'My buildings',
+        labelKey: 'children.myBuildings',
         href: '/my-properties',
-        description: 'Buildings, floors, and flats',
+        descriptionKey: 'children.myBuildingsDesc',
       },
       {
-        label: 'Booking requests',
+        labelKey: 'children.bookingRequests',
         href: '/my-properties/bookings',
-        description: 'Approve or reject renters',
+        descriptionKey: 'children.bookingRequestsDesc',
       },
       {
-        label: 'My listings',
+        labelKey: 'children.myListings',
         href: '/my-listings',
-        description: 'Marketplace listings you publish',
+        descriptionKey: 'children.myListingsDesc',
       },
     ],
   },
   {
-    label: 'My Hotels',
+    labelKey: 'primary.myHotels',
     icon: Hotel,
     roles: ['owner'],
     matchPrefixes: ['/my-hotels'],
     children: [
       {
-        label: 'All hotels',
+        labelKey: 'children.allHotels',
         href: '/my-hotels',
-        description: 'Manage properties and bookings',
+        descriptionKey: 'children.allHotelsDesc',
       },
       {
-        label: 'Register hotel',
+        labelKey: 'children.registerHotel',
         href: '/my-hotels/new',
-        description: 'Onboard a new guest house or hotel',
+        descriptionKey: 'children.registerHotelDesc',
       },
       {
-        label: 'Browse marketplace',
+        labelKey: 'children.browseMarketplace',
         href: '/hotels',
-        description: 'Preview how guests discover stays',
+        descriptionKey: 'children.browseMarketplaceDesc',
       },
     ],
   },
   {
-    label: 'Mess & Hostel',
+    labelKey: 'primary.messHostel',
     href: '/mess',
     icon: UtensilsCrossed,
     roles: ['owner'],
     matchPrefixes: ['/mess'],
   },
   {
-    label: 'Finance',
+    labelKey: 'primary.finance',
     icon: Wallet,
     roles: ['owner'],
-    matchPrefixes: ['/bills', '/payments', '/reports', '/expenses'],
+    matchPrefixes: ['/bills', '/payments', '/reports', '/expenses', '/subscription'],
     children: [
       {
-        label: 'Generate rent',
+        labelKey: 'children.generateRent',
         href: '/bills?mode=generate',
-        description: 'Create monthly rent slips',
+        descriptionKey: 'children.generateRentDesc',
       },
       {
-        label: 'Bills',
+        labelKey: 'children.bills',
         href: '/bills',
-        description: 'Track and collect payments',
+        descriptionKey: 'children.billsDesc',
       },
       {
-        label: 'Payments',
+        labelKey: 'children.payments',
         href: '/payments',
-        description: 'Payment history and schedules',
+        descriptionKey: 'children.paymentsDesc',
       },
-      { label: 'Reports', href: '/reports' },
-      { label: 'Expenses', href: '/expenses' },
+      {
+        labelKey: 'children.subscription',
+        href: '/subscription',
+        descriptionKey: 'children.subscriptionDesc',
+      },
+      { labelKey: 'children.reports', href: '/reports' },
+      { labelKey: 'children.expenses', href: '/expenses' },
     ],
   },
   {
-    label: 'Communicate',
+    labelKey: 'primary.communicate',
     icon: MessageSquare,
     roles: ['owner'],
     matchPrefixes: ['/notices', '/messages'],
     children: [
       {
-        label: 'Notices',
+        labelKey: 'children.notices',
         href: '/notices',
-        description: 'Announcements for tenants',
+        descriptionKey: 'children.noticesDesc',
       },
       {
-        label: 'Messages',
+        labelKey: 'children.messages',
         href: '/messages',
-        description: 'Chat with renters',
+        descriptionKey: 'children.messagesDesc',
       },
     ],
   },
   {
-    label: 'More',
+    labelKey: 'primary.more',
     icon: MoreHorizontal,
     roles: ['owner'],
     matchPrefixes: ['/documents', '/complaints'],
     children: [
-      { label: 'Documents', href: '/documents' },
-      { label: 'Complaints', href: '/complaints' },
+      { labelKey: 'children.documents', href: '/documents' },
+      { labelKey: 'children.complaints', href: '/complaints' },
     ],
   },
-
-  // ── Admin ─────────────────────────────────────────────────────────────────
   {
-    label: 'Admin',
+    labelKey: 'primary.admin',
     href: '/admin',
     icon: Building2,
     roles: ['admin'],
@@ -239,167 +232,164 @@ export const primaryNavItems: NavItem[] = [
   },
 ]
 
-/** Mobile bottom bar — aligned with desktop groups (max 5 tabs) */
 export const bottomNavItems: BottomNavItem[] = [
   {
-    label: 'Home',
+    labelKey: 'bottom.home',
     href: '/dashboard',
     icon: LayoutDashboard,
     matchPrefixes: ['/dashboard'],
     roles: ['renter'],
   },
   {
-    label: 'Discover',
+    labelKey: 'bottom.discover',
     href: '/search',
     icon: Search,
     matchPrefixes: ['/search', '/properties', '/hotels', '/listings'],
     roles: ['renter'],
   },
   {
-    label: 'Bills',
+    labelKey: 'bottom.bills',
     href: '/bills',
     icon: FileText,
     matchPrefixes: ['/bills', '/payments'],
     roles: ['renter'],
   },
   {
-    label: 'Bookings',
+    labelKey: 'bottom.bookings',
     href: '/my-bookings',
     icon: CalendarCheck,
     matchPrefixes: ['/my-bookings'],
     roles: ['renter'],
   },
   {
-    label: 'Menu',
+    labelKey: 'bottom.menu',
     icon: Menu,
     action: 'menu',
     roles: ['renter'],
   },
   {
-    label: 'Dashboard',
+    labelKey: 'bottom.dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
     matchPrefixes: ['/dashboard'],
     roles: ['owner'],
   },
   {
-    label: 'Properties',
+    labelKey: 'bottom.properties',
     href: '/my-properties',
     icon: Building2,
     matchPrefixes: ['/my-properties', '/my-listings', '/my-properties/bookings'],
     roles: ['owner'],
   },
   {
-    label: 'Hotels',
+    labelKey: 'bottom.hotels',
     href: '/my-hotels',
     icon: Hotel,
     matchPrefixes: ['/my-hotels'],
     roles: ['owner'],
   },
   {
-    label: 'Mess',
+    labelKey: 'bottom.mess',
     href: '/mess',
     icon: UtensilsCrossed,
     matchPrefixes: ['/mess'],
     roles: ['owner'],
   },
   {
-    label: 'Menu',
+    labelKey: 'bottom.menu',
     icon: Menu,
     action: 'menu',
     roles: ['owner'],
   },
   {
-    label: 'Dashboard',
+    labelKey: 'bottom.dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
     matchPrefixes: ['/dashboard'],
     roles: ['admin'],
   },
   {
-    label: 'Admin',
+    labelKey: 'bottom.admin',
     href: '/admin',
     icon: Building2,
     matchPrefixes: ['/admin'],
     roles: ['admin'],
   },
   {
-    label: 'Notices',
+    labelKey: 'bottom.notices',
     href: '/notices',
     icon: Bell,
     matchPrefixes: ['/notices'],
     roles: ['admin'],
   },
   {
-    label: 'Menu',
+    labelKey: 'bottom.menu',
     icon: Menu,
     action: 'menu',
     roles: ['admin'],
   },
 ]
 
-/** Owner quick-create actions (desktop header, right side) */
 export const quickActionItems: QuickActionItem[] = [
   {
-    label: 'Add building',
+    labelKey: 'quickActions.addBuilding',
     href: '/my-properties',
-    description: 'Create a building and manage flats',
+    descriptionKey: 'quickActions.addBuildingDesc',
     roles: ['owner'],
   },
   {
-    label: 'Register hotel',
+    labelKey: 'quickActions.registerHotel',
     href: '/my-hotels/new',
-    description: 'Onboard a hotel or guest house',
+    descriptionKey: 'quickActions.registerHotelDesc',
     roles: ['owner'],
   },
   {
-    label: 'Publish listing',
+    labelKey: 'quickActions.publishListing',
     href: '/my-listings/new',
-    description: 'Appear in search and discovery',
+    descriptionKey: 'quickActions.publishListingDesc',
     roles: ['owner'],
   },
   {
-    label: 'Create notice',
+    labelKey: 'quickActions.createNotice',
     href: '/notices',
-    description: 'Send announcements to tenants',
+    descriptionKey: 'quickActions.createNoticeDesc',
     roles: ['owner'],
   },
 ]
 
-/** Header shortcuts surfaced inside the mobile drawer */
 export const mobileUtilityLinks: MobileUtilityLink[] = [
   {
-    label: 'Messages',
+    labelKey: 'utility.messages',
     href: '/messages',
     icon: MessageCircle,
     roles: ['renter', 'owner', 'admin'],
   },
   {
-    label: 'Favorites',
+    labelKey: 'utility.favorites',
     href: '/favorites',
     icon: Heart,
     roles: ['renter'],
   },
   {
-    label: 'Search history',
+    labelKey: 'utility.searchHistory',
     href: '/search-history',
     icon: Clock,
     roles: ['renter'],
   },
   {
-    label: 'Saved searches',
+    labelKey: 'utility.savedSearches',
     href: '/saved-searches',
     icon: Bookmark,
     roles: ['renter'],
   },
   {
-    label: 'Notices',
+    labelKey: 'utility.notices',
     href: '/notices',
     icon: Bell,
     roles: ['owner', 'admin'],
   },
   {
-    label: 'Profile',
+    labelKey: 'utility.profile',
     href: '/profile',
     icon: User,
     roles: ['renter', 'owner', 'admin'],
@@ -422,5 +412,4 @@ export function getQuickActionsForRole(role: UserRole): QuickActionItem[] {
   return quickActionItems.filter(item => item.roles.includes(role))
 }
 
-/** Icon used for the owner "+ New" trigger */
 export const quickActionTriggerIcon = Plus

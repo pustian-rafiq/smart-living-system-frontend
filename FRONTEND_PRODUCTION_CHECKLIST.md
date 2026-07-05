@@ -28,22 +28,22 @@
 
 - **55 routes** covering discovery, auth, renter, owner, mess, hotel, admin
 - **~157 components** with shadcn/ui, forms (RHF + Zod), role-aware nav
-- Theme (light/dark), partial Bangla/English, mobile-first layout
+- Theme (light/dark), full Bangla/English i18n, mobile-first layout
 - Mock data layer (`data/mock*.ts`) + partial mock API (`lib/api/`)
 - Core product flows are clickable end-to-end on mocks
 
 ### What blocks calling the frontend “production-ready”
 
 1. **No real Pay Now / payment checkout UI** (only schedule + method labels)
-2. **Broken legal/support links** (`/terms`, `/privacy`, `/help`, `/faq`)
-3. **No route protection** (any user can open `/admin`, owner pages, etc.)
+2. ~~**Broken legal/support links**~~ (`/terms`, `/privacy`, `/help`, `/faq`, `/safety`) — **fixed**
+3. ~~**No route protection**~~ — client guards done (`RouteAuthGuard`); server auth still needed
 4. **No global error/loading/not-found UX**
-5. **No toast/feedback system** (many `alert()` / `confirm()` calls)
+5. ~~**No toast/feedback system**~~ — ✅ `FeedbackProvider` + sonner toasts + `useConfirm`
 6. **Hardcoded demo users** (`r1`, etc.) instead of session-driven identity
 7. **Inconsistent data layer** (most pages import mocks directly; only some use `lib/api`)
 8. **Monetization UI missing** (owner subscription, featured listing purchase)
-9. **i18n incomplete** (auth only; rest of app is English-only)
-10. **No tests**, weak SEO, no PWA
+9. ~~**i18n incomplete**~~ — ✅ Full app localization (en default + bn via switcher)
+10. **No tests**, weak SEO (per-route metadata done ✅), no full PWA offline
 
 ---
 
@@ -54,7 +54,7 @@
 | Next.js 15 App Router + TypeScript | ✅ Done | |
 | Tailwind + shadcn/ui design system | ✅ Done | |
 | Theme provider (light/dark) | ✅ Done | |
-| Language provider (bn/en) | ⚠️ Partial | Only login/OTP/role strings translated |
+| Language provider (bn/en) | ✅ Done | `next-intl` + 19 namespaces; default **English**; switcher in header/auth/profile |
 | Path aliases (`@/`) | ✅ Done | |
 | Layout: Header, Navbar, BottomNav, Footer | ✅ Done | |
 | Page chrome (`PageHeader`, `EmptyState`, `LoadingState`) | ✅ Done | |
@@ -62,7 +62,7 @@
 | Mock API layer (`lib/api/`) | ⚠️ Partial | Only properties, bookings, rentals, demoUser |
 | Migrate all pages to `lib/api` + `useMockQuery` | ❌ Missing | **Important** — makes backend swap painless |
 | Session-driven user id (not hardcoded `r1`) | ❌ Missing | **Important** |
-| Auth middleware / protected routes | ❌ Missing | **Critical** |
+| Auth middleware / protected routes | ⚠️ Partial | Client `RouteAuthGuard` + role rules; server middleware/cookies in backend phase |
 | Role guard (renter / owner / admin / student) | ⚠️ Partial | Client checks only; admin unguarded |
 | Global `error.tsx` / `loading.tsx` / `not-found.tsx` | ❌ Missing | **Important** |
 | Toast / notification feedback (replace `alert`) | ❌ Missing | **Important** |
@@ -70,7 +70,7 @@
 | Optimistic UI patterns | 🔵 Backend later | Optional for frontend phase |
 | Unit / component / E2E tests | ❌ Missing | Important before launch |
 | ESLint/TS clean build (no ignore flags) | ⚠️ Partial | `next.config` may ignore build errors |
-| Env example for Maps / future API URL | ❌ Missing | |
+| Env example for Maps / future API URL | ✅ Done | `.env.example` includes `NEXT_PUBLIC_SITE_URL` |
 
 ---
 
@@ -263,13 +263,13 @@
 | Analytics | ✅ Done | `/admin/analytics` |
 | Settings (commission, subscription plans config) | ✅ Done | `/admin/settings` |
 | Audit logs | ✅ Done | `/admin/audit-logs` |
-| Admin bookings page | ❌ Missing | Linked from dashboard (`/admin/bookings`) but **no page** |
-| Fraud reports UI | ❌ Missing | Types/mock exist; no admin page |
+| Admin bookings page | ✅ Done | `/admin/bookings` — filters, stats, admin actions |
+| Fraud reports UI | ✅ Done | `/admin/fraud-reports` |
 | Demand heatmap UI | ❌ Missing | Later / medium |
-| Admin login / role gate | ❌ Missing | **Critical** — currently open |
-| Super-admin vs moderator roles UI | ❌ Missing | Important |
+| Admin login / role gate | ✅ Done | `/admin/login` + `AdminAuthGuard` on all admin routes |
+| Super-admin vs moderator roles UI | ✅ Done | Role badge, nav filtering, permission-gated actions |
 
-**Frontend priority:** add `/admin/bookings`, fraud reports page, and hard client-side admin role gate (middleware later with backend).
+**Frontend priority:** demand heatmap (later). Admin demo login: `/admin/login` — super-admin `+8801711111111`, moderator `+8801722222222`, support `+8801733333333` (OTP `123456`).
 
 ---
 
@@ -278,11 +278,11 @@
 | Item | Status | Notes |
 |------|--------|-------|
 | Admin configures subscription plans | ✅ Done | Settings page (display) |
-| Owner subscription dashboard (plan, usage, upgrade) | ❌ Missing | **Important** |
-| Free tier limit UX (e.g. max 3 flats warning) | ❌ Missing | **Important** |
-| Featured listing purchase / boost UI | ❌ Missing | **Important** |
-| Featured badge on cards | ⚠️ Partial | Featured data exists; purchase flow missing |
-| Commission per booking display | ❌ Missing | |
+| Owner subscription dashboard (plan, usage, upgrade) | ✅ Done | `/subscription` + `OwnerSubscriptionPanel` |
+| Free tier limit UX (e.g. max 3 flats warning) | ✅ Done | `FreeTierLimitBanner` on dashboard & my-properties; block dialog at limit |
+| Featured listing purchase / boost UI | ✅ Done | `BoostListingDialog` on `/my-listings` |
+| Featured badge on cards | ✅ Done | `FeaturedBadge` on PropertyCard, HotelCard, owner listings |
+| Commission per booking display | ✅ Done | `BookingCommissionSummary` / inline on owner booking views |
 | White-label / SaaS branding | ❌ Missing | Later phase |
 
 ---
@@ -294,13 +294,13 @@
 | Home / marketing landing | ✅ Done | `/` |
 | About | ✅ Done | `/about` |
 | Contact | ✅ Done | `/contact` |
-| Terms & Conditions | ❌ Missing | Linked from login + footer — **broken** |
-| Privacy Policy | ❌ Missing | Linked from login — **broken** |
-| Help Center | ❌ Missing | Footer link — **broken** |
-| FAQ | ❌ Missing | Footer link — **broken** |
-| Anti-scam / safety tips page | ❌ Missing | Important for BD trust |
+| Terms & Conditions | ✅ Done | `/terms` — BD-appropriate legal sections + TOC |
+| Privacy Policy | ✅ Done | `/privacy` |
+| Help Center | ✅ Done | `/help` — searchable category grid |
+| FAQ | ✅ Done | `/faq` — filterable accordion |
+| Anti-scam / safety tips page | ✅ Done | `/safety` — BD rental scam guide |
 
-**Critical:** fix all footer/login links before any public demo.
+**Critical:** footer and login links verified — no 404s for legal/support routes.
 
 ---
 
@@ -313,10 +313,10 @@
 | Role selection | ✅ Done | |
 | Session flags in `sessionStorage` | ✅ Done | Demo only |
 | Logout | ✅ Done | Via `utils/auth` |
-| Admin role in role selection | ⚠️ Partial | Nav supports admin; selection may not offer admin clearly |
-| Account recovery / change phone UI | ❌ Missing | Important |
-| Profile verification status UX | ⚠️ Partial | Badge exists; full verification request flow for users incomplete |
-| Force login on protected pages | ❌ Missing | **Critical** |
+| Admin role in role selection | ✅ Done | Shown for demo admin phones + link to `/admin/login` |
+| Account recovery / change phone UI | ✅ Done | `/account/recover`, `/account/change-phone` |
+| Profile verification status UX | ✅ Done | Verification tab + `UserVerificationPanel` + status badges |
+| Force login on protected pages | ✅ Done | `RouteAuthGuard` in root layout (demo sessionStorage) |
 
 ---
 
@@ -326,50 +326,50 @@
 
 | Item | Status |
 |------|--------|
-| Empty states on list pages | ⚠️ Partial — some pages only |
-| Loading skeletons | ⚠️ Partial — `LoadingState` not used everywhere |
-| Consistent date/currency formatting (৳, bn-BD) | ⚠️ Partial |
-| Replace `alert`/`confirm` with dialogs + toasts | ❌ Missing |
-| Onboarding wizards (first owner / mess / hotel) | ❌ Missing |
-| Offline / network-required messaging | ❌ Missing |
+| Empty states on list pages | ✅ Done | `EmptyState` on favorites, complaints, hotels, my-hotels, properties, rentals, bookings, mess, etc. |
+| Loading skeletons | ✅ Done | `LoadingState` + `ListPageSkeleton` (spinner + skeleton variants) |
+| Consistent date/currency formatting (৳, bn-BD) | ✅ Done | `lib/format/locale.ts` — `formatCurrency`, `formatDate`, `formatNumber`; used in PropertyCard, BillCard, OwnerDashboard, my-hotels |
+| Replace `alert`/`confirm` with dialogs + toasts | ✅ Done | `FeedbackProvider` + `toast` (sonner) + `useConfirm` — all pages migrated |
+| Onboarding wizards (first owner / mess / hotel) | ✅ Done | `OnboardingWizard` + role dialogs on dashboard, `/mess`, `/my-hotels` |
+| Offline / network-required messaging | ✅ Done | `OfflineBanner` in `Layout` via `useOnlineStatus` |
 
 ### Accessibility
 
 | Item | Status |
 |------|--------|
-| Basic semantic HTML / shadcn a11y | ⚠️ Partial |
-| Full keyboard nav audit | ❌ Missing |
-| ARIA on custom widgets (map, OTP, charts) | ❌ Missing |
-| Color contrast check | ❌ Missing |
+| Basic semantic HTML / shadcn a11y | ✅ Done | `main#main-content`, skip link, `aria-current`, semantic landmarks |
+| Full keyboard nav audit | ✅ Done | Skip-to-content, focus-visible rings, OTP arrow keys, map property list, nav `aria-current` |
+| ARIA on custom widgets (map, OTP, charts) | ✅ Done | `OtpInputGroup`, `AccessibleChart`, `PropertyMap` listbox + live region |
+| Color contrast check | ✅ Done | WCAG AA tokens in `globals.css` + `lib/a11y/contrast-tokens.ts` |
 
 ### i18n
 
 | Item | Status |
 |------|--------|
-| Auth screens bn/en | ✅ Done |
-| Full app copy in Bangla | ❌ Missing | **Important** for BD production |
-| Persist language choice | ⚠️ Partial | Provider exists; not all pages use `t()` |
-| Date/number locale formatting | ❌ Missing |
+| Auth screens bn/en | ✅ Done | `locales/*/auth.json` |
+| Full app copy in Bangla | ✅ Done | All namespaces: common, nav, auth, dashboard, layout, property, profile, feedback, bills, payments, mess, hotels, admin, search, legal, portfolio, tools, home, account |
+| Persist language choice | ✅ Done | Cookie `NEXT_LOCALE` + localStorage sync; default **English**; `LanguageSwitcher` in header, auth, profile |
+| Date/number locale formatting | ✅ Done | `useAppFormat()` + `lib/format/locale.ts` bound to active locale |
 
 ### SEO & PWA
 
 | Item | Status |
 |------|--------|
-| Root metadata | ✅ Done | Minimal |
-| Per-page metadata (public routes) | ⚠️ Partial | Login only |
-| Open Graph / social cards | ❌ Missing |
-| `sitemap.xml` / `robots.txt` | ❌ Missing |
-| PWA manifest + install prompt | ❌ Missing | Nice-to-have |
-| Service worker / offline | ❌ Missing | Later |
+| Root metadata | ✅ Done | Locale-aware via `seo` namespace + `metadataBase` |
+| Per-page metadata (public routes) | ✅ Done | `lib/seo/` + segment `layout.tsx` on discovery, legal, auth; dynamic listings & hotels |
+| Open Graph / social cards | ✅ Done | `buildMetadata()` + `app/opengraph-image.tsx` + per-listing images |
+| `sitemap.xml` / `robots.txt` | ✅ Done | `app/sitemap.ts` (static + listings + hotels), `app/robots.ts` with disallow rules |
+| PWA manifest + install prompt | ✅ Done | `app/manifest.ts`, `public/icons/icon.svg`, `InstallPrompt` component |
+| Service worker / offline | ❌ Missing | Later — manifest only; no offline cache yet |
 
 ### Security (frontend-side)
 
 | Item | Status |
 |------|--------|
-| Client route guards | ❌ Missing |
-| No secrets in client bundle | ✅ Done | Mocks only |
-| File upload size/type validation UI | ⚠️ Partial |
-| XSS-safe rendering patterns | ⚠️ Partial | Review user-generated content displays |
+| Client route guards | ✅ Done | `RouteAuthGuard` + `AdminAuthGuard` + `lib/auth/role-routes.ts` (login, role, admin permissions) |
+| No secrets in client bundle | ✅ Done | `assertNoSecretsInPublicEnv()` in dev; only `NEXT_PUBLIC_*` documented in `.env.example` |
+| File upload size/type validation UI | ✅ Done | `lib/security/file-upload.ts` presets + validation in upload forms |
+| XSS-safe rendering patterns | ✅ Done | `SafeText` / `SafeLink` + `sanitizeUrl` / `sanitizePlainText` for UGC (complaints, chat, notices, reviews) |
 
 ---
 
@@ -377,14 +377,14 @@
 
 Do this **before** backend so API swap is mechanical:
 
-| Task | Status |
-|------|--------|
-| `lib/api` for properties, bookings, rentals | ✅ Done |
-| `lib/api` for bills, payments, messages, mess, hotels, admin, notices, complaints | ❌ Missing |
-| All pages use `useMockQuery` / API functions (no direct `mock*` imports in pages) | ❌ Missing |
-| Single `ApiResult<T>` error shape used everywhere | ⚠️ Partial |
-| Typed request/response contracts documented | ❌ Missing |
-| Remove hardcoded `userId: 'r1'` — use `getDemoUserId()` / session | ❌ Missing |
+| Task | Status | Notes |
+|------|--------|-------|
+| `lib/api` for properties, bookings, rentals | ✅ Done | `lib/api/properties.ts`, `bookings.ts`, `rentals.ts` + `patchBookingStatus` / `updateBookingStatus` re-export |
+| `lib/api` for bills, payments, messages, mess, hotels, admin, notices, complaints | ✅ Done | `bills`, `payments`, `messages`, `mess`, `messDomain`, `hotels`, `admin`, `complaints`, `documents`, `search`, `favorites`, etc. in `lib/api/` |
+| All pages use `useMockQuery` / API functions (no direct `mock*` imports in pages) | ✅ Done | All `app/**/page.tsx` routes load via `lib/api/*`; SSG listing metadata uses `getPropertyById` from API layer |
+| Single `ApiResult<T>` error shape used everywhere | ✅ Done | `lib/api/http.ts` `ApiResult<T>` + `ok()` / `err()` used across all `lib/api/*` modules |
+| Typed request/response contracts documented | ✅ Done | `lib/api/contracts.ts` documents GET/POST shapes for major endpoints |
+| Remove hardcoded `userId: 'r1'` — use `getDemoUserId()` / session | ✅ Done | `lib/api/demoUser.ts` helpers; `AppHeader`, `SchedulePaymentDialog`, and payment panels use session-aware ids |
 
 ---
 
@@ -394,30 +394,30 @@ Work top-down. Items marked **P0** are required before a public production front
 
 ### P0 — Must complete (frontend)
 
-- [ ] **Payment checkout UI** — Pay Now for bills, mess fees, hotel bookings (mock success/fail)
-- [ ] **Payment result + receipt UI** — txn id, download/print receipt
-- [ ] **Legal pages** — `/terms`, `/privacy`, `/help`, `/faq` (real content, BD-appropriate)
-- [ ] **Route protection** — redirect unauthenticated users; block non-admin from `/admin`
-- [ ] **Fix broken links** — footer, admin `/admin/bookings`, any dead CTAs
-- [ ] **Toast + confirm dialogs** — replace `alert()` / `confirm()`
-- [ ] **Global error / not-found / loading** — App Router special files
-- [ ] **Session-based identity** — stop hardcoding `r1`
+- [x] **Payment checkout UI** — Pay Now for bills, mess fees, hotel bookings (mock success/fail)
+- [x] **Payment result + receipt UI** — txn id, download/print receipt
+- [x] **Legal pages** — `/terms`, `/privacy`, `/help`, `/faq`, `/safety` (BD-appropriate content)
+- [x] **Route protection** — `RouteAuthGuard` + `AdminAuthGuard` (demo sessionStorage; middleware later)
+- [x] **Fix broken links** — footer, login, admin `/admin/bookings`
+- [x] **Toast + confirm dialogs** — replace `alert()` / `confirm()` via `FeedbackProvider`, `toast`, `useConfirm`
+- [x] **Global error / not-found / loading** — `app/error.tsx`, `app/global-error.tsx`, `app/not-found.tsx`, `app/loading.tsx`
+- [x] **Session-based identity** — `syncDemoIdentityForRole()` on login; `getDemoTenantId()` reads session (no hardcoded `r1` in pages)
 
 ### P1 — Should complete (frontend)
 
-- [ ] Migrate all modules to `lib/api` + `useMockQuery`
-- [ ] Owner subscription plan page + free-tier limit warnings
-- [ ] Featured listing boost purchase UI
-- [ ] Owner payouts + commission breakdown page
-- [ ] Cash payment record (owner) with optional receipt photo
-- [ ] Hotel cancellation/refund policy + fee breakdown
-- [ ] Property (mess/apartment) reviews UI
-- [ ] Admin fraud reports page
-- [ ] Full Bangla translations for core flows (search, bills, pay, dashboard)
-- [ ] Public SEO metadata for listings / hotels
-- [ ] Currency/date formatting helpers (৳, `bn-BD`)
-- [ ] Empty/loading states on every list page
-- [ ] Onboarding wizards for new owners
+- [x] **Migrate all modules to `lib/api` + `useMockQuery`** — all pages + components; mocks only inside `lib/api/*`
+- [x] **Owner subscription plan page + free-tier limit warnings** — `/subscription`, `FreeTierLimitBanner`
+- [x] **Featured listing boost purchase UI** — `BoostListingDialog` + `purchaseFeaturedBoost()` (demo checkout)
+- [x] **Owner payouts + commission breakdown page** — `/payments` owner panel (`PayoutLedgerTable`, analytics)
+- [x] **Cash payment record (owner) with optional receipt photo** — `RecordCashPaymentDialog` on `/bills`
+- [x] **Hotel cancellation/refund policy + fee breakdown** — `CancellationPolicyCard`, `BookingFeeBreakdown` on book flow
+- [x] **Property (mess/apartment) reviews UI** — `ReviewsSection` on listings; `ReviewCard` on hotels
+- [x] **Admin fraud reports page** — `/admin/fraud-reports` via `fetchFraudReports` + `patchFraudReport`
+- [x] Full Bangla translations for core flows (search, bills, pay, dashboard)
+- [x] Public SEO metadata for listings / hotels
+- [x] Currency/date formatting helpers (৳, `bn-BD`)
+- [x] **Empty/loading states on every list page** — core list pages (bills, expenses, messages, documents, reports, reminders, + existing)
+- [x] **Onboarding wizards for new owners** — `OwnerOnboardingDialog`, `MessOnboardingDialog`, `HotelOnboardingDialog`
 
 ### P2 — Nice for production polish
 

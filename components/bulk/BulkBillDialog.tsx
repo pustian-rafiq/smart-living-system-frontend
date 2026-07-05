@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -34,10 +34,10 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { mockBuildings } from '@/data/mockBuildings'
-import { getFloorsByBuilding } from '@/data/mockFloors'
-import { mockFlats } from '@/data/mockBuildings'
-import { getActiveTemplates } from '@/data/mockBillTemplates'
+import { fetchBillsBoard } from '@/lib/api/bills'
+import { fetchFloorsByBuilding } from '@/lib/api/buildings'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { BulkBillGenerationData } from '@/types/bulk'
 import { Calendar, Building2, FileText } from 'lucide-react'
 
@@ -93,10 +93,40 @@ export function BulkBillDialog({
   const [selectedFloors, setSelectedFloors] = useState<string[]>([])
   const [selectedFlats, setSelectedFlats] = useState<string[]>([])
 
-  const templates = getActiveTemplates()
-  const floors = selectedBuilding ? getFloorsByBuilding(selectedBuilding) : []
+  const loadBillsBoard = useCallback(
+    () =>
+      open
+        ? fetchBillsBoard()
+        : Promise.resolve(
+            ok({
+              bills: [],
+              templates: [],
+              rules: [],
+              meterReadings: [],
+              buildings: [],
+              flats: [],
+              renters: [],
+              messList: [],
+            })
+          ),
+    [open]
+  )
+  const { data: billsBoard } = useMockQuery(loadBillsBoard)
+
+  const loadFloors = useCallback(
+    () =>
+      open && selectedBuilding
+        ? fetchFloorsByBuilding(selectedBuilding)
+        : Promise.resolve(ok([])),
+    [open, selectedBuilding]
+  )
+  const { data: floorsData } = useMockQuery(loadFloors)
+
+  const buildings = billsBoard?.buildings ?? []
+  const templates = (billsBoard?.templates ?? []).filter(template => template.isActive)
+  const floors = floorsData ?? []
   const availableFlats = selectedBuilding
-    ? mockFlats.filter(f => f.buildingId === selectedBuilding)
+    ? (billsBoard?.flats ?? []).filter(f => f.buildingId === selectedBuilding)
     : []
 
   const form = useForm<BulkBillGenerationData>({
@@ -186,7 +216,7 @@ export function BulkBillDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {mockBuildings.map(building => (
+                          {buildings.map(building => (
                             <SelectItem key={building.id} value={building.id}>
                               {building.name}
                             </SelectItem>

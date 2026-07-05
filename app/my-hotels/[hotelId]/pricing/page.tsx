@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -15,29 +16,42 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { CancellationPolicyCard } from '@/components/hotel/CancellationPolicyCard'
-import { mockHotels, updateHotelPricing } from '@/data/mockHotels'
+import { fetchHotelById, patchHotelPricing } from '@/lib/api/hotels'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { SeasonalPriceRule } from '@/types/hotel'
 import { DEFAULT_PRICING_RULES } from '@/lib/hotel/pricing'
 import { Plus, Trash2, Hotel } from 'lucide-react'
 
 export default function HotelPricingPage() {
+  const t = useTranslations('hotels')
+  const tc = useTranslations('common')
   const params = useParams()
   const router = useRouter()
   const hotelId = params.hotelId as string
-  const hotel = mockHotels.find(h => h.id === hotelId)
 
-  const initial = hotel?.pricingRules ?? DEFAULT_PRICING_RULES
+  const loadHotel = useCallback(() => fetchHotelById(hotelId), [hotelId])
+  const { data: hotel } = useMockQuery(loadHotel)
+
   const [weekendMultiplier, setWeekendMultiplier] = useState(
-    initial.weekendMultiplier
+    DEFAULT_PRICING_RULES.weekendMultiplier
   )
   const [serviceChargePercent, setServiceChargePercent] = useState(
-    initial.serviceChargePercent
+    DEFAULT_PRICING_RULES.serviceChargePercent
   )
-  const [vatPercent, setVatPercent] = useState(initial.vatPercent)
+  const [vatPercent, setVatPercent] = useState(DEFAULT_PRICING_RULES.vatPercent)
   const [seasonalRules, setSeasonalRules] = useState<SeasonalPriceRule[]>(
-    initial.seasonalRules
+    DEFAULT_PRICING_RULES.seasonalRules
   )
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    if (!hotel?.pricingRules) return
+    const rules = hotel.pricingRules
+    setWeekendMultiplier(rules.weekendMultiplier)
+    setServiceChargePercent(rules.serviceChargePercent)
+    setVatPercent(rules.vatPercent)
+    setSeasonalRules(rules.seasonalRules)
+  }, [hotel])
 
   const [newRule, setNewRule] = useState({
     name: '',
@@ -49,16 +63,27 @@ export default function HotelPricingPage() {
   const policy = hotel?.cancellationPolicy
 
   const previewNote = useMemo(() => {
-    return `Weekend nights ×${weekendMultiplier}. Service ${serviceChargePercent}% + VAT ${vatPercent}%. ${seasonalRules.length} seasonal rule(s).`
-  }, [weekendMultiplier, serviceChargePercent, vatPercent, seasonalRules.length])
+    return t('pricing.previewNote', {
+      multiplier: weekendMultiplier,
+      service: serviceChargePercent,
+      vat: vatPercent,
+      count: seasonalRules.length,
+    })
+  }, [
+    weekendMultiplier,
+    serviceChargePercent,
+    vatPercent,
+    seasonalRules.length,
+    t,
+  ])
 
   if (!hotel) {
     return (
       <Layout>
         <PageContainer>
-          <EmptyState title="Hotel not found" icon={Hotel}>
+          <EmptyState title={t('pricing.notFoundTitle')} icon={Hotel}>
             <Button asChild variant="outline">
-              <Link href="/my-hotels">Back</Link>
+              <Link href="/my-hotels">{tc('back')}</Link>
             </Button>
           </EmptyState>
         </PageContainer>
@@ -82,43 +107,48 @@ export default function HotelPricingPage() {
   }
 
   const save = () => {
-    updateHotelPricing(hotelId, {
+    void patchHotelPricing(hotelId, {
       weekendMultiplier,
       serviceChargePercent,
       vatPercent,
       seasonalRules,
+    }).then(result => {
+      if (result.ok) {
+        setSaved(true)
+        window.setTimeout(() => setSaved(false), 2500)
+      }
     })
-    setSaved(true)
-    window.setTimeout(() => setSaved(false), 2500)
   }
 
   return (
     <Layout>
       <PageContainer>
         <PageHeader
-          title={`Pricing · ${hotel.name}`}
-          description="Weekend, seasonal rates, service charge, and VAT for guest invoices."
+          title={t('pricing.title', { name: hotel.name })}
+          description={t('pricing.descriptionLong')}
           actions={
             <Button variant="outline" onClick={() => router.push('/my-hotels')}>
-              Back to hotels
+              {t('pricing.backToHotels')}
             </Button>
           }
         />
 
         {saved && (
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            Pricing rules saved. New bookings will use these rates.
+            {t('pricing.savedMessage')}
           </div>
         )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Base multipliers & taxes</CardTitle>
+              <CardTitle className="text-base">
+                {t('pricing.baseMultipliers')}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Weekend multiplier (Fri–Sat nights)</Label>
+                <Label>{t('pricing.weekendMultiplierLabel')}</Label>
                 <Input
                   type="number"
                   step="0.05"
@@ -132,7 +162,7 @@ export default function HotelPricingPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Service charge %</Label>
+                  <Label>{t('pricing.serviceChargePercent')}</Label>
                   <Input
                     type="number"
                     min={0}
@@ -144,7 +174,7 @@ export default function HotelPricingPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>VAT %</Label>
+                  <Label>{t('pricing.vatPercent')}</Label>
                   <Input
                     type="number"
                     min={0}
@@ -162,7 +192,9 @@ export default function HotelPricingPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Seasonal rules</CardTitle>
+              <CardTitle className="text-base">
+                {t('pricing.seasonalRules')}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -192,15 +224,15 @@ export default function HotelPricingPage() {
                 ))}
                 {seasonalRules.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No seasonal rules yet.
+                    {t('pricing.noSeasonalRules')}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2 rounded-lg border border-dashed p-3">
-                <Label>Add seasonal period</Label>
+                <Label>{t('pricing.addSeasonalPeriod')}</Label>
                 <Input
-                  placeholder="Name (e.g. Eid holiday)"
+                  placeholder={t('pricing.seasonNamePlaceholder')}
                   value={newRule.name}
                   onChange={e =>
                     setNewRule(r => ({ ...r, name: e.target.value }))
@@ -237,7 +269,7 @@ export default function HotelPricingPage() {
                 />
                 <Button type="button" variant="outline" size="sm" onClick={addSeason}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add rule
+                  {t('pricing.addRule')}
                 </Button>
               </div>
             </CardContent>
@@ -249,9 +281,11 @@ export default function HotelPricingPage() {
         </div>
 
         <div className="mt-6 flex gap-2">
-          <Button onClick={save}>Save pricing rules</Button>
+          <Button onClick={save}>{t('pricing.savePricingRules')}</Button>
           <Button variant="outline" asChild>
-            <Link href={`/my-hotels/${hotelId}/rooms`}>Manage rooms</Link>
+            <Link href={`/my-hotels/${hotelId}/rooms`}>
+              {t('pricing.manageRooms')}
+            </Link>
           </Button>
         </div>
       </PageContainer>

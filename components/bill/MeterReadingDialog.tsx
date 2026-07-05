@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -32,9 +32,9 @@ import {
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { mockBuildings, mockFlats } from '@/data/mockBuildings'
-import { mockMess } from '@/data/mockMess'
-import { getPreviousMeterReading } from '@/data/mockBillTemplates'
+import { fetchBillsBoard } from '@/lib/api/bills'
+import { ok } from '@/lib/api/http'
+import { useMockQuery } from '@/hooks/useMockQuery'
 import type { MeterReading } from '@/types/bill'
 
 const meterReadingSchema = z.object({
@@ -95,6 +95,26 @@ export function MeterReadingDialog({
     MeterReading | undefined
   >()
 
+  const loadBillsBoard = useCallback(
+    () =>
+      open
+        ? fetchBillsBoard()
+        : Promise.resolve(
+            ok({
+              bills: [],
+              templates: [],
+              rules: [],
+              meterReadings: [],
+              buildings: [],
+              flats: [],
+              renters: [],
+              messList: [],
+            })
+          ),
+    [open]
+  )
+  const { data: billsBoard } = useMockQuery(loadBillsBoard)
+
   const form = useForm<MeterReadingFormData>({
     resolver: zodResolver(meterReadingSchema) as never,
     defaultValues: reading
@@ -131,16 +151,22 @@ export function MeterReadingDialog({
   // Load previous reading when property/flat/month changes
   useEffect(() => {
     if (propertyId && month && year) {
-      const prev = getPreviousMeterReading(
-        propertyId,
-        flatId || undefined,
-        undefined,
-        month,
-        year
+      const currentIndex = months.indexOf(month)
+      const prevMonth = currentIndex === 0 ? 'December' : months[currentIndex - 1]
+      const prevYear = currentIndex === 0 ? year - 1 : year
+      const prev = (billsBoard?.meterReadings ?? []).find(
+        item =>
+          item.propertyId === propertyId &&
+          item.flatId === (flatId || undefined) &&
+          item.seatId === undefined &&
+          item.month === prevMonth &&
+          item.year === prevYear
       )
       setPreviousReading(prev)
+    } else {
+      setPreviousReading(undefined)
     }
-  }, [propertyId, flatId, month, year])
+  }, [propertyId, flatId, month, year, billsBoard])
 
   const handleSubmit = (data: MeterReadingFormData) => {
     onSubmit(data)
@@ -151,9 +177,11 @@ export function MeterReadingDialog({
   }
 
   const properties =
-    selectedPropertyType === 'apartment' ? mockBuildings : mockMess
+    selectedPropertyType === 'apartment'
+      ? (billsBoard?.buildings ?? [])
+      : (billsBoard?.messList ?? [])
   const availableFlats = selectedPropertyId
-    ? mockFlats.filter(f => f.buildingId === selectedPropertyId)
+    ? (billsBoard?.flats ?? []).filter(f => f.buildingId === selectedPropertyId)
     : []
 
   // Calculate consumption

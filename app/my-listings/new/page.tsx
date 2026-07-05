@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { PageContainer, PageHeader } from '@/components/page'
 import { PublishListingWizard } from '@/components/property/PublishListingWizard'
@@ -9,6 +10,7 @@ import type { PropertyListingInput } from '@/types/property'
 
 export default function NewListingPage() {
   const router = useRouter()
+  const t = useTranslations('portfolio.listings')
 
   const handleSubmit = async (input: PropertyListingInput) => {
     const result = await createListing(input)
@@ -19,10 +21,7 @@ export default function NewListingPage() {
   return (
     <Layout>
       <PageContainer>
-        <PageHeader
-          title="Publish a listing"
-          description="Create a public listing for mess, hostel, apartment, or hotel discovery."
-        />
+        <PageHeader title={t('newTitle')} description={t('newDesc')} />
         <PublishListingWizard
           onSubmit={handleSubmit}
           onCancel={() => router.push('/my-listings')}

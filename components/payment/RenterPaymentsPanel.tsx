@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   PageHeader,
   EmptyState,
@@ -23,38 +24,59 @@ import { PaymentHistoryCard } from '@/components/payment/PaymentHistoryCard'
 import { PayBillDialog } from '@/components/payment/PayBillDialog'
 import { ReceiptViewDialog } from '@/components/payment/ReceiptViewDialog'
 import {
-  getScheduledPaymentsByUserId,
-  getPaymentSchedulesByUserId,
-  getPaymentTransactionsByUserId,
-  addScheduledPayment,
-  updateScheduledPayment,
-  cancelScheduledPayment,
-} from '@/data/mockPayments'
-import { getBillsByTenantId, getBillById } from '@/data/mockBills'
+  fetchPaymentHistory,
+  fetchScheduledPayments,
+  fetchPaymentSchedules,
+  createScheduledPayment,
+  patchScheduledPayment,
+  cancelScheduledPaymentApi,
+} from '@/lib/api/payments'
+import { fetchBillsForTenant, fetchBillById } from '@/lib/api/bills'
 import { getDemoTenantId } from '@/lib/api/demoUser'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import { useAppFormat } from '@/hooks/useAppFormat'
 import {
   Calendar,
   Plus,
-  Clock,
   History,
   Wallet,
   Receipt,
 } from 'lucide-react'
 import type { ScheduledPayment, PaymentTransaction } from '@/types/payment'
 import type { Bill } from '@/types/bill'
+import { useConfirm } from '@/components/feedback'
 
 export function RenterPaymentsPanel() {
+  const t = useTranslations('payments.renter')
+  const tc = useTranslations('common')
+  const { formatCurrency, formatDate } = useAppFormat()
+  const { confirm } = useConfirm()
   const userId = getDemoTenantId()
-  const [tick, setTick] = useState(0)
-  const [scheduledPayments, setScheduledPayments] = useState(() =>
-    getScheduledPaymentsByUserId(userId)
+
+  const loadPayments = useCallback(
+    () => fetchPaymentHistory(userId),
+    [userId]
   )
-  const [transactions, setTransactions] = useState(() =>
-    getPaymentTransactionsByUserId(userId)
+  const loadScheduled = useCallback(
+    () => fetchScheduledPayments(userId),
+    [userId]
   )
-  const [paymentSchedules] = useState(() =>
-    getPaymentSchedulesByUserId(userId)
+  const loadSchedules = useCallback(
+    () => fetchPaymentSchedules(userId),
+    [userId]
   )
+  const loadBills = useCallback(
+    () => fetchBillsForTenant(userId),
+    [userId]
+  )
+
+  const { data: transactions = [], refetch: refetchTransactions } =
+    useMockQuery(loadPayments)
+  const { data: scheduledPayments = [], refetch: refetchScheduled } =
+    useMockQuery(loadScheduled)
+  const { data: paymentSchedules = [] } = useMockQuery(loadSchedules)
+  const { data: tenantBills = [] } = useMockQuery(loadBills)
+
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
   const [editingPayment, setEditingPayment] = useState<ScheduledPayment | null>(
@@ -69,12 +91,11 @@ export function RenterPaymentsPanel() {
   const [receiptOpen, setReceiptOpen] = useState(false)
 
   const refresh = useCallback(() => {
-    setScheduledPayments(getScheduledPaymentsByUserId(userId))
-    setTransactions(getPaymentTransactionsByUserId(userId))
-    setTick(t => t + 1)
-  }, [userId])
+    refetchTransactions()
+    refetchScheduled()
+  }, [refetchTransactions, refetchScheduled])
 
-  const unpaidBills = getBillsByTenantId(userId).filter(
+  const unpaidBills = tenantBills.filter(
     b => b.status === 'unpaid' || b.status === 'overdue'
   )
 
@@ -97,9 +118,11 @@ export function RenterPaymentsPanel() {
     maxRetries?: number
   }) => {
     if (editingPayment) {
-      updateScheduledPayment(editingPayment.id, { ...editingPayment, ...data })
+      patchScheduledPayment(editingPayment.id, { ...editingPayment, ...data }).then(
+        () => refresh()
+      )
     } else {
-      addScheduledPayment({
+      createScheduledPayment({
         userId,
         billId: data.billId,
         billName: data.billName,
@@ -114,16 +137,16 @@ export function RenterPaymentsPanel() {
         autoRetry: data.autoRetry,
         maxRetries: data.maxRetries ?? 0,
         retryCount: 0,
-      })
+      }).then(() => refresh())
     }
     setEditingPayment(null)
     refresh()
   }
 
-  const handleViewReceipt = (payment: PaymentTransaction) => {
-    const bill = getBillById(payment.billId)
-    if (bill) {
-      setReceiptBill(bill)
+  const handleViewReceipt = async (payment: PaymentTransaction) => {
+    const result = await fetchBillById(payment.billId)
+    if (result.ok && result.data) {
+      setReceiptBill(result.data)
       setReceiptPayment(payment)
       setReceiptOpen(true)
     }
@@ -132,14 +155,14 @@ export function RenterPaymentsPanel() {
   return (
     <>
       <PageHeader
-        title="Payments"
-        description="Pay bills now, review history, and manage scheduled payments."
+        title={t('title')}
+        description={t('description')}
         actions={
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
               <Link href="/bills">
                 <Receipt className="mr-2 h-4 w-4" />
-                My bills
+                {t('myBills')}
               </Link>
             </Button>
             <Button
@@ -149,7 +172,7 @@ export function RenterPaymentsPanel() {
               }}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Schedule
+              {t('schedule')}
             </Button>
           </div>
         }
@@ -160,7 +183,7 @@ export function RenterPaymentsPanel() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <Wallet className="h-5 w-5 text-primary" />
-              Pay outstanding bills
+              {t('outstandingTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -174,15 +197,17 @@ export function RenterPaymentsPanel() {
                     {bill.month} {bill.year} · {bill.propertyName}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Due {new Date(bill.dueDate).toLocaleDateString()}{' '}
+                    {t('due', { date: formatDate(bill.dueDate) })}{' '}
                     <Badge variant="outline" className="ml-1 capitalize">
-                      {bill.status}
+                      {bill.status === 'overdue'
+                        ? tc('status.overdue')
+                        : tc('status.unpaid')}
                     </Badge>
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="font-bold text-primary">
-                    ৳{bill.amount.toLocaleString()}
+                    {formatCurrency(bill.amount)}
                   </p>
                   <Button
                     size="sm"
@@ -191,7 +216,7 @@ export function RenterPaymentsPanel() {
                       setIsPayBillOpen(true)
                     }}
                   >
-                    Pay Now
+                    {t('actions.payNow')}
                   </Button>
                 </div>
               </div>
@@ -200,27 +225,27 @@ export function RenterPaymentsPanel() {
         </Card>
       )}
 
-      <Tabs defaultValue="history" className="space-y-6" key={tick}>
+      <Tabs defaultValue="history" className="space-y-6">
         <TabsList>
           <TabsTrigger value="history">
             <History className="mr-2 h-4 w-4" />
-            History
+            {t('tabs.history')}
           </TabsTrigger>
           <TabsTrigger value="scheduled">
             <Calendar className="mr-2 h-4 w-4" />
-            Scheduled
+            {t('tabs.scheduled')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="history" className="space-y-4">
           {transactions.length === 0 ? (
             <EmptyState
-              title="No payments yet"
-              description="Pay a bill from My Bills — completed payments appear here."
+              title={t('empty.historyEmptyTitle')}
+              description={t('empty.historyEmptyDesc')}
               icon={History}
             >
               <Button asChild>
-                <Link href="/bills">Go to bills</Link>
+                <Link href="/bills">{t('goToBills')}</Link>
               </Button>
             </EmptyState>
           ) : (
@@ -243,24 +268,24 @@ export function RenterPaymentsPanel() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All status</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{tc('allStatus')}</SelectItem>
+                <SelectItem value="scheduled">{t('statusScheduled')}</SelectItem>
+                <SelectItem value="completed">{tc('status.completed')}</SelectItem>
+                <SelectItem value="failed">{tc('status.failed')}</SelectItem>
+                <SelectItem value="cancelled">{tc('status.cancelled')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {filteredScheduled.length === 0 ? (
             <EmptyState
-              title="No scheduled payments"
-              description="Schedule a future payment with reminders."
+              title={t('empty.scheduledTitle')}
+              description={t('empty.scheduledDesc')}
               icon={Calendar}
             >
               <Button onClick={() => setIsScheduleDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Schedule payment
+                {t('actions.schedule')}
               </Button>
             </EmptyState>
           ) : (
@@ -273,11 +298,14 @@ export function RenterPaymentsPanel() {
                     setEditingPayment(p)
                     setIsScheduleDialogOpen(true)
                   }}
-                  onCancel={p => {
-                    if (confirm('Cancel this scheduled payment?')) {
-                      cancelScheduledPayment(p.id)
-                      refresh()
-                    }
+                  onCancel={async p => {
+                    const ok = await confirm({
+                      title: t('confirmCancelTitle'),
+                      description: t('confirmCancelDesc'),
+                      variant: 'destructive',
+                    })
+                    if (!ok) return
+                    cancelScheduledPaymentApi(p.id).then(() => refresh())
                   }}
                   showActions={
                     payment.status === 'scheduled' ||
@@ -293,7 +321,7 @@ export function RenterPaymentsPanel() {
       {paymentSchedules.length > 0 && (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle className="text-base">Recurring schedules</CardTitle>
+            <CardTitle className="text-base">{t('recurringSchedules')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {paymentSchedules.map(schedule => (
@@ -304,12 +332,14 @@ export function RenterPaymentsPanel() {
                 <div>
                   <p className="font-medium">{schedule.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {schedule.frequency} · ৳
-                    {schedule.amount.toLocaleString()} · {schedule.paymentMethod}
+                    {schedule.frequency} · {formatCurrency(schedule.amount)} ·{' '}
+                    {schedule.paymentMethod}
                   </p>
                 </div>
                 <Badge variant={schedule.isActive ? 'default' : 'outline'}>
-                  {schedule.isActive ? 'Active' : 'Inactive'}
+                  {schedule.isActive
+                    ? tc('status.active')
+                    : tc('status.inactive')}
                 </Badge>
               </div>
             ))}

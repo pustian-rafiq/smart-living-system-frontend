@@ -1,0 +1,233 @@
+{
+  "loading": "পেমেন্ট লোড হচ্ছে…",
+  "unavailable": "পেমেন্ট ভাড়াটে ও মালিকদের জন্য উপলব্ধ।",
+  "renter": {
+    "title": "পেমেন্ট",
+    "description": "বিল পরিশোধ করুন, ইতিহাস দেখুন ও সময়সূচি পরিচালনা করুন।",
+    "myBills": "আমার বিল",
+    "schedule": "সময়সূচি",
+    "outstandingTitle": "বকেয়া বিল পরিশোধ করুন",
+    "due": "মেয়াদ {date}",
+    "goToBills": "বিলে যান",
+    "recurringSchedules": "পুনরাবৃত্ত সময়সূচি",
+    "tabs": {
+      "scheduled": "সময়সূচি",
+      "history": "ইতিহাস",
+      "methods": "পদ্ধতি"
+    },
+    "empty": {
+      "scheduledTitle": "কোনো সময়সূচি নেই",
+      "scheduledDesc": "নির্দিষ্ট তারিখে স্বয়ংক্রিয় পেমেন্টের জন্য সময়সূচি দিন।",
+      "historyTitle": "কোনো পেমেন্ট ইতিহাস নেই",
+      "historyDesc": "সম্পন্ন পেমেন্ট এখানে দেখাবে।",
+      "historyEmptyTitle": "এখনো কোনো পেমেন্ট নেই",
+      "historyEmptyDesc": "আমার বিল থেকে বিল পরিশোধ করুন — সম্পন্ন পেমেন্ট এখানে দেখাবে।",
+      "unpaidTitle": "সব পরিশোধিত",
+      "unpaidDesc": "এখন কোনো বকেয়া বিল নেই।"
+    },
+    "actions": {
+      "payNow": "এখনই পরিশোধ",
+      "schedule": "পেমেন্ট সময়সূচি",
+      "viewReceipt": "রসিদ দেখুন",
+      "cancel": "সময়সূচি বাতিল",
+      "edit": "সময়সূচি সম্পাদনা"
+    },
+    "confirmCancelTitle": "সময়সূচি বাতিল করবেন?",
+    "confirmCancelDesc": "এই সময়সূচি বাতিল করতে চান?",
+    "statusScheduled": "সময়সূচি",
+    "statusCompleted": "সম্পন্ন",
+    "statusFailed": "ব্যর্থ"
+  },
+  "owner": {
+    "title": "পেমেন্ট সংগ্রহ",
+    "description": "আসা পেমেন্ট, নগদ রেকর্ড ও সংগ্রহের অবস্থা ট্র্যাক করুন।",
+    "panelTitle": "পেমেন্ট ও পেআউট",
+    "panelDescription": "সংগ্রহ, প্ল্যাটফর্ম কমিশন ও নিষ্পত্তির অবস্থা ট্র্যাক করুন।",
+    "manageBills": "বিল পরিচালনা",
+    "payoutLedger": "পেআউট লেজার",
+    "analytics": "বিশ্লেষণ",
+    "tabs": {
+      "incoming": "আসা পেমেন্ট",
+      "cash": "নগদ রেকর্ড",
+      "summary": "সারসংক্ষেপ"
+    },
+    "empty": {
+      "incomingTitle": "কোনো আসা পেমেন্ট নেই",
+      "incomingDesc": "ভাড়াটেদের পেমেন্ট এখানে দেখাবে।",
+      "cashTitle": "কোনো নগদ রেকর্ড নেই",
+      "cashDesc": "ভাড়াটেদের কাছ থেকে প্রাপ্ত নগদ পেমেন্ট রেকর্ড করুন।"
+    },
+    "actions": {
+      "recordCash": "নগদ পেমেন্ট রেকর্ড",
+      "sendReminder": "অনুস্মারক পাঠান",
+      "export": "রিপোর্ট এক্সপোর্ট"
+    },
+    "stats": {
+      "collected": "এই মাসে সংগৃহীত",
+      "pending": "বকেয়া সংগ্রহ",
+      "overdue": "মেয়াদোত্তীর্ণ পরিমাণ"
+    }
+  },
+  "result": {
+    "title": "পেমেন্ট ফলাফল",
+    "loading": "পেমেন্ট লোড হচ্ছে…",
+    "statusTitle": "পেমেন্টের অবস্থা",
+    "statusDesc": "আপনার পেমেন্ট নিশ্চিতকরণ ও রসিদ ট্র্যাক করুন।",
+    "notFound": "পেমেন্ট পাওয়া যায়নি। এটি এখনও প্রক্রিয়াধীন হতে পারে।",
+    "success": "পেমেন্ট সফল",
+    "successDesc": "আপনার পেমেন্ট সফলভাবে প্রক্রিয়া হয়েছে।",
+    "failed": "পেমেন্ট ব্যর্থ",
+    "failedDesc": "আমরা আপনার পেমেন্ট সম্পন্ন করতে পারিনি।",
+    "pending": "পেমেন্ট অপেক্ষমাণ",
+    "pendingDesc": "আপনার নগদ পেমেন্ট রেকর্ড হয়েছে। মালিক শীঘ্রই গ্রহণ নিশ্চিত করবেন।",
+    "processingTitle": "প্রক্রিয়াধীন",
+    "processingDesc": "পেমেন্ট প্রক্রিয়া হচ্ছে।",
+    "backToPayments": "পেমেন্টে ফিরুন",
+    "viewReceipt": "রসিদ দেখুন",
+    "viewReceiptDownload": "রসিদ দেখুন ও ডাউনলোড"
+  },
+  "payBill": {
+    "title": "বিল পরিশোধ",
+    "amountDue": "বকেয়া পরিমাণ",
+    "payingWith": "পরিশোধ পদ্ধতি",
+    "walletLabel": "ওয়ালেট / অ্যাকাউন্ট নম্বর",
+    "walletHint": "ডেমো মোড — গেটওয়ে সংযুক্ত না হওয়া পর্যন্ত আসল টাকা কাটা হয় না।",
+    "cashPending": "মালিক গ্রহণ নিশ্চিত না হওয়া পর্যন্ত নগদ অপেক্ষমাণ হিসেবে রেকর্ড হয়।",
+    "invalidWallet": "১১ অঙ্কের বৈধ ওয়ালেট / অ্যাকাউন্ট নম্বর দিন",
+    "payAmount": "{amount} পরিশোধ",
+    "openStatusPage": "পেমেন্ট স্ট্যাটাস পৃষ্ঠা খুলুন",
+    "viewReceipt": "রসিদ দেখুন"
+  },
+  "processing": {
+    "title": "পেমেন্ট প্রক্রিয়া হচ্ছে…",
+    "message": "পেমেন্ট গেটওয়ের সাথে সংযোগ হচ্ছে, অপেক্ষা করুন।",
+    "connecting": "{method}-এ সংযোগ হচ্ছে"
+  },
+  "resultView": {
+    "transactionId": "লেনদেন ID",
+    "method": "পদ্ধতি",
+    "changeMethod": "পদ্ধতি পরিবর্তন",
+    "viewHistory": "পেমেন্ট ইতিহাস দেখুন",
+    "done": "সম্পন্ন"
+  },
+  "scheduleDialog": {
+    "editTitle": "সময়সূচি সম্পাদনা",
+    "createTitle": "পেমেন্ট সময়সূচি",
+    "description": "ভবিষ্যত তারিখে পেমেন্ট সময়সূচি দিন স্বয়ংক্রিয় অনুস্মারক সহ",
+    "selectBill": "বিল নির্বাচন",
+    "selectBillPlaceholder": "একটি বিল নির্বাচন করুন",
+    "scheduledDate": "নির্ধারিত তারিখ",
+    "scheduledTime": "সময় (ঐচ্ছিক)",
+    "paymentMethod": "পেমেন্ট পদ্ধতি",
+    "accountNumber": "অ্যাকাউন্ট নম্বর (ঐচ্ছিক)",
+    "accountHint": "এই পদ্ধতির জন্য আপনার পেমেন্ট অ্যাকাউন্ট নম্বর",
+    "accountPlaceholder": "যেমন, 01712345678",
+    "remindersTitle": "পেমেন্ট অনুস্মারক",
+    "remindersDesc": "নির্ধারিত পেমেন্টের আগে বিজ্ঞপ্তি পান",
+    "remindDaysBefore": "আমাকে মনে করিয়ে দিন (দিন আগে)",
+    "onDay": "সেই দিন",
+    "daysBefore": "{count, plural, one {# দিন} other {# দিন}}",
+    "autoRetryTitle": "ব্যর্থ হলে স্বয়ংক্রিয় পুনরায় চেষ্টা",
+    "autoRetryDesc": "পেমেন্ট ব্যর্থ হলে স্বয়ংক্রিয়ভাবে পুনরায় চেষ্টা",
+    "maxRetries": "সর্বোচ্চ পুনরায় চেষ্টা",
+    "maxRetriesHint": "পেমেন্ট ব্যর্থ হলে কতবার চেষ্টা (১-৫)",
+    "updatePayment": "পেমেন্ট আপডেট",
+    "schedulePayment": "পেমেন্ট সময়সূচি",
+    "billRequired": "বিল প্রয়োজন",
+    "dateRequired": "নির্ধারিত তারিখ প্রয়োজন",
+    "defaultBillName": "পেমেন্ট"
+  },
+  "recordCash": {
+    "title": "নগদ পেমেন্ট রেকর্ড",
+    "billAmount": "বিলের পরিমাণ",
+    "amountReceived": "প্রাপ্ত পরিমাণ (৳)",
+    "receivedDate": "গ্রহণের তারিখ",
+    "receivedBy": "গ্রহণকারী (ঐচ্ছিক)",
+    "receivedByPlaceholder": "কর্মীর নাম",
+    "notes": "নোট (ঐচ্ছিক)",
+    "notesPlaceholder": "রেফারেন্স বা মন্তব্য",
+    "receiptPhoto": "রসিদের ছবি (ঐচ্ছিক)",
+    "uploadPlaceholder": "স্ক্যান বা ছবি আপলোড",
+    "uploadHint": "ডেমো: শুধু ফাইলনাম — পরে ব্যাকএন্ডে আসল আপলোড।",
+    "recording": "রেকর্ড হচ্ছে…",
+    "confirm": "নগদ গ্রহণ নিশ্চিত",
+    "successTitle": "নগদ পেমেন্ট রেকর্ড হয়েছে",
+    "successDesc": "বিল পরিশোধিত চিহ্নিত। পেআউট লেজার আপডেট।",
+    "amountRequired": "পরিমাণ প্রয়োজন",
+    "dateRequired": "তারিখ প্রয়োজন"
+  },
+  "methods": {
+    "bkash": "বিকাশ",
+    "nagad": "নগদ",
+    "rocket": "রকেট",
+    "cash": "নগদ",
+    "bank": "ব্যাংক ট্রান্সফার",
+    "card": "কার্ড"
+  },
+  "historyCard": {
+    "viewReceipt": "রসিদ দেখুন",
+    "txn": "ট্রানজেকশন: {id}",
+    "cashPending": "মালিকের নিশ্চিতকরণের অপেক্ষায় (নগদ)"
+  },
+  "methodSelector": {
+    "label": "পেমেন্ট পদ্ধতি"
+  },
+  "scheduledCard": {
+    "autoRetry": "অটো-রিট্রাই",
+    "scheduledDate": "নির্ধারিত তারিখ",
+    "time": "সময়",
+    "paymentMethod": "পেমেন্ট পদ্ধতি",
+    "account": "অ্যাকাউন্ট",
+    "dueToday": "আজ দেয়",
+    "dueTomorrow": "আগামীকাল দেয়",
+    "dueInDays": "{count} দিনে দেয়",
+    "overdueBy": "{count, plural, one {# দিন} other {# দিন}} বিলম্বিত",
+    "failure": "ব্যর্থ: {reason}",
+    "autoRetryAttempts": "অটো-রিট্রাই: {current}/{max} চেষ্টা",
+    "transaction": "ট্রানজেকশন: {id}"
+  },
+  "receipt": {
+    "title": "পেমেন্ট রসিদ",
+    "transactionId": "ট্রানজেকশন আইডি",
+    "paymentMethod": "পেমেন্ট পদ্ধতি",
+    "date": "তারিখ",
+    "tenant": "ভাড়াটিয়া",
+    "property": "সম্পত্তি",
+    "account": "অ্যাকাউন্ট",
+    "billItems": "বিল আইটেম",
+    "total": "মোট",
+    "download": "ডাউনলোড",
+    "print": "প্রিন্ট"
+  },
+  "payoutLedger": {
+    "empty": "এখনও কোনো পেআউট রেকর্ড নেই। ভাড়াটিয়ারা বিল পরিশোধ করলে এখানে দেখাবে।",
+    "gross": "মোট",
+    "fee": "ফি ({rate}%)",
+    "net": "নেট",
+    "method": "পদ্ধতি",
+    "settled": "নিষ্পত্তি {date}",
+    "markSettled": "নিষ্পত্তি চিহ্নিত (ডেমো)"
+  },
+  "commission": {
+    "title": "কমিশন বিবরণ",
+    "grossCollected": "মোট সংগ্রহ",
+    "platformFee": "প্ল্যাটফর্ম ফি ({rate}%)",
+    "yourNet": "আপনার নেট",
+    "hint": "হার প্ল্যাটফর্ম অ্যাডমিন নির্ধারণ করে। ডিজিটাল পেআউট ২–৩ কর্মদিবসে নিষ্পত্তি হয়।",
+    "rateBadge": "{rate}% প্ল্যাটফর্ম ফি"
+  },
+  "analytics": {
+    "title": "পেমেন্ট বিশ্লেষণ",
+    "totalCollected": "মোট সংগ্রহ",
+    "netEarnings": "নেট আয়",
+    "commissionPaid": "কমিশন পরিশোধ",
+    "pendingPayout": "অপেক্ষমাণ পেআউট",
+    "monthlyChart": "মাসিক সংগ্রহ বনাম নেট",
+    "chartCaption": "মাসিক মোট ও নেট সংগ্রহের তুলনামূলক বার চার্ট।",
+    "month": "মাস",
+    "gross": "মোট",
+    "net": "নেট",
+    "byMethod": "পেমেন্ট পদ্ধতি অনুযায়ী",
+    "paymentsCount": "{count, plural, one {# পেমেন্ট} other {# পেমেন্ট}}"
+  }
+}

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { PropertyModerationCard } from '@/components/admin/PropertyModerationCard'
 import {
@@ -12,16 +13,29 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
-import { mockPropertyModerations } from '@/data/mockAdmin'
+import { fetchPropertyModerations } from '@/lib/api/admin'
 import type { PropertyModeration, PropertyStatus } from '@/types/admin'
+import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
 
 export default function AdminPropertiesPage() {
-  const [properties, setProperties] = useState(mockPropertyModerations)
+  const { confirm } = useConfirm()
+  const t = useTranslations('admin.properties')
+  const ta = useTranslations('admin.actions')
+  const tc = useTranslations('common')
+  const tProp = useTranslations('search.page.propertyTypes')
+  const [properties, setProperties] = useState<PropertyModeration[]>([])
   const [statusFilter, setStatusFilter] = useState<PropertyStatus | 'all'>(
     'all'
   )
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    fetchPropertyModerations().then(result => {
+      if (result.ok) setProperties(result.data)
+    })
+  }, [])
 
   const filteredProperties = useMemo(() => {
     return properties.filter(p => {
@@ -35,26 +49,27 @@ export default function AdminPropertiesPage() {
     })
   }, [properties, statusFilter, typeFilter, searchTerm])
 
-  const handleApprove = (propertyId: string) => {
-    if (confirm('Approve this property?')) {
-      setProperties(
-        properties.map(p =>
-          p.propertyId === propertyId
-            ? {
-                ...p,
-                status: 'approved' as PropertyStatus,
-                reviewedAt: new Date().toISOString(),
-              }
-            : p
-        )
+  const handleApprove = async (propertyId: string) => {
+    const ok = await confirm({
+      title: t('approveTitle'),
+    })
+    if (!ok) return
+    setProperties(
+      properties.map(p =>
+        p.propertyId === propertyId
+          ? {
+              ...p,
+              status: 'approved' as PropertyStatus,
+              reviewedAt: new Date().toISOString(),
+            }
+          : p
       )
-      // TODO: API call
-      alert('Property approved')
-    }
+    )
+    toast.success(t('approved'))
   }
 
   const handleReject = (propertyId: string) => {
-    const reason = prompt('Please provide a reason for rejection:')
+    const reason = prompt(t('rejectReason'))
     if (reason) {
       setProperties(
         properties.map(p =>
@@ -68,8 +83,7 @@ export default function AdminPropertiesPage() {
             : p
         )
       )
-      // TODO: API call
-      alert('Property rejected')
+      toast.success(t('rejected'))
     }
   }
 
@@ -79,7 +93,6 @@ export default function AdminPropertiesPage() {
         p.propertyId === propertyId ? { ...p, featured: !p.featured } : p
       )
     )
-    // TODO: API call
   }
 
   const handleToggleVerified = (propertyId: string) => {
@@ -88,30 +101,25 @@ export default function AdminPropertiesPage() {
         p.propertyId === propertyId ? { ...p, verified: !p.verified } : p
       )
     )
-    // TODO: API call
   }
 
   const handleView = (propertyId: string) => {
-    // TODO: Navigate to property details
-    alert(`View property ${propertyId}`)
+    toast.info(t('viewProperty', { id: propertyId }))
   }
 
   return (
     <AdminLayout>
       <div className="max-w-7xl">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Property Management</h2>
-          <p className="text-muted-foreground">
-            Review and manage all property listings on the platform
-          </p>
+          <h2 className="text-2xl font-bold mb-2">{t('managementTitle')}</h2>
+          <p className="text-muted-foreground">{t('managementDesc')}</p>
         </div>
 
-        {/* Filters */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search properties..."
+              placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -119,33 +127,32 @@ export default function AdminPropertiesPage() {
           </div>
           <Select
             value={statusFilter}
-            onValueChange={value => setStatusFilter(value as any)}
+            onValueChange={value => setStatusFilter(value as PropertyStatus | 'all')}
           >
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={t('filterByStatus')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
+              <SelectItem value="all">{tc('allStatus')}</SelectItem>
+              <SelectItem value="pending">{tc('status.pending')}</SelectItem>
+              <SelectItem value="approved">{tc('status.approved')}</SelectItem>
+              <SelectItem value="rejected">{tc('status.rejected')}</SelectItem>
+              <SelectItem value="suspended">{ta('suspend')}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by type" />
+              <SelectValue placeholder={t('filterByType')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="mess">Mess</SelectItem>
-              <SelectItem value="apartment">Apartment</SelectItem>
-              <SelectItem value="hotel">Hotel</SelectItem>
+              <SelectItem value="all">{t('allTypes')}</SelectItem>
+              <SelectItem value="mess">{tProp('mess')}</SelectItem>
+              <SelectItem value="apartment">{tProp('apartment')}</SelectItem>
+              <SelectItem value="hotel">{tProp('hotel')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Properties List */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredProperties.map(property => (
             <PropertyModerationCard
@@ -162,7 +169,7 @@ export default function AdminPropertiesPage() {
 
         {filteredProperties.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            No properties found matching your filters
+            {t('emptyFiltered')}
           </div>
         )}
       </div>

@@ -24,6 +24,7 @@ import {
 import { format } from 'date-fns'
 import type { Booking } from '@/types/booking'
 import { cn } from '@/lib/utils'
+import { BookingCommissionSummary } from '@/components/monetization'
 
 interface BookingDetailDialogProps {
   booking: Booking | null
@@ -172,6 +173,11 @@ export function BookingDetailDialog({
               </span>
             </div>
           </div>
+
+          {isOwner &&
+            (booking.status === 'approved' || booking.status === 'completed') && (
+              <BookingCommissionSummary totalAmount={booking.totalAmount} />
+            )}
 
           {booking.message && (
             <div>

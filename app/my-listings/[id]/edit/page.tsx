@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -21,6 +22,8 @@ export default function EditListingPage() {
   const params = useParams()
   const id = params.id as string
   const router = useRouter()
+  const t = useTranslations('portfolio.listings')
+  const tc = useTranslations('common')
   const load = useCallback(() => fetchPropertyById(id), [id])
   const { data: listing, loading, error } = useMockQuery(load)
 
@@ -33,19 +36,16 @@ export default function EditListingPage() {
   return (
     <Layout>
       <PageContainer>
-        <PageHeader
-          title="Edit listing"
-          description="Update details, photos, and publish status."
-        />
-        {loading && <LoadingState label="Loading listing…" />}
+        <PageHeader title={t('editTitle')} description={t('editDesc')} />
+        {loading && <LoadingState label={t('loadingListing')} />}
         {(error || (!loading && !listing)) && (
           <EmptyState
-            title="Listing not found"
-            description={error || 'This listing does not exist.'}
+            title={t('notFoundTitle')}
+            description={error || t('notFoundEditDesc')}
             icon={Home}
           >
             <Button asChild>
-              <Link href="/my-listings">Back</Link>
+              <Link href="/my-listings">{tc('back')}</Link>
             </Button>
           </EmptyState>
         )}
