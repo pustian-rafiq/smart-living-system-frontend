@@ -3,6 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
 import { Users, Bed } from 'lucide-react'
 import type { Room } from '@/types/hotel'
 import Image from 'next/image'
@@ -57,9 +58,7 @@ export function RoomCard({
                   {roomTypeLabels[room.type]}
                 </p>
               </div>
-              <Badge variant={room.available ? 'default' : 'secondary'}>
-                {room.available ? 'Available' : 'Occupied'}
-              </Badge>
+              <AvailabilityBadge available={room.available} />
             </div>
 
             <div className="mb-2 flex items-center gap-4 text-sm text-muted-foreground">

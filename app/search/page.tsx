@@ -23,6 +23,7 @@ import { PropertyCard } from '@/components/property/PropertyCard'
 import { PropertyDetailDialog } from '@/components/property/PropertyDetailDialog'
 import { PropertyMap } from '@/components/map/PropertyMap'
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation'
+import { CompareBar } from '@/components/property/CompareBar'
 import { SaveSearchDialog } from '@/components/search/SaveSearchDialog'
 import {
   Filter,
@@ -37,17 +38,18 @@ import {
   BookmarkCheck,
 } from 'lucide-react'
 import {
-  mockProperties,
+  getPublishedProperties,
   getCities,
   getAreasByCity,
   getAllNearbyFacilities,
 } from '@/data/mockProperties'
+import '@/data/mockReviews'
 import {
   calculateDistance,
   getCurrentLocation,
   formatDistance,
 } from '@/utils/location'
-import { mockBookings, addBooking } from '@/data/mockBookings'
+import { createBooking } from '@/lib/api/bookings'
 import { mockSavedSearches } from '@/data/mockSavedSearches'
 import { addSearchHistory } from '@/data/mockSearchHistory'
 import type {
@@ -102,6 +104,8 @@ export default function SearchPage() {
   const [searchByLocation, setSearchByLocation] = useState(false)
   const [searchRadius, setSearchRadius] = useState(10) // in km
   const [locationLoading, setLocationLoading] = useState(false)
+  const [compareList, setCompareList] = useState<Property[]>([])
+  const [bookingError, setBookingError] = useState<string | null>(null)
 
   const cities = getCities()
   const allNearbyFacilities = getAllNearbyFacilities()
@@ -161,7 +165,7 @@ export default function SearchPage() {
 
   // Filter properties based on form values
   const filteredProperties = useMemo(() => {
-    let filtered = [...mockProperties]
+    let filtered = [...getPublishedProperties()]
 
     // Filter by type
     if (formValues.propertyType !== 'all') {
@@ -344,53 +348,33 @@ export default function SearchPage() {
   }
 
   const handleRequest = (property: Property) => {
-    alert(`Request sent for ${property.name}!`)
-    setIsDialogOpen(false)
+    setSelectedProperty(property)
+    setIsDialogOpen(true)
+  }
+
+  const handleCompareToggle = (property: Property) => {
+    setCompareList(prev => {
+      if (prev.some(p => p.id === property.id)) {
+        return prev.filter(p => p.id !== property.id)
+      }
+      if (prev.length >= 3) return prev
+      return [...prev, property]
+    })
   }
 
   const handleBookingSubmit = async (
     property: Property,
     data: BookingFormData & { moveInDate: string; moveOutDate?: string }
   ) => {
-    try {
-      // In real app, this would call an API
-      const newBooking: Booking = {
-        id: `booking-${Date.now()}`,
-        propertyId: property.id,
-        propertyName: property.name,
-        propertyType: property.type,
-        propertyAddress: property.address,
-        propertyImage: property.images[0] || '',
-        renterId: 'user1', // In real app, get from auth
-        renterName: 'Current User',
-        renterPhone: '+8801712345678', // In real app, get from auth
-        renterEmail: 'user@example.com', // In real app, get from auth
-        ownerId: 'owner1', // In real app, get from property
-        ownerName: property.ownerName,
-        ownerPhone: property.ownerPhone,
-        moveInDate: data.moveInDate,
-        moveOutDate: data.moveOutDate,
-        duration: data.duration || 1,
-        rent: property.rent,
-        deposit: property.rent * 2, // Typically 2 months rent as deposit
-        totalAmount: property.rent * (data.duration || 1) + property.rent * 2,
-        status: 'pending',
-        message: data.message,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      // Add to mock bookings
-      addBooking(newBooking)
-
-      // Set last booking and show confirmation
-      setLastBooking(newBooking)
-      setShowBookingConfirmation(true)
-      setIsDialogOpen(false)
-    } catch (error) {
-      console.error('Error submitting booking:', error)
-      alert('Failed to submit booking. Please try again.')
+    setBookingError(null)
+    const result = await createBooking(property, data)
+    if (!result.ok) {
+      setBookingError(result.error)
+      throw new Error(result.error)
     }
+    setLastBooking(result.data)
+    setShowBookingConfirmation(true)
+    setIsDialogOpen(false)
   }
 
   const handleReset = () => {
@@ -1131,9 +1115,17 @@ export default function SearchPage() {
                         property={property}
                         onViewDetails={handleViewDetails}
                         onCall={handleCall}
+                        compareSelected={compareList.some(
+                          p => p.id === property.id
+                        )}
+                        onCompareToggle={handleCompareToggle}
+                        compareDisabled={
+                          compareList.length >= 3 &&
+                          !compareList.some(p => p.id === property.id)
+                        }
                       />
                       {distance && (
-                        <div className="absolute right-3 top-3 z-10 rounded-full bg-primary/90 px-2.5 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm shadow-md">
+                        <div className="absolute bottom-[7.5rem] left-3 z-10 rounded-full bg-primary/90 px-2.5 py-1 text-xs font-medium text-primary-foreground shadow-md backdrop-blur-sm">
                           <MapPin className="mr-1 inline h-3 w-3" />
                           {distance}
                         </div>
@@ -1161,10 +1153,14 @@ export default function SearchPage() {
         <PropertyDetailDialog
           property={selectedProperty}
           open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          onOpenChange={open => {
+            setIsDialogOpen(open)
+            if (!open) setBookingError(null)
+          }}
           onRequest={handleRequest}
           onBookingSubmit={handleBookingSubmit}
           onCall={handleCall}
+          bookingError={bookingError}
         />
 
         {/* Booking Confirmation */}
@@ -1183,6 +1179,14 @@ export default function SearchPage() {
           onOpenChange={setShowSaveSearchDialog}
           filters={formValues}
           onSave={handleSaveSearch}
+        />
+
+        <CompareBar
+          selected={compareList}
+          onRemove={id =>
+            setCompareList(prev => prev.filter(p => p.id !== id))
+          }
+          onClear={() => setCompareList([])}
         />
       </div>
     </Layout>

@@ -46,9 +46,6 @@ const bookingSchema = z.object({
   checkInTime: z.string().optional(),
   checkOutTime: z.string().optional(),
   specialRequests: z.string().optional(),
-  paymentMethod: z
-    .enum(['bkash', 'nagad', 'rocket', 'card', 'cash'])
-    .optional(),
 })
 
 export type BookingFormData = z.infer<typeof bookingSchema>
@@ -80,7 +77,6 @@ export function BookingForm({
       checkInTime: '',
       checkOutTime: '',
       specialRequests: '',
-      paymentMethod: undefined,
     },
   })
 
@@ -216,7 +212,7 @@ export function BookingForm({
             />
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Processing...' : 'Confirm Booking'}
+              {loading ? 'Processing…' : 'Continue to payment'}
             </Button>
           </form>
         </Form>

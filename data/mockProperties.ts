@@ -1,8 +1,9 @@
 import type { Property } from '@/types/property'
 
-export const mockProperties: Property[] = [
+const baseProperties: Property[] = [
   {
     id: '1',
+    ownerId: 'owner1',
     name: 'Green Valley Mess',
     type: 'mess',
     rent: 3500,
@@ -45,6 +46,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '2',
+    ownerId: 'owner2',
     name: 'Sunshine Apartment',
     type: 'apartment',
     rent: 15000,
@@ -84,6 +86,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '3',
+    ownerId: 'owner3',
     name: 'Student Hub Mess',
     type: 'mess',
     rent: 3200,
@@ -119,6 +122,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '4',
+    ownerId: 'owner4',
     name: 'Ladies Hostel',
     type: 'hostel',
     rent: 4000,
@@ -153,6 +157,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '5',
+    ownerId: 'owner5',
     name: 'Modern Flat',
     type: 'apartment',
     rent: 18000,
@@ -199,6 +204,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '6',
+    ownerId: 'owner6',
     name: 'Budget Mess',
     type: 'mess',
     rent: 2800,
@@ -229,6 +235,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '7',
+    ownerId: 'owner7',
     name: 'Family Apartment',
     type: 'apartment',
     rent: 12000,
@@ -261,6 +268,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '8',
+    ownerId: 'owner8',
     name: 'Executive Mess',
     type: 'mess',
     rent: 4500,
@@ -305,6 +313,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '9',
+    ownerId: 'owner9',
     name: 'Cozy Hostel',
     type: 'hostel',
     rent: 3800,
@@ -337,6 +346,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '10',
+    ownerId: 'owner10',
     name: 'Luxury Apartment',
     type: 'apartment',
     rent: 25000,
@@ -377,6 +387,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '11',
+    ownerId: 'owner11',
     name: 'Comfort Hostel',
     type: 'hostel',
     rent: 3600,
@@ -409,6 +420,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '12',
+    ownerId: 'owner12',
     name: 'Budget Apartment',
     type: 'apartment',
     rent: 10000,
@@ -439,6 +451,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '13',
+    ownerId: 'owner13',
     name: 'Premium Mess',
     type: 'mess',
     rent: 5000,
@@ -483,6 +496,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '14',
+    ownerId: 'owner14',
     name: 'Spacious Apartment',
     type: 'apartment',
     rent: 20000,
@@ -514,6 +528,7 @@ export const mockProperties: Property[] = [
   },
   {
     id: '15',
+    ownerId: 'owner15',
     name: 'Student Hostel',
     type: 'hostel',
     rent: 3400,
@@ -545,6 +560,71 @@ export const mockProperties: Property[] = [
     createdAt: '2024-02-18',
   },
 ]
+
+
+
+function enrichProperty(p: Property): Property {
+  const depositMonths = p.depositMonths ?? (p.type === 'apartment' ? 2 : 1)
+  return {
+    ...p,
+    ownerId: p.ownerId || `owner${p.id}`,
+    depositMonths,
+    instantBook: p.instantBook ?? Boolean(p.verified && p.available),
+    published: p.published ?? true,
+    listingStatus: p.listingStatus ?? 'published',
+    updatedAt: p.updatedAt ?? p.createdAt,
+  }
+}
+
+export let mockProperties: Property[] = baseProperties.map(enrichProperty)
+
+export function syncPropertyRatings(
+  ratings: Record<string, { rating: number; reviewCount: number }>
+): void {
+  mockProperties = mockProperties.map(p => {
+    const r = ratings[p.id]
+    if (!r) return p
+    return { ...p, rating: r.rating, reviewCount: r.reviewCount }
+  })
+}
+
+export function getPropertyById(id: string): Property | undefined {
+  return mockProperties.find(p => p.id === id)
+}
+
+export function getPropertiesByOwner(ownerId: string): Property[] {
+  return mockProperties.filter(p => p.ownerId === ownerId)
+}
+
+export function getPublishedProperties(): Property[] {
+  return mockProperties.filter(
+    p => p.published !== false && p.listingStatus !== 'draft' && p.listingStatus !== 'paused'
+  )
+}
+
+export function addProperty(property: Property): Property {
+  mockProperties = [property, ...mockProperties]
+  return property
+}
+
+export function updateProperty(
+  id: string,
+  patch: Partial<Property>
+): Property | null {
+  const idx = mockProperties.findIndex(p => p.id === id)
+  if (idx === -1) return null
+  const updated = {
+    ...mockProperties[idx],
+    ...patch,
+    updatedAt: new Date().toISOString().slice(0, 10),
+  }
+  mockProperties = [
+    ...mockProperties.slice(0, idx),
+    updated,
+    ...mockProperties.slice(idx + 1),
+  ]
+  return updated
+}
 
 // Helper function to get unique cities
 export function getCities(): string[] {

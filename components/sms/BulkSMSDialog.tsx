@@ -78,7 +78,7 @@ export function BulkSMSDialog({
       recipientType: 'all' as SMSRecipientType,
       groupId: '',
       customRecipients: [],
-      templateId: '',
+      templateId: 'none',
       content: '',
       scheduledAt: '',
       gateway: 'bKash' as const,
@@ -87,7 +87,10 @@ export function BulkSMSDialog({
 
   const recipientType = form.watch('recipientType')
   const selectedTemplateId = form.watch('templateId')
-  const selectedTemplate = templates.find(t => t.id === selectedTemplateId)
+  const selectedTemplate =
+    selectedTemplateId && selectedTemplateId !== 'none'
+      ? templates.find(t => t.id === selectedTemplateId)
+      : undefined
 
   useEffect(() => {
     if (open) {
@@ -95,7 +98,7 @@ export function BulkSMSDialog({
         recipientType: 'all',
         groupId: '',
         customRecipients: [],
-        templateId: '',
+        templateId: 'none',
         content: '',
         scheduledAt: '',
         gateway: 'bKash',
@@ -154,6 +157,10 @@ export function BulkSMSDialog({
 
     onSubmit({
       ...data,
+      templateId:
+        data.templateId && data.templateId !== 'none'
+          ? data.templateId
+          : undefined,
       content: finalContent,
       recipients: recipients.map(s => ({
         id: s.id,
@@ -358,8 +365,10 @@ export function BulkSMSDialog({
                     <FormItem>
                       <FormLabel>Use Template (Optional)</FormLabel>
                       <Select
-                        value={field.value || ''}
-                        onValueChange={field.onChange}
+                        value={field.value || 'none'}
+                        onValueChange={value =>
+                          field.onChange(value === 'none' ? 'none' : value)
+                        }
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -367,7 +376,7 @@ export function BulkSMSDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Custom Message</SelectItem>
+                          <SelectItem value="none">Custom Message</SelectItem>
                           {templates.map(template => (
                             <SelectItem key={template.id} value={template.id}>
                               {template.name}

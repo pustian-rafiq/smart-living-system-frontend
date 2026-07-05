@@ -1,6 +1,6 @@
 export interface Document {
   id: string
-  type: 'nid' | 'passport' | 'driving_license' | 'other'
+  type: 'nid' | 'passport' | 'driving_license' | 'police_verification' | 'other'
   documentNumber: string
   fileUrl: string
   fileName: string

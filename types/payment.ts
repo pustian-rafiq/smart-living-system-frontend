@@ -58,3 +58,36 @@ export interface PaymentSchedule {
   createdAt: string
   updatedAt: string
 }
+
+/** Instant / Pay Now transaction (history ledger) */
+export type PaymentTransactionStatus =
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+
+export interface PaymentTransaction {
+  id: string
+  userId: string
+  billId: string
+  billName: string
+  propertyName?: string
+  amount: number
+  paymentMethod: PaymentMethod
+  accountNumber?: string
+  transactionId: string
+  status: PaymentTransactionStatus
+  failureReason?: string
+  createdAt: string
+  completedAt?: string
+}
+
+export interface PayBillInput {
+  billId: string
+  billName: string
+  propertyName?: string
+  amount: number
+  paymentMethod: PaymentMethod
+  accountNumber?: string
+  userId: string
+}

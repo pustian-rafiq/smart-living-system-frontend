@@ -1,8 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useCallback, useState } from 'react'
+import Link from 'next/link'
 import { Layout } from '@/components/layout/Layout'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  PageContainer,
+  PageHeader,
+  EmptyState,
+  LoadingState,
+} from '@/components/page'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -12,165 +18,252 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { BookingCard } from '@/components/booking/BookingCard'
-import { BookingConfirmation } from '@/components/booking/BookingConfirmation'
-import { mockBookings, getBookingsByRenter } from '@/data/mockBookings'
+import { BookingDetailDialog } from '@/components/booking/BookingDetailDialog'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import {
+  fetchBookingsForRenter,
+  patchBookingStatus,
+} from '@/lib/api/bookings'
+import { getDemoRenterId } from '@/lib/api/demoUser'
 import type { Booking, BookingStatus } from '@/types/booking'
-import { Calendar, Filter } from 'lucide-react'
+import { Calendar, Search } from 'lucide-react'
 
 export default function MyBookingsPage() {
   const [selectedStatus, setSelectedStatus] = useState<BookingStatus | 'all'>(
     'all'
   )
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
-  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
+  const [cancelTarget, setCancelTarget] = useState<Booking | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [tick, setTick] = useState(0)
 
-  // Get current user ID (in real app, this would come from auth)
-  const currentUserId = 'renter1' // Mock user ID
+  const load = useCallback(() => {
+    return fetchBookingsForRenter(getDemoRenterId())
+  }, [tick])
 
-  const userBookings = useMemo(() => {
-    const bookings = getBookingsByRenter(currentUserId)
-    if (selectedStatus === 'all') return bookings
-    return bookings.filter(b => b.status === selectedStatus)
-  }, [currentUserId, selectedStatus])
+  const { data: bookings, loading, error, refetch } = useMockQuery(load)
 
-  const handleCancel = (bookingId: string) => {
-    // In real app, this would call an API
-    alert(`Cancel booking ${bookingId}?`)
-  }
+  const filtered =
+    bookings?.filter(b =>
+      selectedStatus === 'all' ? true : b.status === selectedStatus
+    ) || []
 
-  const handleViewDetails = (booking: Booking) => {
-    setSelectedBooking(booking)
-    // Could open a detail dialog here
-  }
-
-  const upcomingBookings = userBookings.filter(
+  const upcomingBookings = filtered.filter(
     b => b.status === 'approved' || b.status === 'pending'
   )
-  const pastBookings = userBookings.filter(
+  const pastBookings = filtered.filter(
     b =>
       b.status === 'completed' ||
       b.status === 'cancelled' ||
       b.status === 'rejected'
   )
 
+  const openDetail = (booking: Booking) => {
+    setSelectedBooking(booking)
+    setShowDetail(true)
+  }
+
+  const confirmCancel = async () => {
+    if (!cancelTarget || !cancelReason.trim()) return
+    setActionError(null)
+    const result = await patchBookingStatus(
+      cancelTarget.id,
+      'cancelled',
+      cancelReason.trim()
+    )
+    if (!result.ok) {
+      setActionError(result.error)
+      return
+    }
+    setCancelTarget(null)
+    setCancelReason('')
+    setShowDetail(false)
+    setTick(t => t + 1)
+    refetch()
+  }
+
   return (
     <Layout>
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold sm:text-3xl">My Bookings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your property booking requests and history
-          </p>
+      <PageContainer>
+        <PageHeader
+          title="My bookings"
+          description="Track requests, instant bookings, and stay history."
+          actions={
+            <Button asChild variant="outline">
+              <Link href="/search">
+                <Search className="mr-2 h-4 w-4" />
+                Find housing
+              </Link>
+            </Button>
+          }
+        />
+
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <Select
+            value={selectedStatus}
+            onValueChange={value =>
+              setSelectedStatus(value as BookingStatus | 'all')
+            }
+          >
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filters
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Select
-              value={selectedStatus}
-              onValueChange={value =>
-                setSelectedStatus(value as BookingStatus | 'all')
-              }
-            >
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
+        {loading && <LoadingState label="Loading bookings…" />}
+        {error && (
+          <EmptyState
+            title="Could not load bookings"
+            description={error}
+            icon={Calendar}
+          >
+            <Button onClick={() => refetch()}>Retry</Button>
+          </EmptyState>
+        )}
 
-        {/* Bookings Tabs */}
-        <Tabs defaultValue="upcoming" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upcoming" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Upcoming ({upcomingBookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="past" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Past ({pastBookings.length})
-            </TabsTrigger>
-          </TabsList>
+        {!loading && !error && (
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="upcoming">
+                Upcoming ({upcomingBookings.length})
+              </TabsTrigger>
+              <TabsTrigger value="past">
+                Past ({pastBookings.length})
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="upcoming" className="mt-6">
-            {upcomingBookings.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold text-muted-foreground">
-                    No upcoming bookings
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Your upcoming bookings will appear here
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {upcomingBookings.map(booking => (
+            <TabsContent value="upcoming" className="mt-6 space-y-4">
+              {upcomingBookings.length === 0 ? (
+                <EmptyState
+                  title="No upcoming bookings"
+                  description="Search verified mess, hostel, and apartment listings to book."
+                  icon={Calendar}
+                >
+                  <Button asChild>
+                    <Link href="/search">Browse listings</Link>
+                  </Button>
+                </EmptyState>
+              ) : (
+                upcomingBookings.map(booking => (
                   <BookingCard
                     key={booking.id}
                     booking={booking}
-                    onCancel={handleCancel}
-                    onViewDetails={handleViewDetails}
+                    onCancel={id => {
+                      const b = upcomingBookings.find(x => x.id === id)
+                      if (b) setCancelTarget(b)
+                    }}
+                    onViewDetails={openDetail}
                   />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                ))
+              )}
+            </TabsContent>
 
-          <TabsContent value="past" className="mt-6">
-            {pastBookings.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold text-muted-foreground">
-                    No past bookings
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Your booking history will appear here
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {pastBookings.map(booking => (
+            <TabsContent value="past" className="mt-6 space-y-4">
+              {pastBookings.length === 0 ? (
+                <EmptyState
+                  title="No past bookings"
+                  description="Completed, cancelled, and rejected bookings appear here."
+                  icon={Calendar}
+                />
+              ) : (
+                pastBookings.map(booking => (
                   <BookingCard
                     key={booking.id}
                     booking={booking}
-                    onViewDetails={handleViewDetails}
+                    onViewDetails={openDetail}
                   />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
 
-        {/* Booking Confirmation Dialog */}
-        <BookingConfirmation
+        <BookingDetailDialog
           booking={selectedBooking}
-          open={showConfirmation}
-          onOpenChange={setShowConfirmation}
+          open={showDetail}
+          onOpenChange={setShowDetail}
+          role="renter"
+          onCancel={b => {
+            setShowDetail(false)
+            setCancelTarget(b)
+          }}
         />
-      </div>
+
+        <Dialog
+          open={Boolean(cancelTarget)}
+          onOpenChange={open => {
+            if (!open) {
+              setCancelTarget(null)
+              setCancelReason('')
+              setActionError(null)
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cancel booking</DialogTitle>
+              <DialogDescription>
+                Tell the owner why you are cancelling. Pending and approved
+                bookings can be cancelled.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="cancel-reason">Reason</Label>
+                <Textarea
+                  id="cancel-reason"
+                  className="mt-2"
+                  rows={4}
+                  value={cancelReason}
+                  onChange={e => setCancelReason(e.target.value)}
+                  placeholder="e.g. Found another place closer to campus"
+                />
+              </div>
+              {actionError && (
+                <p className="text-sm text-destructive">{actionError}</p>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setCancelTarget(null)}
+                >
+                  Keep booking
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  disabled={!cancelReason.trim()}
+                  onClick={confirmCancel}
+                >
+                  Confirm cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </PageContainer>
     </Layout>
   )
 }

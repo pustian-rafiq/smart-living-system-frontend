@@ -122,9 +122,14 @@ export function BookingForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Book {property.name}</DialogTitle>
+          <DialogTitle>
+            {property.instantBook ? 'Instant book' : 'Request to book'}{' '}
+            {property.name}
+          </DialogTitle>
           <DialogDescription>
-            Fill in the details to request a booking for this {property.type}
+            {property.instantBook
+              ? `Confirm details to instantly reserve this ${property.type}. You will get an approved booking right away.`
+              : `Send a booking request for this ${property.type}. The owner typically responds within 24–48 hours.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -135,11 +140,27 @@ export function BookingForm({
           >
             {/* Property Summary */}
             <div className="rounded-lg border p-4 bg-muted/50">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold">{property.name}</p>
                   <p className="text-sm text-muted-foreground">
                     {property.area}, {property.city}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Deposit:{' '}
+                    ৳
+                    {(
+                      property.rent *
+                      (property.depositMonths ??
+                        (property.type === 'apartment' ? 2 : 1))
+                    ).toLocaleString()}{' '}
+                    ({property.depositMonths ?? (property.type === 'apartment' ? 2 : 1)}{' '}
+                    month
+                    {(property.depositMonths ??
+                      (property.type === 'apartment' ? 2 : 1)) > 1
+                      ? 's'
+                      : ''}{' '}
+                    rent)
                   </p>
                 </div>
                 <div className="text-right">
@@ -347,8 +368,8 @@ export function BookingForm({
                   <div className="space-y-1 leading-none">
                     <FormLabel>I agree to the terms and conditions</FormLabel>
                     <FormDescription>
-                      By submitting this booking request, I confirm that all
-                      information provided is accurate.
+                      I confirm the details are accurate and I understand the
+                      deposit and cancellation rules for this listing.
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -370,10 +391,12 @@ export function BookingForm({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
+                    {property.instantBook ? 'Booking…' : 'Submitting…'}
                   </>
+                ) : property.instantBook ? (
+                  'Confirm instant booking'
                 ) : (
-                  'Submit Booking Request'
+                  'Submit booking request'
                 )}
               </Button>
             </div>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useStoredRole } from '@/hooks/useStoredRole'
 import { Layout } from '@/components/layout/Layout'
 import { BillCard } from '@/components/bill/BillCard'
 import { GenerateBillDialog } from '@/components/bill/GenerateBillDialog'
@@ -9,6 +10,7 @@ import { MeterReadingDialog } from '@/components/bill/MeterReadingDialog'
 import { BillGenerationRuleDialog } from '@/components/bill/BillGenerationRuleDialog'
 import { BulkBillDialog } from '@/components/bulk/BulkBillDialog'
 import { SchedulePaymentDialog } from '@/components/payment/SchedulePaymentDialog'
+import { PayBillDialog } from '@/components/payment/PayBillDialog'
 import { addScheduledPayment } from '@/data/mockPayments'
 import { Button } from '@/components/ui/button'
 import {
@@ -59,7 +61,6 @@ import type {
 } from '@/types/bill'
 import type { BulkBillGenerationData } from '@/types/bulk'
 import type { PaymentMethod } from '@/types/payment'
-import { getStoredRole } from '@/utils/auth'
 
 export default function BillsPage() {
   const [bills, setBills] = useState(mockBills)
@@ -86,10 +87,28 @@ export default function BillsPage() {
     useState<Bill | null>(null)
   const [isSchedulePaymentDialogOpen, setIsSchedulePaymentDialogOpen] =
     useState(false)
+  const [payBillTarget, setPayBillTarget] = useState<Bill | null>(null)
+  const [isPayBillOpen, setIsPayBillOpen] = useState(false)
 
-  // Get user role
-  const userRole = getStoredRole() || 'renter'
-  const isOwner = userRole === 'owner'
+  const { ready, isOwner } = useStoredRole()
+
+  // Deep-links: /bills?action=generate | /bills?status=overdue
+  useEffect(() => {
+    if (!ready) return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('action') === 'generate' && isOwner) {
+      setIsGenerateDialogOpen(true)
+    }
+    const status = params.get('status')
+    if (
+      status === 'paid' ||
+      status === 'unpaid' ||
+      status === 'overdue' ||
+      status === 'all'
+    ) {
+      setStatusFilter(status)
+    }
+  }, [ready, isOwner])
 
   // Filter bills based on role and status
   const filteredBills = useMemo(() => {
@@ -110,10 +129,6 @@ export default function BillsPage() {
     })
   }, [bills, statusFilter, isOwner])
 
-  const handleDownload = (bill: Bill) => {
-    alert(`Downloading receipt for ${bill.month} ${bill.year} bill...`)
-  }
-
   const handleMarkPaid = (bill: Bill) => {
     setBills(
       bills.map(b =>
@@ -131,6 +146,15 @@ export default function BillsPage() {
   const handleSchedulePayment = (bill: Bill) => {
     setSelectedBillForPayment(bill)
     setIsSchedulePaymentDialogOpen(true)
+  }
+
+  const handlePayNow = (bill: Bill) => {
+    setPayBillTarget(bill)
+    setIsPayBillOpen(true)
+  }
+
+  const handlePaySuccess = (paidBill: Bill) => {
+    setBills(prev => prev.map(b => (b.id === paidBill.id ? paidBill : b)))
   }
 
   const handleSchedulePaymentSubmit = (data: {
@@ -456,6 +480,21 @@ export default function BillsPage() {
   const activeTemplates = templates.filter(t => t.isActive)
   const activeRules = rules.filter(r => r.isActive)
 
+  // Wait for client role so owner/renter trees match after hydration
+  if (!ready) {
+    return (
+      <Layout>
+        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mb-6 h-10 w-48 animate-pulse rounded-md bg-muted" />
+          <div className="space-y-4">
+            <div className="h-32 animate-pulse rounded-lg bg-muted" />
+            <div className="h-32 animate-pulse rounded-lg bg-muted" />
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
   return (
     <Layout>
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -568,7 +607,6 @@ export default function BillsPage() {
                     <BillCard
                       key={bill.id}
                       bill={bill}
-                      onDownload={handleDownload}
                       onMarkPaid={handleMarkPaid}
                       onSchedulePayment={handleSchedulePayment}
                       showTenantName={true}
@@ -1027,7 +1065,7 @@ export default function BillsPage() {
                   <BillCard
                     key={bill.id}
                     bill={bill}
-                    onDownload={handleDownload}
+                    onPayNow={handlePayNow}
                     onSchedulePayment={handleSchedulePayment}
                     showTenantName={false}
                   />
@@ -1080,18 +1118,26 @@ export default function BillsPage() {
           </>
         )}
 
-        {selectedBillForPayment && (
-          <SchedulePaymentDialog
-            payment={null}
-            billId={selectedBillForPayment.id}
-            open={isSchedulePaymentDialogOpen}
-            onOpenChange={open => {
-              setIsSchedulePaymentDialogOpen(open)
-              if (!open) setSelectedBillForPayment(null)
-            }}
-            onSubmit={handleSchedulePaymentSubmit}
-          />
-        )}
+        <SchedulePaymentDialog
+          payment={null}
+          billId={selectedBillForPayment?.id}
+          open={isSchedulePaymentDialogOpen}
+          onOpenChange={open => {
+            setIsSchedulePaymentDialogOpen(open)
+            if (!open) setSelectedBillForPayment(null)
+          }}
+          onSubmit={handleSchedulePaymentSubmit}
+        />
+
+        <PayBillDialog
+          bill={payBillTarget}
+          open={isPayBillOpen}
+          onOpenChange={open => {
+            setIsPayBillOpen(open)
+            if (!open) setPayBillTarget(null)
+          }}
+          onSuccess={handlePaySuccess}
+        />
       </div>
     </Layout>
   )

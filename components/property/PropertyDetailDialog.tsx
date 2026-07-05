@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { VerificationBadge } from '@/components/property/VerificationBadge'
 import { ImageGallery } from '@/components/property/ImageGallery'
 import { VideoPlayer } from '@/components/property/VideoPlayer'
+import { RatingDisplay } from '@/components/hotel/RatingDisplay'
 import {
   Phone,
   MapPin,
@@ -25,12 +27,17 @@ import {
   Video,
   Image as ImageIcon,
   MessageCircle,
+  ExternalLink,
+  Utensils,
 } from 'lucide-react'
 import { BookingForm } from '@/components/booking/BookingForm'
 import { FavoriteButton } from '@/components/favorites/FavoriteButton'
+import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
+import { InstantBookBadge } from '@/components/shared/InstantBookBadge'
 import { useRouter } from 'next/navigation'
 import type { Property } from '@/types/property'
 import type { BookingFormData } from '@/types/booking'
+import { getDemoRenterId } from '@/lib/api/demoUser'
 
 interface PropertyDetailDialogProps {
   property: Property | null
@@ -40,8 +47,9 @@ interface PropertyDetailDialogProps {
   onBookingSubmit?: (
     property: Property,
     data: BookingFormData & { moveInDate: string; moveOutDate?: string }
-  ) => void
+  ) => Promise<void> | void
   onCall: (phone: string) => void
+  bookingError?: string | null
 }
 
 const facilityIcons: Record<string, React.ReactNode> = {
@@ -60,20 +68,27 @@ export function PropertyDetailDialog({
   onRequest,
   onBookingSubmit,
   onCall,
+  bookingError,
 }: PropertyDetailDialogProps) {
   const [showBookingForm, setShowBookingForm] = useState(false)
   const router = useRouter()
-
-  const handleStartChat = () => {
-    // Navigate to messages page and create/select chat for this property
-    router.push(`/messages?propertyId=${property.id}`)
-    onOpenChange(false)
-  }
 
   if (!property) return null
 
   const hasVideos = property.videos && property.videos.length > 0
   const hasImages = property.images && property.images.length > 0
+  const bookLabel = property.instantBook
+    ? property.type === 'mess' || property.type === 'hostel'
+      ? 'Instant book seat'
+      : 'Instant book flat'
+    : property.type === 'mess' || property.type === 'hostel'
+      ? 'Request seat'
+      : 'Request flat'
+
+  const handleStartChat = () => {
+    router.push(`/messages?propertyId=${property.id}`)
+    onOpenChange(false)
+  }
 
   const handleBookingClick = () => {
     if (onBookingSubmit) {
@@ -99,13 +114,20 @@ export function PropertyDetailDialog({
           <DialogTitle className="text-xl sm:text-2xl">
             {property.name}
           </DialogTitle>
-          <DialogDescription className="capitalize">
-            {property.type}
+          <DialogDescription className="flex flex-wrap items-center gap-2 capitalize">
+            <span>{property.type}</span>
+            {property.rating != null && property.reviewCount ? (
+              <span className="inline-flex items-center gap-1 normal-case">
+                · <RatingDisplay rating={property.rating} size="sm" />
+                <span className="text-muted-foreground">
+                  ({property.reviewCount})
+                </span>
+              </span>
+            ) : null}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Media Gallery - Images and Videos */}
           {(hasImages || hasVideos) && (
             <Tabs
               defaultValue={hasVideos ? 'video' : 'images'}
@@ -113,17 +135,9 @@ export function PropertyDetailDialog({
             >
               <TabsList className="grid w-full grid-cols-2">
                 {hasVideos && (
-                  <TabsTrigger
-                    value="video"
-                    className="flex items-center gap-2"
-                  >
+                  <TabsTrigger value="video" className="flex items-center gap-2">
                     <Video className="h-4 w-4" />
                     Video Walkthrough
-                    {hasVideos && (
-                      <Badge variant="secondary" className="ml-1">
-                        {property.videos?.length || 0}
-                      </Badge>
-                    )}
                   </TabsTrigger>
                 )}
                 {hasImages && (
@@ -132,41 +146,26 @@ export function PropertyDetailDialog({
                     className="flex items-center gap-2"
                   >
                     <ImageIcon className="h-4 w-4" />
-                    Photos
-                    {hasImages && (
-                      <Badge variant="secondary" className="ml-1">
-                        {property.images.length}
-                      </Badge>
-                    )}
+                    Photos ({property.images.length})
                   </TabsTrigger>
                 )}
               </TabsList>
-
-              {/* Video Tab */}
               {hasVideos && (
                 <TabsContent value="video" className="mt-4">
                   <div className="space-y-4">
                     {property.videos?.map((videoUrl, idx) => (
-                      <div key={idx} className="space-y-2">
-                        {property.videos && property.videos.length > 1 && (
-                          <p className="text-sm font-medium text-muted-foreground">
-                            Video {idx + 1} of {property.videos.length}
-                          </p>
-                        )}
-                        <VideoPlayer
-                          videoUrl={videoUrl}
-                          thumbnail={
-                            idx === 0 ? property.videoThumbnail : undefined
-                          }
-                          propertyName={property.name}
-                        />
-                      </div>
+                      <VideoPlayer
+                        key={idx}
+                        videoUrl={videoUrl}
+                        thumbnail={
+                          idx === 0 ? property.videoThumbnail : undefined
+                        }
+                        propertyName={property.name}
+                      />
                     ))}
                   </div>
                 </TabsContent>
               )}
-
-              {/* Images Tab */}
               {hasImages && (
                 <TabsContent value="images" className="mt-4">
                   <ImageGallery
@@ -179,16 +178,6 @@ export function PropertyDetailDialog({
             </Tabs>
           )}
 
-          {/* Fallback if no media */}
-          {!hasImages && !hasVideos && (
-            <div className="relative h-64 w-full overflow-hidden rounded-lg bg-muted sm:h-80">
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
-                <span className="text-6xl">🏠</span>
-              </div>
-            </div>
-          )}
-
-          {/* Price and Status */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="flex items-baseline gap-1">
@@ -197,18 +186,24 @@ export function PropertyDetailDialog({
                 </span>
                 <span className="text-muted-foreground">/month</span>
               </div>
+              {property.mealIncluded && (
+                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                  <Utensils className="h-3.5 w-3.5" />
+                  Meals included
+                  {property.mealCost
+                    ? ` (+৳${property.mealCost.toLocaleString()})`
+                    : ''}
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge variant={property.available ? 'default' : 'secondary'}>
-                {property.available ? 'Available' : 'Occupied'}
-              </Badge>
+              <AvailabilityBadge available={property.available} />
+              {property.instantBook && (
+                <InstantBookBadge tone="soft" label="Instant book" />
+              )}
               {property.gender && (
-                <Badge variant="outline">
-                  {property.gender === 'male'
-                    ? 'Male'
-                    : property.gender === 'female'
-                      ? 'Female'
-                      : 'Mixed'}
+                <Badge variant="outline" className="capitalize">
+                  {property.gender}
                 </Badge>
               )}
               {(property.verified !== undefined ||
@@ -222,7 +217,6 @@ export function PropertyDetailDialog({
             </div>
           </div>
 
-          {/* Address */}
           <div className="flex items-start gap-2">
             <MapPin className="mt-1 h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
@@ -233,15 +227,13 @@ export function PropertyDetailDialog({
             </div>
           </div>
 
-          {/* Description */}
           <div>
             <h4 className="mb-2 font-semibold">Description</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               {property.description}
             </p>
           </div>
 
-          {/* Facilities */}
           <div>
             <h4 className="mb-3 font-semibold">Facilities</h4>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -257,7 +249,19 @@ export function PropertyDetailDialog({
             </div>
           </div>
 
-          {/* Owner Info */}
+          {property.nearbyFacilities && property.nearbyFacilities.length > 0 && (
+            <div>
+              <h4 className="mb-2 font-semibold">Nearby</h4>
+              <div className="flex flex-wrap gap-2">
+                {property.nearbyFacilities.map(f => (
+                  <Badge key={f} variant="secondary">
+                    {f}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="rounded-lg border p-4">
             <div className="mb-2 flex items-center justify-between">
               <div>
@@ -279,23 +283,25 @@ export function PropertyDetailDialog({
                 </Button>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {property.ownerPhone}
-            </p>
+            <p className="text-sm text-muted-foreground">{property.ownerPhone}</p>
           </div>
 
-          {/* Actions */}
+          {bookingError && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {bookingError}
+            </div>
+          )}
+
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => onOpenChange(false)}
-            >
-              Close
+            <Button variant="outline" className="flex-1" asChild>
+              <Link href={`/listings/${property.id}`} onClick={() => onOpenChange(false)}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Full listing page
+              </Link>
             </Button>
             <FavoriteButton
               property={property}
-              userId="user1" // In real app, get from auth
+              userId={getDemoRenterId()}
               variant="outline"
               size="default"
             />
@@ -304,13 +310,13 @@ export function PropertyDetailDialog({
               onClick={handleBookingClick}
               disabled={!property.available}
             >
-              {property.type === 'mess' ? 'Book Seat' : 'Book Flat'}
+              {property.instantBook && <Zap className="mr-2 h-4 w-4" />}
+              {bookLabel}
             </Button>
           </div>
         </div>
       </DialogContent>
 
-      {/* Booking Form */}
       {onBookingSubmit && (
         <BookingForm
           property={property}

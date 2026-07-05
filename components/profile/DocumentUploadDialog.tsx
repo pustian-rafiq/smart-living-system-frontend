@@ -41,7 +41,13 @@ import { cn } from '@/lib/utils'
 import type { Document } from '@/types/renterProfile'
 
 const documentUploadSchema = z.object({
-  type: z.enum(['nid', 'passport', 'driving_license', 'other']),
+  type: z.enum([
+    'nid',
+    'passport',
+    'driving_license',
+    'police_verification',
+    'other',
+  ]),
   documentNumber: z.string().min(1, 'Document number is required'),
   file: z.instanceof(File).optional(),
   expiryDate: z.date().optional(),
@@ -148,6 +154,9 @@ export function DocumentUploadDialog({
                       <SelectItem value="passport">Passport</SelectItem>
                       <SelectItem value="driving_license">
                         Driving License
+                      </SelectItem>
+                      <SelectItem value="police_verification">
+                        Police verification
                       </SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>

@@ -3,7 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, MapPin, Phone, User, X, Check, XCircle } from 'lucide-react'
+import { BookingStatusBadge } from '@/components/booking/BookingStatusBadge'
+import { Calendar, MapPin, Phone, User, X, Check, XCircle, Zap } from 'lucide-react'
 import { format } from 'date-fns'
 import Image from 'next/image'
 import type { Booking } from '@/types/booking'
@@ -25,24 +26,6 @@ export function BookingCard({
   onViewDetails,
   showActions = false,
 }: BookingCardProps) {
-  const getStatusBadge = (status: Booking['status']) => {
-    const variants: Record<
-      Booking['status'],
-      {
-        variant: 'default' | 'secondary' | 'destructive' | 'outline'
-        label: string
-      }
-    > = {
-      pending: { variant: 'secondary', label: 'Pending' },
-      approved: { variant: 'default', label: 'Approved' },
-      rejected: { variant: 'destructive', label: 'Rejected' },
-      cancelled: { variant: 'outline', label: 'Cancelled' },
-      completed: { variant: 'default', label: 'Completed' },
-    }
-    const config = variants[status]
-    return <Badge variant={config.variant}>{config.label}</Badge>
-  }
-
   return (
     <Card className="overflow-hidden">
       <div className="flex flex-col sm:flex-row">
@@ -67,11 +50,17 @@ export function BookingCard({
                 <CardTitle className="text-lg">
                   {booking.propertyName}
                 </CardTitle>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Badge variant="outline" className="text-xs capitalize">
                     {booking.propertyType}
                   </Badge>
-                  {getStatusBadge(booking.status)}
+                  <BookingStatusBadge status={booking.status} />
+                  {booking.bookingMode === 'instant' && (
+                    <Badge variant="secondary" className="text-xs">
+                      <Zap className="mr-1 h-3 w-3 text-amber-500" />
+                      Instant
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -225,16 +214,31 @@ export function BookingCard({
             )}
 
             {!showActions &&
-              (booking.status === 'approved' ||
-                booking.status === 'completed') && (
-                <div className="pt-2 border-t">
+              booking.status !== 'pending' &&
+              onViewDetails && (
+                <div className="border-t pt-2">
                   <Button
                     variant="outline"
                     size="sm"
                     className="w-full"
-                    onClick={() => onViewDetails?.(booking)}
+                    onClick={() => onViewDetails(booking)}
                   >
-                    View Details
+                    View details
+                  </Button>
+                </div>
+              )}
+
+            {showActions &&
+              booking.status !== 'pending' &&
+              onViewDetails && (
+                <div className="border-t pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => onViewDetails(booking)}
+                  >
+                    View details
                   </Button>
                 </div>
               )}

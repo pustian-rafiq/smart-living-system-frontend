@@ -9,7 +9,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -31,8 +30,9 @@ import {
   Clock,
   XCircle,
 } from 'lucide-react'
-import type { Flat, Renter, Payment } from '@/types/building'
+import type { Flat, Payment } from '@/types/building'
 import { RenterHistoryDialog } from '@/components/renter/RenterHistoryDialog'
+import { FlatStatusBadge } from '@/components/shared/FlatStatusBadge'
 import { cn } from '@/lib/utils'
 
 interface FlatDetailDialogProps {
@@ -41,24 +41,6 @@ interface FlatDetailDialogProps {
   onOpenChange: (open: boolean) => void
   onAssignRenter: (flat: Flat) => void
   onGenerateBill: (flat: Flat) => void
-}
-
-const statusConfig = {
-  available: {
-    label: 'Available',
-    className:
-      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-  },
-  occupied: {
-    label: 'Occupied',
-    className:
-      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  },
-  maintenance: {
-    label: 'Maintenance',
-    className:
-      'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-  },
 }
 
 // Mock payment history
@@ -123,7 +105,6 @@ export function FlatDetailDialog({
 
   if (!flat) return null
 
-  const status = statusConfig[flat.status]
   const flatPayments = mockPayments.filter(p => p.flatId === flat.id)
 
   return (
@@ -139,12 +120,7 @@ export function FlatDetailDialog({
         <div className="space-y-6">
           {/* Status and Rent */}
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <Badge
-              variant="outline"
-              className={cn('text-sm', status.className)}
-            >
-              {status.label}
-            </Badge>
+            <FlatStatusBadge status={flat.status} className="text-sm" />
             <div>
               <p className="text-sm text-muted-foreground">Monthly Rent</p>
               <p className="text-2xl font-bold text-primary">

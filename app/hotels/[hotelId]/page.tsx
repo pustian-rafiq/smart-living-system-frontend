@@ -21,6 +21,7 @@ import {
 import { RatingDisplay } from '@/components/hotel/RatingDisplay'
 import { ReviewCard } from '@/components/hotel/ReviewCard'
 import { RoomCard } from '@/components/hotel/RoomCard'
+import { CancellationPolicyCard } from '@/components/hotel/CancellationPolicyCard'
 import {
   mockHotels,
   getRoomsByHotelId,
@@ -208,6 +209,8 @@ export default function HotelDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            <CancellationPolicyCard policy={hotel.cancellationPolicy} />
 
             {/* Reviews */}
             <Card>

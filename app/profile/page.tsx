@@ -36,8 +36,13 @@ import {
 } from 'lucide-react'
 import { useTheme } from '@/components/theme/ThemeProvider'
 import { useLanguage } from '@/components/language/LanguageProvider'
-import { getStoredRole } from '@/utils/auth'
-import { getRenterProfile, updateRenterProfile } from '@/data/mockRenterProfile'
+import { useStoredRole } from '@/hooks/useStoredRole'
+import {
+  getUserProfile,
+  updateUserProfile,
+  getProfileUserId,
+  type UserProfile,
+} from '@/data/mockRenterProfile'
 import { getRenterHistory } from '@/data/mockRenterHistory'
 import { RenterHistoryDialog } from '@/components/renter/RenterHistoryDialog'
 import type { UserRole } from '@/types'
@@ -59,17 +64,21 @@ interface ProfileData {
 export default function ProfilePage() {
   const { theme, toggle: toggleTheme } = useTheme()
   const { language, toggle: toggleLanguage } = useLanguage()
+  const { role, ready } = useStoredRole()
+  const profileUserId = getProfileUserId(role)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [profile, setProfile] = useState<ProfileData>({
     name: 'Rahim Uddin',
     phone: '+8801712345678',
     email: 'rahim@example.com',
-    role: getStoredRole() || 'renter',
+    role: 'renter',
     verified: true,
   })
 
-  // Renter profile data
-  const [renterProfile, setRenterProfile] = useState(getRenterProfile('user1'))
+  // Extended profile (documents, job, family) — works for renter and owner
+  const [userProfile, setUserProfile] = useState<UserProfile>(() =>
+    getUserProfile('user1')
+  )
   const [showDocumentUpload, setShowDocumentUpload] = useState(false)
   const [showJobInfoDialog, setShowJobInfoDialog] = useState(false)
   const [showFamilyMemberDialog, setShowFamilyMemberDialog] = useState(false)
@@ -81,33 +90,42 @@ export default function ProfilePage() {
     useState<EmergencyContact | null>(null)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
 
-  // Load profile from sessionStorage (in real app, get from API)
+  // Load profile from sessionStorage only after mount (hydration-safe)
   useEffect(() => {
+    if (!ready) return
     const storedPhone = sessionStorage.getItem('loginPhone')
-    const storedRole = getStoredRole()
+    const uid = getProfileUserId(role)
 
-    if (storedPhone) {
-      setProfile(prev => ({
-        ...prev,
-        phone: storedPhone,
-        name: 'User ' + storedPhone.slice(-4),
-      }))
-    }
+    setProfile(prev => ({
+      ...prev,
+      role,
+      phone: storedPhone || prev.phone,
+      name:
+        role === 'owner'
+          ? 'Property Owner'
+          : storedPhone
+            ? 'User ' + storedPhone.slice(-4)
+            : prev.name,
+      email:
+        role === 'owner' ? 'owner@smartliving.bd' : prev.email || 'rahim@example.com',
+    }))
+    setUserProfile(getUserProfile(uid))
+  }, [ready, role])
 
-    if (storedRole) {
-      setProfile(prev => ({
-        ...prev,
-        role: storedRole,
-      }))
-    }
-  }, [])
+  const persistProfile = (updated: UserProfile) => {
+    setUserProfile(updated)
+    updateUserProfile(profileUserId, updated)
+  }
 
-  const handleSave = (data: any) => {
+  const handleSave = (data: { name: string; phone: string; email?: string }) => {
     setProfile({
       ...profile,
       ...data,
     })
-    // In real app, save to API
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('userName', data.name)
+      window.dispatchEvent(new Event('profile-updated'))
+    }
     alert('Profile updated successfully!')
   }
 
@@ -118,60 +136,41 @@ export default function ProfilePage() {
     file: File
     expiryDate?: Date
   }) => {
-    // In real app, upload file to server and get URL
     const newDocument: Document = {
       id: `doc-${Date.now()}`,
       type: data.type,
       documentNumber: data.documentNumber,
-      fileUrl: URL.createObjectURL(data.file), // In real app, use server URL
+      fileUrl: URL.createObjectURL(data.file),
       fileName: data.file.name,
       fileSize: data.file.size,
       uploadedAt: new Date().toISOString(),
       expiryDate: data.expiryDate?.toISOString(),
       verificationStatus: 'pending',
     }
-    const updated = renterProfile
-      ? {
-          ...renterProfile,
-          documents: [...renterProfile.documents, newDocument],
-        }
-      : null
-    if (updated) {
-      setRenterProfile(updated)
-      updateRenterProfile('user1', updated)
-    }
+    persistProfile({
+      ...userProfile,
+      documents: [...userProfile.documents, newDocument],
+    })
   }
 
   const handleDocumentDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this document?')) {
-      const updated = renterProfile
-        ? {
-            ...renterProfile,
-            documents: renterProfile.documents.filter(doc => doc.id !== id),
-          }
-        : null
-      if (updated) {
-        setRenterProfile(updated)
-        updateRenterProfile('user1', updated)
-      }
+      persistProfile({
+        ...userProfile,
+        documents: userProfile.documents.filter(doc => doc.id !== id),
+      })
     }
   }
 
   // Job info handlers
   const handleJobInfoSave = (data: any) => {
     const newJobInfo: JobInfo = {
-      id: renterProfile?.jobInfo?.id || `job-${Date.now()}`,
+      id: userProfile.jobInfo?.id || `job-${Date.now()}`,
       ...data,
       employmentStartDate: data.employmentStartDate?.toISOString(),
       verificationStatus: 'pending',
     }
-    const updated = renterProfile
-      ? { ...renterProfile, jobInfo: newJobInfo }
-      : null
-    if (updated) {
-      setRenterProfile(updated)
-      updateRenterProfile('user1', updated)
-    }
+    persistProfile({ ...userProfile, jobInfo: newJobInfo })
   }
 
   // Family member handlers
@@ -190,35 +189,23 @@ export default function ProfilePage() {
       isEmergencyContact: data.isEmergencyContact,
       createdAt: editingFamilyMember?.createdAt || new Date().toISOString(),
     }
-    const updated = renterProfile
-      ? {
-          ...renterProfile,
-          familyMembers: editingFamilyMember
-            ? renterProfile.familyMembers.map(m =>
-                m.id === editingFamilyMember.id ? newMember : m
-              )
-            : [...renterProfile.familyMembers, newMember],
-        }
-      : null
-    if (updated) {
-      setRenterProfile(updated)
-      updateRenterProfile('user1', updated)
-      setEditingFamilyMember(null)
-    }
+    persistProfile({
+      ...userProfile,
+      familyMembers: editingFamilyMember
+        ? userProfile.familyMembers.map(m =>
+            m.id === editingFamilyMember.id ? newMember : m
+          )
+        : [...userProfile.familyMembers, newMember],
+    })
+    setEditingFamilyMember(null)
   }
 
   const handleFamilyMemberDelete = (id: string) => {
     if (confirm('Are you sure you want to remove this family member?')) {
-      const updated = renterProfile
-        ? {
-            ...renterProfile,
-            familyMembers: renterProfile.familyMembers.filter(m => m.id !== id),
-          }
-        : null
-      if (updated) {
-        setRenterProfile(updated)
-        updateRenterProfile('user1', updated)
-      }
+      persistProfile({
+        ...userProfile,
+        familyMembers: userProfile.familyMembers.filter(m => m.id !== id),
+      })
     }
   }
 
@@ -228,41 +215,44 @@ export default function ProfilePage() {
       id: editingEmergencyContact?.id || `ec-${Date.now()}`,
       ...data,
     }
-    const updated = renterProfile
-      ? {
-          ...renterProfile,
-          emergencyContacts: editingEmergencyContact
-            ? renterProfile.emergencyContacts.map(c =>
-                c.id === editingEmergencyContact.id ? newContact : c
-              )
-            : [...renterProfile.emergencyContacts, newContact],
-        }
-      : null
-    if (updated) {
-      setRenterProfile(updated)
-      updateRenterProfile('user1', updated)
-      setEditingEmergencyContact(null)
-    }
+    persistProfile({
+      ...userProfile,
+      emergencyContacts: editingEmergencyContact
+        ? userProfile.emergencyContacts.map(c =>
+            c.id === editingEmergencyContact.id ? newContact : c
+          )
+        : [...userProfile.emergencyContacts, newContact],
+    })
+    setEditingEmergencyContact(null)
   }
 
   const handleEmergencyContactDelete = (id: string) => {
     if (confirm('Are you sure you want to remove this emergency contact?')) {
-      const updated = renterProfile
-        ? {
-            ...renterProfile,
-            emergencyContacts: renterProfile.emergencyContacts.filter(
-              c => c.id !== id
-            ),
-          }
-        : null
-      if (updated) {
-        setRenterProfile(updated)
-        updateRenterProfile('user1', updated)
-      }
+      persistProfile({
+        ...userProfile,
+        emergencyContacts: userProfile.emergencyContacts.filter(
+          c => c.id !== id
+        ),
+      })
     }
   }
 
   const isRenter = profile.role === 'renter'
+  const isOwner = profile.role === 'owner'
+
+  if (!ready) {
+    return (
+      <Layout>
+        <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mb-6 h-10 w-56 animate-pulse rounded-md bg-muted" />
+          <div className="space-y-4">
+            <div className="h-40 animate-pulse rounded-lg bg-muted" />
+            <div className="h-40 animate-pulse rounded-lg bg-muted" />
+          </div>
+        </div>
+      </Layout>
+    )
+  }
 
   return (
     <Layout>
@@ -271,17 +261,20 @@ export default function ProfilePage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold sm:text-3xl">Profile & Settings</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage your profile and preferences
+            {isOwner
+              ? 'Manage identity documents, job info, family, and account preferences'
+              : 'Manage your profile, documents, family, and preferences'}
           </p>
         </div>
 
-        {isRenter ? (
-          <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList
+              className={`grid w-full ${isRenter ? 'grid-cols-5' : 'grid-cols-4'}`}
+            >
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="documents">Documents</TabsTrigger>
               <TabsTrigger value="family">Family</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
+              {isRenter && <TabsTrigger value="history">History</TabsTrigger>}
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
@@ -359,52 +352,65 @@ export default function ProfilePage() {
 
               {/* Job/Institute Information */}
               <JobInfoCard
-                jobInfo={renterProfile?.jobInfo}
+                jobInfo={userProfile.jobInfo}
                 onEdit={() => setShowJobInfoDialog(true)}
               />
             </TabsContent>
 
             {/* Documents Tab */}
             <TabsContent value="documents" className="space-y-6">
-              {/* Agreements & Checklists Link */}
               <Card className="border-primary/20 bg-primary/5">
                 <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <h3 className="font-semibold mb-1">
-                        Rental Agreements & Checklists
+                      <h3 className="mb-1 font-semibold">
+                        {isOwner
+                          ? 'Trust & verification documents'
+                          : 'Rental agreements & checklists'}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        Manage your rental agreements and move-in/move-out
-                        checklists
+                        {isOwner
+                          ? 'Upload NID, passport, and police verification to build tenant trust in Bangladesh.'
+                          : 'Manage rental agreements and move-in/move-out checklists.'}
                       </p>
                     </div>
-                    <Button asChild>
-                      <Link href="/documents">
-                        <FileText className="h-4 w-4 mr-2" />
-                        View Documents
-                      </Link>
-                    </Button>
+                    {isRenter ? (
+                      <Button asChild>
+                        <Link href="/documents">
+                          <FileText className="mr-2 h-4 w-4" />
+                          View agreements
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button onClick={() => setShowDocumentUpload(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Upload document
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Documents
-                  </CardTitle>
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Identity & trust documents
+                    </CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      NID, passport, driving license, police verification
+                    </p>
+                  </div>
                   <Button onClick={() => setShowDocumentUpload(true)}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Upload Document
+                    Upload
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  {renterProfile?.documents &&
-                  renterProfile.documents.length > 0 ? (
+                  {userProfile.documents.length > 0 ? (
                     <div className="space-y-4">
-                      {renterProfile.documents.map(doc => (
+                      {userProfile.documents.map(doc => (
                         <DocumentCard
                           key={doc.id}
                           document={doc}
@@ -414,14 +420,14 @@ export default function ProfilePage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <div className="py-8 text-center text-muted-foreground">
+                      <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
                       <p>No documents uploaded yet</p>
                       <Button
                         className="mt-4"
                         onClick={() => setShowDocumentUpload(true)}
                       >
-                        Upload Document
+                        Upload document
                       </Button>
                     </div>
                   )}
@@ -449,10 +455,9 @@ export default function ProfilePage() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  {renterProfile?.familyMembers &&
-                  renterProfile.familyMembers.length > 0 ? (
+                  {userProfile.familyMembers.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {renterProfile.familyMembers.map(member => (
+                      {userProfile.familyMembers.map(member => (
                         <FamilyMemberCard
                           key={member.id}
                           member={member}
@@ -500,10 +505,9 @@ export default function ProfilePage() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  {renterProfile?.emergencyContacts &&
-                  renterProfile.emergencyContacts.length > 0 ? (
+                  {userProfile.emergencyContacts.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {renterProfile.emergencyContacts.map(contact => (
+                      {userProfile.emergencyContacts.map(contact => (
                         <EmergencyContactCard
                           key={contact.id}
                           contact={contact}
@@ -534,7 +538,8 @@ export default function ProfilePage() {
               </Card>
             </TabsContent>
 
-            {/* History Tab */}
+            {/* History Tab (renters only) */}
+            {isRenter && (
             <TabsContent value="history" className="space-y-6">
               <Card>
                 <CardHeader>
@@ -686,6 +691,7 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
             </TabsContent>
+            )}
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-6">
@@ -774,169 +780,8 @@ export default function ProfilePage() {
               </div>
             </TabsContent>
           </Tabs>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* Left Column - Profile Details */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Profile Information Card */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Profile Information
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditDialogOpen(true)}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Name */}
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                      <User className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-lg font-semibold">{profile.name}</p>
-                        {profile.verified && (
-                          <Badge
-                            variant="outline"
-                            className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-                          >
-                            <Check className="mr-1 h-3 w-3" />
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground capitalize">
-                        {profile.role}
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Contact Information */}
-                  <div className="space-y-3 rounded-lg border p-4">
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-5 w-5 text-muted-foreground" />
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Phone</p>
-                        <p className="font-medium">{profile.phone}</p>
-                      </div>
-                    </div>
-                    {profile.email && (
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-5 w-5 text-muted-foreground" />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">Email</p>
-                          <p className="font-medium">{profile.email}</p>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3">
-                      <Shield className="h-5 w-5 text-muted-foreground" />
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Role</p>
-                        <p className="font-medium capitalize">{profile.role}</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column - Settings */}
-            <div className="space-y-6">
-              {/* Preferences Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Preferences</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Language Toggle */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Globe className="h-5 w-5 text-muted-foreground" />
-                      <div className="space-y-0.5">
-                        <Label
-                          htmlFor="language-toggle"
-                          className="text-base font-medium"
-                        >
-                          Language
-                        </Label>
-                        <p className="text-xs text-muted-foreground">
-                          {language === 'bn' ? 'বাংলা' : 'English'}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={toggleLanguage}
-                      id="language-toggle"
-                    >
-                      {language === 'bn' ? 'EN' : 'BN'}
-                    </Button>
-                  </div>
-
-                  {/* Theme Toggle */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {theme === 'dark' ? (
-                        <Moon className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <Sun className="h-5 w-5 text-muted-foreground" />
-                      )}
-                      <div className="space-y-0.5">
-                        <Label
-                          htmlFor="theme-toggle"
-                          className="text-base font-medium"
-                        >
-                          Theme
-                        </Label>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      id="theme-toggle"
-                      checked={theme === 'dark'}
-                      onCheckedChange={toggleTheme}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Account Actions Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
-                    Change Password
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    Privacy Settings
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="w-full justify-start"
-                  >
-                    Delete Account
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {/* Dialogs */}
+        {/* Dialogs — available for all roles */}
         <EditProfileDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
@@ -944,48 +789,43 @@ export default function ProfilePage() {
           onSave={handleSave}
         />
 
-        {isRenter && (
-          <>
-            <DocumentUploadDialog
-              open={showDocumentUpload}
-              onOpenChange={setShowDocumentUpload}
-              onSubmit={handleDocumentUpload}
-            />
+        <DocumentUploadDialog
+          open={showDocumentUpload}
+          onOpenChange={setShowDocumentUpload}
+          onSubmit={handleDocumentUpload}
+        />
 
-            <JobInfoDialog
-              open={showJobInfoDialog}
-              onOpenChange={setShowJobInfoDialog}
-              initialData={renterProfile?.jobInfo}
-              onSubmit={handleJobInfoSave}
-            />
+        <JobInfoDialog
+          open={showJobInfoDialog}
+          onOpenChange={setShowJobInfoDialog}
+          initialData={userProfile.jobInfo}
+          onSubmit={handleJobInfoSave}
+        />
 
-            <FamilyMemberDialog
-              open={showFamilyMemberDialog}
-              onOpenChange={open => {
-                setShowFamilyMemberDialog(open)
-                if (!open) setEditingFamilyMember(null)
-              }}
-              initialData={editingFamilyMember || undefined}
-              onSubmit={handleFamilyMemberAdd}
-            />
+        <FamilyMemberDialog
+          open={showFamilyMemberDialog}
+          onOpenChange={open => {
+            setShowFamilyMemberDialog(open)
+            if (!open) setEditingFamilyMember(null)
+          }}
+          initialData={editingFamilyMember || undefined}
+          onSubmit={handleFamilyMemberAdd}
+        />
 
-            <EmergencyContactDialog
-              open={showEmergencyContactDialog}
-              onOpenChange={open => {
-                setShowEmergencyContactDialog(open)
-                if (!open) setEditingEmergencyContact(null)
-              }}
-              initialData={editingEmergencyContact || undefined}
-              onSubmit={handleEmergencyContactAdd}
-            />
-          </>
-        )}
+        <EmergencyContactDialog
+          open={showEmergencyContactDialog}
+          onOpenChange={open => {
+            setShowEmergencyContactDialog(open)
+            if (!open) setEditingEmergencyContact(null)
+          }}
+          initialData={editingEmergencyContact || undefined}
+          onSubmit={handleEmergencyContactAdd}
+        />
       </div>
 
-      {/* Renter History Dialog */}
-      {profile.role === 'renter' && (
+      {isRenter && (
         <RenterHistoryDialog
-          renterId="r1" // In real app, get from auth context
+          renterId="r1"
           renterName={profile.name}
           open={isHistoryDialogOpen}
           onOpenChange={setIsHistoryDialogOpen}

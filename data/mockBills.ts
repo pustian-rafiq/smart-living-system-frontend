@@ -144,3 +144,86 @@ export const mockBills: Bill[] = [
     createdAt: '2024-03-01',
   },
 ]
+
+export function getBillById(billId: string): Bill | undefined {
+  return mockBills.find(b => b.id === billId)
+}
+
+export function markBillPaid(
+  billId: string,
+  paidDate = new Date().toISOString().split('T')[0]
+): Bill | null {
+  const bill = mockBills.find(b => b.id === billId)
+  if (!bill) return null
+  bill.status = 'paid'
+  bill.paidDate = paidDate
+  return bill
+}
+
+export function getBillsByTenantId(tenantId: string): Bill[] {
+  return mockBills.filter(b => b.tenantId === tenantId)
+}
+
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const
+
+/** Current (or unpaid) mess fee bill for a student — creates one if missing. */
+export function getOrCreateMessBill(input: {
+  tenantId: string
+  tenantName: string
+  messId: string
+  messName: string
+  seatNumber?: string
+  monthlyFee: number
+}): Bill {
+  const existing = mockBills.find(
+    b =>
+      b.tenantId === input.tenantId &&
+      b.propertyType === 'mess' &&
+      b.propertyId === input.messId &&
+      b.status !== 'paid'
+  )
+  if (existing) return existing
+
+  const now = new Date()
+  const month = MONTHS[now.getMonth()]
+  const year = now.getFullYear()
+  const due = new Date(year, now.getMonth(), 5)
+  const bill: Bill = {
+    id: `mess-bill-${input.tenantId}-${input.messId}-${year}-${now.getMonth() + 1}`,
+    tenantName: input.tenantName,
+    tenantId: input.tenantId,
+    propertyType: 'mess',
+    propertyName: input.messName,
+    propertyId: input.messId,
+    seatNumber: input.seatNumber,
+    month,
+    year,
+    amount: input.monthlyFee,
+    dueDate: due.toISOString().split('T')[0],
+    status: due < now ? 'overdue' : 'unpaid',
+    items: [
+      {
+        id: `mess-item-${Date.now()}`,
+        description: 'Monthly mess fee',
+        amount: input.monthlyFee,
+        type: 'rent',
+      },
+    ],
+    createdAt: now.toISOString().split('T')[0],
+  }
+  mockBills.unshift(bill)
+  return bill
+}

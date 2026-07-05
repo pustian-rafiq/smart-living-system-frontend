@@ -57,18 +57,48 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
       {
         title: 'Add Building',
         subtitle: 'Create a building and manage flats',
-        href: '/my-properties?tab=buildings',
+        href: '/my-properties',
         icon: <Icon path="M4 21V3h16v18M9 21V9h6v12" />,
         photoToneClass:
           'bg-gradient-to-r from-violet-200/70 via-fuchsia-200/60 to-pink-200/70 dark:from-violet-900/30 dark:via-fuchsia-900/20 dark:to-pink-900/30',
       },
       {
-        title: 'Add Mess',
-        subtitle: 'List shared rooms quickly',
-        href: '/my-properties?tab=mess',
-        icon: <Icon path="M7 21V3h10v18M9 7h6M9 11h6M9 15h6" />,
+        title: 'Mess & Hostel',
+        subtitle: 'Seats, meals, attendance, SMS',
+        href: '/mess',
+        icon: (
+          <Icon path="M4 21V8a2 2 0 012-2h12a2 2 0 012 2v13M9 21V12h6v9" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-amber-200/70 via-orange-200/60 to-rose-200/70 dark:from-amber-900/30 dark:via-orange-900/20 dark:to-rose-900/30',
+      },
+      {
+        title: 'My Hotels',
+        subtitle: 'Rooms, bookings, pricing, invoices',
+        href: '/my-hotels',
+        icon: (
+          <Icon path="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-sky-200/70 via-blue-200/60 to-indigo-200/70 dark:from-sky-900/30 dark:via-blue-900/20 dark:to-indigo-900/30',
+      },
+      {
+        title: 'Publish Listing',
+        subtitle: 'Appear in search & discovery',
+        href: '/my-listings/new',
+        icon: <Icon path="M12 5v14M5 12h14" />,
         photoToneClass:
           'bg-gradient-to-r from-emerald-200/70 via-lime-200/60 to-yellow-200/70 dark:from-emerald-900/30 dark:via-lime-900/20 dark:to-yellow-900/30',
+      },
+      {
+        title: 'Booking Requests',
+        subtitle: 'Approve or reject renters',
+        href: '/my-properties/bookings',
+        icon: (
+          <Icon path="M8 7V3m8 4V3M4 11h16M6 21h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-teal-200/70 via-cyan-200/60 to-sky-200/70 dark:from-teal-900/30 dark:via-cyan-900/20 dark:to-sky-900/30',
       },
       {
         title: 'Generate Rent',

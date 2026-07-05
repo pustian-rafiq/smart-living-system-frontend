@@ -1,31 +1,35 @@
 'use client'
 
+import { useState } from 'react'
+import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Users, DollarSign, MapPin, Phone } from 'lucide-react'
+import { MessManageLinks } from '@/components/mess/MessManageLinks'
+import { Users, DollarSign, MapPin, Phone, UserPlus } from 'lucide-react'
 import type { Mess } from '@/types/mess'
-import Image from 'next/image'
-import { useState } from 'react'
 
 interface MessOverviewCardProps {
   mess: Mess
   onAssignStudent: (mess: Mess) => void
+  /** Show owner management links (meals, attendance, etc.) */
+  showManageLinks?: boolean
 }
 
 export function MessOverviewCard({
   mess,
   onAssignStudent,
+  showManageLinks = true,
 }: MessOverviewCardProps) {
   const [imageError, setImageError] = useState(false)
+  const occupied = mess.totalSeats - mess.availableSeats
   const occupancyRate =
-    ((mess.totalSeats - mess.availableSeats) / mess.totalSeats) * 100
+    mess.totalSeats > 0 ? (occupied / mess.totalSeats) * 100 : 0
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg">
-      {/* Image */}
-      <div className="relative h-48 w-full overflow-hidden bg-muted sm:h-56">
+      <div className="relative h-48 w-full overflow-hidden bg-muted sm:h-52">
         {!imageError && mess.images[0] ? (
           <Image
             src={mess.images[0]}
@@ -40,47 +44,56 @@ export function MessOverviewCard({
             <span className="text-5xl">🏠</span>
           </div>
         )}
+        <div className="absolute left-2 top-2 flex flex-wrap gap-1.5">
+          <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+            {mess.availableSeats} seats free
+          </Badge>
+        </div>
         <div className="absolute right-2 top-2">
-          <Badge variant="outline" className="bg-background/90 backdrop-blur">
-            {mess.gender === 'male'
-              ? 'Male'
-              : mess.gender === 'female'
-                ? 'Female'
-                : 'Mixed'}
+          <Badge
+            variant="outline"
+            className="bg-background/95 font-semibold capitalize shadow-sm backdrop-blur"
+          >
+            {mess.gender}
           </Badge>
         </div>
       </div>
 
-      <CardHeader>
+      <CardHeader className="pb-2">
         <CardTitle className="text-xl sm:text-2xl">{mess.name}</CardTitle>
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-          <MapPin className="h-3.5 w-3.5" />
-          <span className="line-clamp-1">{mess.address}</span>
+          <MapPin className="h-3.5 w-3.5 shrink-0" />
+          <span className="line-clamp-1">
+            {mess.address}, {mess.city}
+          </span>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border p-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>Total Seats</span>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Users className="h-3.5 w-3.5" />
+              Occupied
             </div>
-            <p className="mt-1 text-2xl font-bold">{mess.totalSeats}</p>
+            <p className="mt-1 text-xl font-bold">
+              {occupied}
+              <span className="text-sm font-normal text-muted-foreground">
+                /{mess.totalSeats}
+              </span>
+            </p>
           </div>
           <div className="rounded-lg border p-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              <span>Available</span>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <DollarSign className="h-3.5 w-3.5" />
+              Monthly fee
             </div>
-            <p className="mt-1 text-2xl font-bold text-primary">
-              {mess.availableSeats}
+            <p className="mt-1 text-xl font-bold text-primary">
+              ৳{mess.monthlyFee.toLocaleString()}
             </p>
           </div>
         </div>
 
-        {/* Occupancy Progress */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Occupancy</span>
@@ -89,61 +102,48 @@ export function MessOverviewCard({
           <Progress value={occupancyRate} className="h-2" />
         </div>
 
-        {/* Monthly Fee */}
-        <div className="flex items-center justify-between rounded-lg border p-3">
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="text-sm text-muted-foreground">Monthly Fee</p>
-              <p className="text-xl font-bold text-primary">
-                ৳{mess.monthlyFee.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Facilities */}
         {mess.facilities.length > 0 && (
-          <div>
-            <p className="mb-2 text-sm font-medium text-muted-foreground">
-              Facilities
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {mess.facilities.slice(0, 4).map((facility, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs">
-                  {facility}
-                </Badge>
-              ))}
-              {mess.facilities.length > 4 && (
-                <Badge variant="outline" className="text-xs">
-                  +{mess.facilities.length - 4} more
-                </Badge>
-              )}
-            </div>
+          <div className="flex flex-wrap gap-1.5">
+            {mess.facilities.slice(0, 4).map(facility => (
+              <Badge key={facility} variant="outline" className="text-xs">
+                {facility}
+              </Badge>
+            ))}
+            {mess.facilities.length > 4 && (
+              <Badge variant="outline" className="text-xs">
+                +{mess.facilities.length - 4}
+              </Badge>
+            )}
           </div>
         )}
 
-        {/* Owner Contact */}
         <div className="flex items-center justify-between rounded-lg border p-3">
           <div>
-            <p className="text-sm text-muted-foreground">Owner</p>
-            <p className="font-medium">{mess.ownerName}</p>
+            <p className="text-xs text-muted-foreground">Owner</p>
+            <p className="text-sm font-medium">{mess.ownerName}</p>
           </div>
           <Button variant="outline" size="sm" asChild>
             <a href={`tel:${mess.ownerPhone}`}>
-              <Phone className="mr-2 h-4 w-4" />
+              <Phone className="mr-1.5 h-3.5 w-3.5" />
               Call
             </a>
           </Button>
         </div>
 
-        {/* Action Button */}
+        {showManageLinks && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">Manage</p>
+            <MessManageLinks mess={mess} variant="compact" />
+          </div>
+        )}
+
         <Button
           className="w-full"
           onClick={() => onAssignStudent(mess)}
           disabled={mess.availableSeats === 0}
         >
-          Assign Student
+          <UserPlus className="mr-2 h-4 w-4" />
+          {mess.availableSeats === 0 ? 'Full — no seats' : 'Assign student'}
         </Button>
       </CardContent>
     </Card>

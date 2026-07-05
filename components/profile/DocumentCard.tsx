@@ -78,6 +78,8 @@ export function DocumentCard({
         return 'Passport'
       case 'driving_license':
         return 'Driving License'
+      case 'police_verification':
+        return 'Police verification'
       default:
         return 'Other'
     }

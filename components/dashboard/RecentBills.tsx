@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { DownloadBillButton } from '@/components/bill/DownloadBillButton'
 import { FileText } from 'lucide-react'
 import type { Bill } from '@/types/bill'
 import { format } from 'date-fns'
@@ -75,20 +76,23 @@ export function RecentBills({
                     Due: {format(new Date(bill.dueDate), 'MMM dd, yyyy')}
                   </p>
                 </div>
-                <div className="text-right ml-4">
+                <div className="ml-4 flex flex-col items-end gap-2">
                   <p className="text-lg font-bold text-primary">
                     ৳{bill.amount.toLocaleString()}
                   </p>
-                  {bill.status === 'unpaid' && (
-                    <Button
-                      asChild
-                      variant="outline"
+                  <div className="flex gap-2">
+                    <DownloadBillButton
+                      bill={bill}
                       size="sm"
-                      className="mt-2"
-                    >
-                      <Link href="/bills">Pay</Link>
-                    </Button>
-                  )}
+                      simple
+                      label="Receipt"
+                    />
+                    {bill.status === 'unpaid' && (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href="/bills">Pay</Link>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             )

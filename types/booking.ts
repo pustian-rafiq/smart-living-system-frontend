@@ -5,6 +5,8 @@ export type BookingStatus =
   | 'cancelled'
   | 'completed'
 
+export type BookingMode = 'instant' | 'request'
+
 export interface Booking {
   id: string
   propertyId: string
@@ -20,6 +22,8 @@ export interface Booking {
   ownerName: string
   ownerPhone: string
   status: BookingStatus
+  /** Instant bookings are auto-approved; requests need owner action */
+  bookingMode?: BookingMode
   moveInDate?: string
   moveOutDate?: string
   duration?: number // in months
@@ -34,6 +38,16 @@ export interface Booking {
   rejectedAt?: string
   cancelledAt?: string
   rejectionReason?: string
+  cancellationReason?: string
+  completedAt?: string
+}
+
+export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  cancelled: 'Cancelled',
+  completed: 'Completed',
 }
 
 export interface BookingFormData {

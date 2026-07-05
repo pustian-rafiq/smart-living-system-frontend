@@ -22,6 +22,7 @@ import {
   FormMessage,
   FormDescription,
 } from '@/components/ui/form'
+import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -40,15 +41,42 @@ import { getActiveTemplates } from '@/data/mockBillTemplates'
 import type { BulkBillGenerationData } from '@/types/bulk'
 import { Calendar, Building2, FileText } from 'lucide-react'
 
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const
+
 const bulkBillSchema = z.object({
   buildingId: z.string().optional(),
   floorIds: z.array(z.string()).optional(),
   flatIds: z.array(z.string()).optional(),
   month: z.string().min(1, 'Month is required'),
-  year: z.number().min(2020).max(2100),
+  year: z.coerce.number().min(2020).max(2100),
   templateId: z.string().optional(),
   includeUnpaid: z.boolean(),
 })
+
+function currentBillDefaults(): Pick<
+  BulkBillGenerationData,
+  'month' | 'year' | 'includeUnpaid'
+> {
+  const now = new Date()
+  return {
+    month: MONTHS[now.getMonth()],
+    year: now.getFullYear(),
+    includeUnpaid: false,
+  }
+}
 
 interface BulkBillDialogProps {
   open: boolean
@@ -72,17 +100,17 @@ export function BulkBillDialog({
     : []
 
   const form = useForm<BulkBillGenerationData>({
-    resolver: zodResolver(bulkBillSchema),
+    resolver: zodResolver(bulkBillSchema) as never,
     defaultValues: {
-      month: new Date().toLocaleString('default', { month: 'long' }),
-      year: new Date().getFullYear(),
+      month: 'January',
+      year: 2026,
       includeUnpaid: false,
     },
   })
 
   useEffect(() => {
-    if (!open) {
-      form.reset()
+    if (open) {
+      form.reset(currentBillDefaults())
       setSelectedBuilding('')
       setSelectedFloors([])
       setSelectedFlats([])
@@ -173,11 +201,11 @@ export function BulkBillDialog({
                   )}
                 />
 
-                {/* Floor Selection */}
+                {/* Floor Selection (local state — not RHF FormField) */}
                 {selectedBuilding && floors.length > 0 && (
                   <div className="space-y-2">
-                    <FormLabel>Select Floors (Optional)</FormLabel>
-                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
+                    <Label>Select Floors (Optional)</Label>
+                    <div className="grid max-h-40 grid-cols-2 gap-2 overflow-y-auto rounded-md border p-2">
                       {floors.map(floor => (
                         <div
                           key={floor.id}
@@ -199,7 +227,7 @@ export function BulkBillDialog({
                           />
                           <label
                             htmlFor={`floor-${floor.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                           >
                             {floor.name || `Floor ${floor.floorNumber}`} (
                             {floor.totalFlats} flats)
@@ -207,17 +235,17 @@ export function BulkBillDialog({
                         </div>
                       ))}
                     </div>
-                    <FormDescription>
+                    <p className="text-sm text-muted-foreground">
                       Select specific floors. Leave empty to select all floors.
-                    </FormDescription>
+                    </p>
                   </div>
                 )}
 
-                {/* Flat Selection */}
+                {/* Flat Selection (local state — not RHF FormField) */}
                 {selectedBuilding && availableFlats.length > 0 && (
                   <div className="space-y-2">
-                    <FormLabel>Select Flats (Optional)</FormLabel>
-                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
+                    <Label>Select Flats (Optional)</Label>
+                    <div className="grid max-h-40 grid-cols-2 gap-2 overflow-y-auto rounded-md border p-2">
                       {availableFlats.map(flat => (
                         <div
                           key={flat.id}
@@ -239,16 +267,16 @@ export function BulkBillDialog({
                           />
                           <label
                             htmlFor={`flat-${flat.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                           >
                             Flat {flat.flatNumber}
                           </label>
                         </div>
                       ))}
                     </div>
-                    <FormDescription>
+                    <p className="text-sm text-muted-foreground">
                       Select specific flats. Leave empty to select all flats.
-                    </FormDescription>
+                    </p>
                   </div>
                 )}
 
@@ -270,20 +298,7 @@ export function BulkBillDialog({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {[
-                              'January',
-                              'February',
-                              'March',
-                              'April',
-                              'May',
-                              'June',
-                              'July',
-                              'August',
-                              'September',
-                              'October',
-                              'November',
-                              'December',
-                            ].map(month => (
+                            {MONTHS.map(month => (
                               <SelectItem key={month} value={month}>
                                 {month}
                               </SelectItem>
@@ -328,8 +343,10 @@ export function BulkBillDialog({
                       <FormItem>
                         <FormLabel>Bill Template (Optional)</FormLabel>
                         <Select
-                          value={field.value || ''}
-                          onValueChange={field.onChange}
+                          value={field.value || 'none'}
+                          onValueChange={value =>
+                            field.onChange(value === 'none' ? undefined : value)
+                          }
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -337,7 +354,7 @@ export function BulkBillDialog({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">None (Manual)</SelectItem>
+                            <SelectItem value="none">None (Manual)</SelectItem>
                             {templates.map(template => (
                               <SelectItem key={template.id} value={template.id}>
                                 {template.name}

@@ -72,6 +72,44 @@ export interface Booking {
   updatedAt: string
 }
 
+export interface CancellationPolicy {
+  freeCancellationHours: number
+  partialRefundHours: number
+  partialRefundPercent: number
+  noRefundWithinHours: number
+  summary: string
+}
+
+export interface SeasonalPriceRule {
+  id: string
+  name: string
+  startDate: string // YYYY-MM-DD
+  endDate: string
+  multiplier: number // e.g. 1.25 = +25%
+}
+
+export interface HotelPricingRules {
+  weekendMultiplier: number // Fri–Sat nights, e.g. 1.15
+  serviceChargePercent: number // e.g. 10
+  vatPercent: number // e.g. 15 (BD VAT on hotels often applied)
+  seasonalRules: SeasonalPriceRule[]
+}
+
+export interface BookingFeeBreakdown {
+  nights: number
+  baseRoomTotal: number
+  weekendNights: number
+  weekendSurcharge: number
+  seasonalSurcharge: number
+  subtotal: number
+  serviceCharge: number
+  vat: number
+  total: number
+  advanceAmount: number
+  remainingAmount: number
+  advancePercent: number
+}
+
 export interface Hotel {
   id: string
   name: string
@@ -100,8 +138,33 @@ export interface Hotel {
   totalReviews: number
   totalRooms: number
   availableRooms: number
+  cancellationPolicy?: CancellationPolicy
+  pricingRules?: HotelPricingRules
+  advancePaymentPercent?: number // default 30
   createdAt: string
   updatedAt: string
+}
+
+export interface HotelRegistrationInput {
+  name: string
+  type: HotelType
+  starRating?: number
+  address: string
+  area: string
+  city: string
+  description: string
+  amenities: string[]
+  checkInTime: string
+  checkOutTime: string
+  minimumStay: number
+  licenseNumber?: string
+  licenseDocumentName?: string
+  imageUrl?: string
+  weekendMultiplier: number
+  serviceChargePercent: number
+  vatPercent: number
+  freeCancellationHours: number
+  partialRefundPercent: number
 }
 
 export interface HotelSearchFilters {

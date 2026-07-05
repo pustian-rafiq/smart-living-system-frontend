@@ -192,15 +192,23 @@ export default function MyHotelsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1" asChild>
-                        <Link href={`/my-hotels/${hotel.id}/rooms`}>
-                          Manage
-                        </Link>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/my-hotels/${hotel.id}/rooms`}>Rooms</Link>
                       </Button>
-                      <Button variant="outline" className="flex-1" asChild>
+                      <Button variant="outline" size="sm" asChild>
                         <Link href={`/my-hotels/${hotel.id}/bookings`}>
                           Bookings
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/my-hotels/${hotel.id}/calendar`}>
+                          Calendar
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/my-hotels/${hotel.id}/pricing`}>
+                          Pricing
                         </Link>
                       </Button>
                     </div>

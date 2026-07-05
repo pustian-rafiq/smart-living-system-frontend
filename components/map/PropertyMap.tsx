@@ -9,7 +9,7 @@ import {
 } from '@react-google-maps/api'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
 import { MapPin, Navigation, ExternalLink } from 'lucide-react'
 import type { Property } from '@/types/property'
 import Image from 'next/image'
@@ -264,13 +264,7 @@ export function PropertyMap({
                   <span className="text-sm font-bold text-primary">
                     ৳{selectedProperty.rent.toLocaleString()}/month
                   </span>
-                  <Badge
-                    variant={
-                      selectedProperty.available ? 'default' : 'secondary'
-                    }
-                  >
-                    {selectedProperty.available ? 'Available' : 'Occupied'}
-                  </Badge>
+                  <AvailabilityBadge available={selectedProperty.available} />
                 </div>
                 <div className="flex gap-2">
                   <Button

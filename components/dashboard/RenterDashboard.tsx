@@ -104,6 +104,34 @@ export function RenterDashboard({
   const renterActions = useMemo(
     () => [
       {
+        title: 'Payments',
+        subtitle: 'Pay bills, history & schedules',
+        href: '/payments',
+        icon: (
+          <Icon path="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-emerald-200/70 via-teal-200/60 to-cyan-200/70 dark:from-emerald-900/30 dark:via-teal-900/20 dark:to-cyan-900/30',
+      },
+      {
+        title: 'My Bills',
+        subtitle: 'View and pay rent invoices',
+        href: '/bills',
+        icon: (
+          <Icon path="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        ),
+        photoToneClass:
+          'bg-gradient-to-r from-orange-200/70 via-amber-200/60 to-yellow-200/70 dark:from-orange-900/30 dark:via-amber-900/20 dark:to-yellow-900/30',
+      },
+      {
+        title: 'My Mess',
+        subtitle: 'Seat, meals, attendance & fees',
+        href: '/mess/student-dashboard',
+        icon: <Icon path="M4 21V8a2 2 0 012-2h12a2 2 0 012 2v13M9 21V12h6v9" />,
+        photoToneClass:
+          'bg-gradient-to-r from-lime-200/70 via-green-200/60 to-emerald-200/70 dark:from-lime-900/30 dark:via-green-900/20 dark:to-emerald-900/30',
+      },
+      {
         title: 'Find Mess',
         subtitle: 'Low-cost shared living near you',
         href: '/search?type=mess',
@@ -158,16 +186,6 @@ export function RenterDashboard({
         ),
         photoToneClass:
           'bg-gradient-to-r from-indigo-200/70 via-purple-200/60 to-pink-200/70 dark:from-indigo-900/30 dark:via-purple-900/20 dark:to-pink-900/30',
-      },
-      {
-        title: 'Payment Scheduling',
-        subtitle: 'Schedule future payments',
-        href: '/payments',
-        icon: (
-          <Icon path="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        ),
-        photoToneClass:
-          'bg-gradient-to-r from-blue-200/70 via-cyan-200/60 to-teal-200/70 dark:from-blue-900/30 dark:via-cyan-900/20 dark:to-teal-900/30',
       },
       {
         title: 'Expense Reports',
@@ -240,6 +258,19 @@ export function RenterDashboard({
 
       {/* Recent Bills */}
       {renterBills.length > 0 && <RecentBills bills={renterBills} />}
+
+      {/* Payments shortcut */}
+      <div className="flex flex-wrap gap-2">
+        <Button asChild>
+          <Link href="/payments">Payments</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/bills">My bills</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/payments">Payment history</Link>
+        </Button>
+      </div>
 
       {/* Quick Actions */}
       <div>

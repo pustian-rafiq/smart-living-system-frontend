@@ -3,24 +3,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Download,
-  Calendar,
-  Home,
-  User,
-  Zap,
-  Calculator,
-  Clock,
-} from 'lucide-react'
+import { Calendar, Home, User, Zap, Calculator, Clock, Wallet } from 'lucide-react'
 import type { Bill } from '@/types/bill'
+import { DownloadBillButton } from '@/components/bill/DownloadBillButton'
 import { cn } from '@/lib/utils'
 
 interface BillCardProps {
   bill: Bill
+  /** @deprecated Prefer built-in DownloadBillButton; kept for custom handlers */
   onDownload?: (bill: Bill) => void
   onMarkPaid?: (bill: Bill) => void
   onSchedulePayment?: (bill: Bill) => void
+  /** Renter Pay Now checkout */
+  onPayNow?: (bill: Bill) => void
   showTenantName?: boolean
+  /** Hide download control */
+  hideDownload?: boolean
 }
 
 const statusConfig = {
@@ -46,7 +44,9 @@ export function BillCard({
   onDownload,
   onMarkPaid,
   onSchedulePayment,
+  onPayNow,
   showTenantName = false,
+  hideDownload = false,
 }: BillCardProps) {
   const status = statusConfig[bill.status]
   const isOverdue =
@@ -251,19 +251,31 @@ export function BillCard({
 
         {/* Actions */}
         <div className="flex flex-col gap-2">
+          {onPayNow && bill.status !== 'paid' && (
+            <Button className="w-full" onClick={() => onPayNow(bill)}>
+              <Wallet className="mr-2 h-4 w-4" />
+              Pay Now
+            </Button>
+          )}
           <div className="flex gap-2">
-            {onDownload && (
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => onDownload(bill)}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Download
-              </Button>
-            )}
+            {!hideDownload &&
+              (onDownload ? (
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => onDownload(bill)}
+                >
+                  Download
+                </Button>
+              ) : (
+                <DownloadBillButton bill={bill} className="flex-1" />
+              ))}
             {onMarkPaid && bill.status !== 'paid' && (
-              <Button className="flex-1" onClick={() => onMarkPaid(bill)}>
+              <Button
+                variant={onPayNow ? 'outline' : 'default'}
+                className="flex-1"
+                onClick={() => onMarkPaid(bill)}
+              >
                 Mark as Paid
               </Button>
             )}

@@ -38,9 +38,14 @@ export function BillsSummary({ bills, showViewAll = true }: BillsSummaryProps) {
           Bills Summary
         </CardTitle>
         {showViewAll && (
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/bills">View All</Link>
-          </Button>
+          <div className="flex gap-1">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/payments">Payments</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/bills">View all</Link>
+            </Button>
+          </div>
         )}
       </CardHeader>
       <CardContent>
@@ -85,14 +90,19 @@ export function BillsSummary({ bills, showViewAll = true }: BillsSummaryProps) {
                 {overdue.length} overdue bill{overdue.length > 1 ? 's' : ''}
               </p>
             </div>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="mt-2 w-full border-red-300 text-red-700 hover:bg-red-100"
-            >
-              <Link href="/bills?status=overdue">Pay Now</Link>
-            </Button>
+            <div className="mt-2 flex gap-2">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex-1 border-red-300 text-red-700 hover:bg-red-100"
+              >
+                <Link href="/bills?status=overdue">Pay bills</Link>
+              </Button>
+              <Button asChild size="sm" className="flex-1">
+                <Link href="/payments">Payments</Link>
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>

@@ -36,9 +36,13 @@ export default function FloorsPage() {
   const [selectedFloor, setSelectedFloor] = useState<Floor | null>(null)
   const [deleteFloorData, setDeleteFloorData] = useState<Floor | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const building = mockBuildings.find(b => b.id === buildingId)
-  const floors = useMemo(() => getFloorsByBuilding(buildingId), [buildingId])
+  const floors = useMemo(
+    () => getFloorsByBuilding(buildingId),
+    [buildingId, refreshKey]
+  )
 
   const handleAddFloor = () => {
     setSelectedFloor(null)
@@ -72,6 +76,7 @@ export default function FloorsPage() {
         flats: [],
       })
     }
+    setRefreshKey(k => k + 1)
   }
 
   const handleConfirmDelete = () => {
@@ -79,6 +84,7 @@ export default function FloorsPage() {
       deleteFloor(deleteFloorData.id)
       setIsDeleteDialogOpen(false)
       setDeleteFloorData(null)
+      setRefreshKey(k => k + 1)
     }
   }
 
@@ -108,20 +114,37 @@ export default function FloorsPage() {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Button
+                variant="ghost"
+                className="mb-2 -ml-2"
+                onClick={() => router.push('/my-properties')}
+              >
+                ← Back to buildings
+              </Button>
+              <h1 className="flex items-center gap-2 text-2xl font-bold">
                 <Building2 className="h-6 w-6" />
-                {building.name} - Floors
+                {building.name} — Floors
               </h1>
-              <p className="text-muted-foreground mt-1">
-                Manage floors and organize flats by floor
+              <p className="mt-1 text-muted-foreground">
+                Manage floors and open flats by floor
               </p>
             </div>
-            <Button onClick={handleAddFloor}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Floor
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  router.push(`/my-properties/buildings/${buildingId}/flats`)
+                }
+              >
+                All flats
+              </Button>
+              <Button onClick={handleAddFloor}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add floor
+              </Button>
+            </div>
           </div>
         </div>
 

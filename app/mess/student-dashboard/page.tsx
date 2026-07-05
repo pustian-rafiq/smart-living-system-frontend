@@ -1,8 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Layout } from '@/components/layout/Layout'
+import {
+  PageContainer,
+  PageHeader,
+  EmptyState,
+} from '@/components/page'
 import { EnhancedNoticeBoard } from '@/components/notice/EnhancedNoticeBoard'
+import { PayBillDialog } from '@/components/payment/PayBillDialog'
+import { DownloadBillButton } from '@/components/bill/DownloadBillButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,59 +26,100 @@ import {
   Calendar,
   CreditCard,
   UtensilsCrossed,
+  Wallet,
+  ScrollText,
 } from 'lucide-react'
 import { mockStudents, mockNotices, mockMess } from '@/data/mockMess'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { getOrCreateMessBill } from '@/data/mockBills'
+import { getDemoRenterId } from '@/lib/api/demoUser'
+import type { Bill } from '@/types/bill'
 
 export default function StudentDashboardPage() {
   const router = useRouter()
-  // Get the first student as the logged-in student (in real app, get from auth)
   const student = mockStudents[0]
-  const mess = mockMess.find(m => m.id === 'm1') // In real app, get from student's messId
+  const mess = mockMess.find(m => m.id === 'm1')
   const notices = mockNotices.filter(n => n.messId === mess?.id)
+  const tenantId = getDemoRenterId()
+
+  const [messBill, setMessBill] = useState<Bill | null>(() => {
+    if (!student || !mess) return null
+    return getOrCreateMessBill({
+      tenantId,
+      tenantName: student.name,
+      messId: mess.id,
+      messName: mess.name,
+      seatNumber: student.seatNumber,
+      monthlyFee: student.monthlyFee,
+    })
+  })
+  const [isPayOpen, setIsPayOpen] = useState(false)
+
+  const isPaid = messBill?.status === 'paid'
+
+  const dueLabel = useMemo(() => {
+    if (!messBill) return '—'
+    return new Date(messBill.dueDate).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  }, [messBill])
 
   if (!student || !mess) {
     return (
       <Layout>
-        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-lg font-semibold">
-              No student information found
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => router.push('/mess')}
-              className="mt-4"
-            >
-              Back to Mess Overview
+        <PageContainer>
+          <EmptyState
+            title="No student information found"
+            description="You are not assigned to a mess yet."
+            icon={GraduationCap}
+          >
+            <Button variant="outline" onClick={() => router.push('/mess')}>
+              Back to mess
             </Button>
-          </div>
-        </div>
+          </EmptyState>
+        </PageContainer>
       </Layout>
     )
   }
 
   return (
     <Layout>
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold sm:text-3xl">Student Dashboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Your mess information and updates
-          </p>
-        </div>
+      <PageContainer>
+        <PageHeader
+          title="Student dashboard"
+          description={`${mess.name} · Seat ${student.seatNumber || '—'}`}
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/mess/student-dashboard/menu">
+                  <UtensilsCrossed className="mr-2 h-4 w-4" />
+                  Menu
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/mess/student-dashboard/attendance">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Attendance
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/payments">
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Payments
+                </Link>
+              </Button>
+            </div>
+          }
+        />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left Column - Student Info & Seat Details */}
           <div className="space-y-6 lg:col-span-2">
-            {/* Student Information Card */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Student Information
+                  Student information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -115,11 +166,11 @@ export default function StudentDashboardPage() {
                     </div>
                   )}
                   <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <Home className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Joined</p>
+                      <p className="text-sm text-muted-foreground">Seat</p>
                       <p className="font-medium">
-                        {new Date(student.joinedDate).toLocaleDateString()}
+                        {student.seatNumber || 'Not assigned'}
                       </p>
                     </div>
                   </div>
@@ -127,186 +178,178 @@ export default function StudentDashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Assigned Seat Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Home className="h-5 w-5" />
-                  Assigned Seat
+                  Mess details
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Mess Info */}
-                  <div className="rounded-lg border p-4">
-                    <div className="mb-3 flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold">{mess.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {mess.address}
-                        </p>
-                      </div>
-                      <Badge variant="outline">
-                        {mess.gender === 'male'
-                          ? 'Male'
-                          : mess.gender === 'female'
-                            ? 'Female'
-                            : 'Mixed'}
-                      </Badge>
-                    </div>
-
-                    {/* Mess Image */}
-                    {mess.images[0] && (
-                      <div className="relative mb-3 h-32 w-full overflow-hidden rounded-md">
-                        <Image
-                          src={mess.images[0]}
-                          alt={mess.name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                        />
-                      </div>
-                    )}
-
-                    {/* Seat Number */}
-                    <div className="flex items-center justify-between rounded-md bg-primary/5 p-3">
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Your Seat
-                        </p>
-                        <p className="text-xl font-bold text-primary">
-                          {student.seatNumber || 'Not Assigned'}
-                        </p>
-                      </div>
-                      <div className="rounded-full bg-primary/10 p-3">
-                        <Home className="h-6 w-6 text-primary" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Facilities */}
-                  {mess.facilities.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-sm font-medium text-muted-foreground">
-                        Available Facilities
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {mess.facilities.map((facility, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {facility}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+              <CardContent className="space-y-4">
+                <div className="relative h-40 w-full overflow-hidden rounded-lg bg-muted">
+                  {mess.images[0] && (
+                    <Image
+                      src={mess.images[0]}
+                      alt={mess.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                    />
                   )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">{mess.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {mess.address}, {mess.city}
+                  </p>
+                </div>
+                {mess.facilities.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {mess.facilities.map(facility => (
+                      <Badge key={facility} variant="outline">
+                        {facility}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/mess/${mess.id}/rules`}>
+                      <ScrollText className="mr-2 h-4 w-4" />
+                      Mess rules
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
+
+            <EnhancedNoticeBoard
+              notices={notices}
+              userId={student.id}
+              onAcknowledge={() => {}}
+              showAcknowledgment
+            />
           </div>
 
-          {/* Right Column - Monthly Fee & Notice Board */}
           <div className="space-y-6">
-            {/* Monthly Fee Card */}
-            <Card>
+            <Card className="border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
-                  Monthly Fee
+                  Monthly fee
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Current Fee</p>
+                  <p className="text-sm text-muted-foreground">
+                    {messBill?.month} {messBill?.year}
+                  </p>
                   <p className="mt-1 text-3xl font-bold text-primary">
-                    ৳{student.monthlyFee.toLocaleString()}
+                    ৳{(messBill?.amount ?? student.monthlyFee).toLocaleString()}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    per month
-                  </p>
+                  <Badge
+                    variant="outline"
+                    className={
+                      isPaid
+                        ? 'mt-2 border-emerald-200 bg-emerald-50 text-emerald-800'
+                        : messBill?.status === 'overdue'
+                          ? 'mt-2 border-red-200 bg-red-50 text-red-800'
+                          : 'mt-2 border-amber-200 bg-amber-50 text-amber-900'
+                    }
+                  >
+                    {isPaid ? 'Paid' : messBill?.status || 'unpaid'}
+                  </Badge>
                 </div>
 
-                <div className="space-y-2 rounded-lg border p-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Due Date</span>
-                    <span className="font-medium">5th of every month</span>
+                <div className="space-y-2 rounded-lg border p-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Due date</span>
+                    <span className="font-medium">{dueLabel}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Late Fee</span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Seat</span>
+                    <span className="font-medium">
+                      {student.seatNumber || '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Late fee</span>
                     <span className="font-medium">৳200</span>
                   </div>
                 </div>
 
-                <Button className="w-full">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Pay Now
+                {!isPaid && messBill ? (
+                  <Button
+                    className="w-full"
+                    onClick={() => setIsPayOpen(true)}
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Pay Now
+                  </Button>
+                ) : (
+                  messBill && (
+                    <DownloadBillButton
+                      bill={messBill}
+                      className="w-full"
+                      label="Download receipt"
+                    />
+                  )
+                )}
+
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/payments">
+                    <Wallet className="mr-2 h-4 w-4" />
+                    Payment history
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Notice Board */}
-            <EnhancedNoticeBoard
-              notices={notices}
-              userId={student.id}
-              onAcknowledge={noticeId => {
-                // In real app, call API to acknowledge
-                console.log('Acknowledged notice:', noticeId)
-              }}
-              showAcknowledgment={true}
-            />
-
-            {/* Meal Menu Quick Access */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <UtensilsCrossed className="h-5 w-5" />
-                  Meal Menu
+                  Meal menu
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  View today's menu and weekly schedule
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Today&apos;s menu and weekly schedule
                 </p>
-                <Button
-                  className="w-full"
-                  onClick={() => router.push('/mess/student-dashboard/menu')}
-                >
-                  <UtensilsCrossed className="mr-2 h-4 w-4" />
-                  View Menu
+                <Button className="w-full" asChild>
+                  <Link href="/mess/student-dashboard/menu">View menu</Link>
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Attendance Quick Access */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <Calendar className="h-5 w-5" />
                   Attendance
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  View your attendance records and calendar
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Your attendance records and calendar
                 </p>
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() =>
-                    router.push('/mess/student-dashboard/attendance')
-                  }
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  View Attendance
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/mess/student-dashboard/attendance">
+                    View attendance
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
           </div>
         </div>
-      </div>
+
+        <PayBillDialog
+          bill={messBill}
+          open={isPayOpen}
+          onOpenChange={setIsPayOpen}
+          onSuccess={paid => setMessBill(paid)}
+        />
+      </PageContainer>
     </Layout>
   )
 }

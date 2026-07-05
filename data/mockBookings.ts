@@ -17,6 +17,7 @@ export const mockBookings: Booking[] = [
     ownerName: 'Abdul Karim',
     ownerPhone: '+8801712345678',
     status: 'pending',
+    bookingMode: 'request',
     moveInDate: '2024-03-01',
     duration: 6,
     rent: 3500,
@@ -42,6 +43,7 @@ export const mockBookings: Booking[] = [
     ownerName: 'Fatima Begum',
     ownerPhone: '+8801712345679',
     status: 'approved',
+    bookingMode: 'instant',
     moveInDate: '2024-02-20',
     duration: 12,
     rent: 15000,
@@ -175,28 +177,63 @@ export function getBookingsByProperty(propertyId: string): Booking[] {
   return mockBookings.filter(b => b.propertyId === propertyId)
 }
 
-export function addBooking(booking: Booking): void {
-  mockBookings.push(booking)
+export function addBooking(booking: Booking): Booking {
+  mockBookings.unshift(booking)
+  return booking
 }
 
 export function updateBookingStatus(
   bookingId: string,
   status: BookingStatus,
-  rejectionReason?: string
-): void {
+  reason?: string
+): Booking | null {
   const booking = mockBookings.find(b => b.id === bookingId)
-  if (booking) {
-    booking.status = status
-    booking.updatedAt = new Date().toISOString()
-    if (status === 'approved') {
-      booking.approvedAt = new Date().toISOString()
-    } else if (status === 'rejected') {
-      booking.rejectedAt = new Date().toISOString()
-      if (rejectionReason) {
-        booking.rejectionReason = rejectionReason
-      }
-    } else if (status === 'cancelled') {
-      booking.cancelledAt = new Date().toISOString()
+  if (!booking) return null
+  booking.status = status
+  booking.updatedAt = new Date().toISOString()
+  if (status === 'approved') {
+    booking.approvedAt = new Date().toISOString()
+  } else if (status === 'rejected') {
+    booking.rejectedAt = new Date().toISOString()
+    if (reason) booking.rejectionReason = reason
+  } else if (status === 'cancelled') {
+    booking.cancelledAt = new Date().toISOString()
+    if (reason) booking.cancellationReason = reason
+  } else if (status === 'completed') {
+    booking.completedAt = new Date().toISOString()
+  }
+  return booking
+}
+
+/** Active bookings that block a new request for the same property */
+export function getBookingConflict(
+  propertyId: string,
+  renterId: string,
+  propertyType: string
+): { conflict: boolean; message?: string } {
+  const active = mockBookings.filter(
+    b =>
+      b.propertyId === propertyId &&
+      (b.status === 'pending' || b.status === 'approved')
+  )
+  if (active.some(b => b.renterId === renterId)) {
+    return {
+      conflict: true,
+      message: 'You already have an active booking for this property.',
     }
   }
+  if (
+    propertyType === 'apartment' &&
+    active.some(b => b.status === 'approved')
+  ) {
+    return {
+      conflict: true,
+      message: 'This flat is already reserved by another renter.',
+    }
+  }
+  return { conflict: false }
+}
+
+export function getBookingById(id: string): Booking | undefined {
+  return mockBookings.find(b => b.id === id)
 }

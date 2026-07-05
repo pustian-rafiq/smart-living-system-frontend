@@ -234,8 +234,10 @@ export function AgreementUploadDialog({
                       <FormItem>
                         <FormLabel>Flat (Optional)</FormLabel>
                         <Select
-                          value={field.value || ''}
-                          onValueChange={field.onChange}
+                          value={field.value || 'none'}
+                          onValueChange={value =>
+                            field.onChange(value === 'none' ? undefined : value)
+                          }
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -243,7 +245,7 @@ export function AgreementUploadDialog({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">None</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
                             {availableFlats.map(flat => (
                               <SelectItem key={flat.id} value={flat.id}>
                                 Flat {flat.flatNumber}

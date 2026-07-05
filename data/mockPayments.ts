@@ -1,5 +1,42 @@
-import type { ScheduledPayment, PaymentSchedule } from '@/types/payment'
-import { mockBills } from './mockBills'
+import type {
+  ScheduledPayment,
+  PaymentSchedule,
+  PaymentTransaction,
+  PayBillInput,
+  PaymentMethod,
+} from '@/types/payment'
+import { markBillPaid } from './mockBills'
+
+export let mockPaymentTransactions: PaymentTransaction[] = [
+  {
+    id: 'pt1',
+    userId: 'r1',
+    billId: 'bill1',
+    billName: 'January 2024 — Green Valley Apartments',
+    propertyName: 'Green Valley Apartments',
+    amount: 12000,
+    paymentMethod: 'bKash',
+    accountNumber: '01711111111',
+    transactionId: 'BKS-20240103-88421',
+    status: 'completed',
+    createdAt: '2024-01-03T10:15:00Z',
+    completedAt: '2024-01-03T10:15:12Z',
+  },
+  {
+    id: 'pt2',
+    userId: 'r1',
+    billId: 'bill2',
+    billName: 'February 2024 — Green Valley Apartments',
+    propertyName: 'Green Valley Apartments',
+    amount: 12000,
+    paymentMethod: 'Nagad',
+    accountNumber: '01711111111',
+    transactionId: 'NGD-20240202-55102',
+    status: 'completed',
+    createdAt: '2024-02-02T09:40:00Z',
+    completedAt: '2024-02-02T09:40:08Z',
+  },
+]
 
 export const mockScheduledPayments: ScheduledPayment[] = [
   {
@@ -222,4 +259,100 @@ export function deletePaymentSchedule(scheduleId: string): boolean {
   if (index === -1) return false
   mockPaymentSchedules.splice(index, 1)
   return true
+}
+
+export function getPaymentTransactionsByUserId(
+  userId: string
+): PaymentTransaction[] {
+  return [...mockPaymentTransactions]
+    .filter(t => t.userId === userId)
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+}
+
+function methodPrefix(method: PaymentMethod): string {
+  switch (method) {
+    case 'bKash':
+      return 'BKS'
+    case 'Nagad':
+      return 'NGD'
+    case 'Rocket':
+      return 'RKT'
+    case 'Cash':
+      return 'CSH'
+    case 'Card':
+      return 'CRD'
+    default:
+      return 'BNK'
+  }
+}
+
+function generateTransactionId(method: PaymentMethod): string {
+  const stamp = Date.now().toString().slice(-8)
+  const rand = Math.floor(Math.random() * 900 + 100)
+  return `${methodPrefix(method)}-${stamp}-${rand}`
+}
+
+/**
+ * Mock Pay Now flow. Simulates gateway delay and occasional failure.
+ * On success, marks the bill paid and records a transaction.
+ */
+export async function processBillPayment(
+  input: PayBillInput,
+  options?: { forceFail?: boolean }
+): Promise<PaymentTransaction> {
+  const now = new Date().toISOString()
+  const transaction: PaymentTransaction = {
+    id: `pt-${Date.now()}`,
+    userId: input.userId,
+    billId: input.billId,
+    billName: input.billName,
+    propertyName: input.propertyName,
+    amount: input.amount,
+    paymentMethod: input.paymentMethod,
+    accountNumber: input.accountNumber,
+    transactionId: generateTransactionId(input.paymentMethod),
+    status: 'processing',
+    createdAt: now,
+  }
+
+  mockPaymentTransactions = [transaction, ...mockPaymentTransactions]
+
+  await new Promise(resolve => setTimeout(resolve, 1400))
+
+  // ~12% failure for digital methods (demo); cash always succeeds
+  const fail =
+    options?.forceFail === true ||
+    (input.paymentMethod !== 'Cash' &&
+      options?.forceFail !== false &&
+      Math.random() < 0.12)
+
+  if (fail) {
+    const failed: PaymentTransaction = {
+      ...transaction,
+      status: 'failed',
+      failureReason:
+        input.paymentMethod === 'Cash'
+          ? 'Cash payment could not be recorded'
+          : 'Payment declined. Insufficient balance or gateway timeout.',
+      completedAt: new Date().toISOString(),
+    }
+    mockPaymentTransactions = mockPaymentTransactions.map(t =>
+      t.id === transaction.id ? failed : t
+    )
+    return failed
+  }
+
+  markBillPaid(input.billId)
+  const completed: PaymentTransaction = {
+    ...transaction,
+    status: 'completed',
+    completedAt: new Date().toISOString(),
+  }
+  mockPaymentTransactions = mockPaymentTransactions.map(t =>
+    t.id === transaction.id ? completed : t
+  )
+  return completed
 }

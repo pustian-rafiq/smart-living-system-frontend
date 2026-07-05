@@ -8,6 +8,7 @@ export type FurnishingStatus =
   | 'semi-furnished'
   | null
 export type VerificationStatus = 'verified' | 'pending' | 'unverified'
+export type ListingStatus = 'draft' | 'published' | 'paused' | 'rejected'
 
 export interface Property {
   id: string
@@ -39,9 +40,53 @@ export interface Property {
   verificationStatus?: VerificationStatus
   verifiedAt?: string // Date when verified
   description: string
+  ownerId: string
   ownerName: string
   ownerPhone: string
   createdAt: string
+  /** Instant book auto-approves; otherwise owner must accept */
+  instantBook?: boolean
+  /** Security deposit in months of rent */
+  depositMonths?: number
+  /** Public discovery visibility */
+  published?: boolean
+  listingStatus?: ListingStatus
+  /** Cached rating (1–5), synced from reviews */
+  rating?: number
+  reviewCount?: number
+  updatedAt?: string
+}
+
+export interface PropertyListingInput {
+  name: string
+  type: PropertyType
+  rent: number
+  area: string
+  address: string
+  city: string
+  latitude?: number
+  longitude?: number
+  available: boolean
+  gender?: Gender
+  seatType?: SeatType
+  mealIncluded?: boolean
+  mealPlan?: MealPlan
+  mealCost?: number
+  images: string[]
+  videos?: string[]
+  videoThumbnail?: string
+  facilities: string[]
+  nearbyFacilities?: string[]
+  buildingAge?: number
+  floorLevel?: number
+  furnishing?: FurnishingStatus
+  parking?: boolean
+  security?: boolean
+  description: string
+  instantBook?: boolean
+  depositMonths?: number
+  published?: boolean
+  listingStatus?: ListingStatus
 }
 
 export interface SearchFilters {

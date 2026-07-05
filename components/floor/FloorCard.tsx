@@ -126,19 +126,19 @@ export function FloorCard({
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-2 pt-2 border-t">
+        <div className="flex items-center gap-2 border-t pt-2">
           <Button asChild variant="outline" size="sm" className="flex-1">
             <Link
-              href={`/my-properties/buildings/${floor.buildingId}/floors/${floor.id}`}
+              href={`/my-properties/buildings/${floor.buildingId}/flats?floor=${floor.floorNumber}`}
             >
-              View Flats
+              View flats
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm" className="flex-1">
             <Link
               href={`/my-properties/buildings/${floor.buildingId}/floors/${floor.id}/stats`}
             >
-              View Stats
+              View stats
             </Link>
           </Button>
         </div>

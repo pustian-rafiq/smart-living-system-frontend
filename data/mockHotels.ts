@@ -1,6 +1,50 @@
-import type { Hotel, Room, Booking, Review, RoomPricing } from '@/types/hotel'
+import type {
+  Hotel,
+  Room,
+  Booking,
+  Review,
+  RoomPricing,
+  HotelRegistrationInput,
+  CancellationPolicy,
+  HotelPricingRules,
+} from '@/types/hotel'
+import {
+  DEFAULT_CANCELLATION,
+  DEFAULT_PRICING_RULES,
+} from '@/lib/hotel/pricing'
 
-export const mockHotels: Hotel[] = [
+const defaultSeasonal: HotelPricingRules['seasonalRules'] = [
+  {
+    id: 'season-winter',
+    name: 'Peak winter',
+    startDate: '2024-12-15',
+    endDate: '2025-01-10',
+    multiplier: 1.3,
+  },
+  {
+    id: 'season-eid',
+    name: 'Eid holiday',
+    startDate: '2025-03-28',
+    endDate: '2025-04-05',
+    multiplier: 1.4,
+  },
+]
+
+function withHotelDefaults(hotel: Hotel): Hotel {
+  return {
+    ...hotel,
+    cancellationPolicy: hotel.cancellationPolicy ?? {
+      ...DEFAULT_CANCELLATION,
+    },
+    pricingRules: hotel.pricingRules ?? {
+      ...DEFAULT_PRICING_RULES,
+      seasonalRules: [...defaultSeasonal],
+    },
+    advancePaymentPercent: hotel.advancePaymentPercent ?? 30,
+  }
+}
+
+const baseHotels: Hotel[] = [
   {
     id: 'h1',
     name: 'Grand Plaza Hotel',
@@ -199,6 +243,82 @@ export const mockHotels: Hotel[] = [
     updatedAt: '2024-01-18',
   },
 ]
+
+export let mockHotels: Hotel[] = baseHotels.map(withHotelDefaults)
+
+export function addHotel(input: HotelRegistrationInput, ownerId = 'owner1'): Hotel {
+  const now = new Date().toISOString().slice(0, 10)
+  const hotel: Hotel = withHotelDefaults({
+    id: `h-${Date.now()}`,
+    name: input.name,
+    type: input.type,
+    starRating: input.starRating,
+    ownerId,
+    ownerName: 'Property Owner',
+    ownerPhone: '+8801700000000',
+    address: input.address,
+    area: input.area,
+    city: input.city,
+    images: input.imageUrl
+      ? [input.imageUrl]
+      : [
+          'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+        ],
+    description: input.description,
+    amenities: input.amenities,
+    checkInTime: input.checkInTime,
+    checkOutTime: input.checkOutTime,
+    minimumStay: input.minimumStay,
+    licenseNumber: input.licenseNumber,
+    licenseDocument: input.licenseDocumentName,
+    verified: false,
+    featured: false,
+    averageRating: 0,
+    totalReviews: 0,
+    totalRooms: 0,
+    availableRooms: 0,
+    advancePaymentPercent: 30,
+    pricingRules: {
+      weekendMultiplier: input.weekendMultiplier,
+      serviceChargePercent: input.serviceChargePercent,
+      vatPercent: input.vatPercent,
+      seasonalRules: [...defaultSeasonal],
+    },
+    cancellationPolicy: {
+      freeCancellationHours: input.freeCancellationHours,
+      partialRefundHours: 24,
+      partialRefundPercent: input.partialRefundPercent,
+      noRefundWithinHours: 24,
+      summary: `Free cancellation up to ${input.freeCancellationHours} hours before check-in. ${input.partialRefundPercent}% refund between free window and 24 hours. No refund within 24 hours.`,
+    },
+    createdAt: now,
+    updatedAt: now,
+  })
+  mockHotels = [hotel, ...mockHotels]
+  return hotel
+}
+
+export function updateHotelPricing(
+  hotelId: string,
+  pricingRules: HotelPricingRules,
+  cancellationPolicy?: CancellationPolicy
+): Hotel | null {
+  const idx = mockHotels.findIndex(h => h.id === hotelId)
+  if (idx === -1) return null
+  mockHotels[idx] = {
+    ...mockHotels[idx],
+    pricingRules,
+    cancellationPolicy:
+      cancellationPolicy ?? mockHotels[idx].cancellationPolicy,
+    updatedAt: new Date().toISOString().slice(0, 10),
+  }
+  return mockHotels[idx]
+}
+
+export function addHotelBooking(booking: Booking): Booking {
+  mockBookings.unshift(booking)
+  return booking
+}
 
 export const mockRooms: Room[] = [
   // Grand Plaza Hotel rooms
