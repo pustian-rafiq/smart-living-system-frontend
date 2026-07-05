@@ -12,56 +12,23 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { DownloadBillButton } from '@/components/bill/DownloadBillButton'
 import type { Bill } from '@/types/bill'
 import type { PaymentMethod, PaymentTransaction } from '@/types/payment'
 import { payBill } from '@/lib/api/payments'
-import { getDemoRenterId } from '@/lib/api/demoUser'
+import { getDemoTenantId } from '@/lib/api/demoUser'
+import { Wallet, Smartphone } from 'lucide-react'
+import { PaymentMethodSelector, getPaymentMethodOption } from '@/components/payment/PaymentMethodSelector'
+import { PaymentProcessingState } from '@/components/payment/PaymentProcessingState'
 import {
-  CheckCircle2,
-  Loader2,
-  Wallet,
-  XCircle,
-  ArrowLeft,
-  Smartphone,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+  PaymentResultView,
+  PaymentResultBackButton,
+  PaymentHistoryLink,
+  paymentResultHref,
+} from '@/components/payment/PaymentResultView'
 import Link from 'next/link'
 
 type Step = 'method' | 'confirm' | 'processing' | 'result'
-
-const METHODS: {
-  id: PaymentMethod
-  label: string
-  hint: string
-  needsAccount: boolean
-}[] = [
-  {
-    id: 'bKash',
-    label: 'bKash',
-    hint: 'Pay with your bKash wallet',
-    needsAccount: true,
-  },
-  {
-    id: 'Nagad',
-    label: 'Nagad',
-    hint: 'Pay with your Nagad wallet',
-    needsAccount: true,
-  },
-  {
-    id: 'Rocket',
-    label: 'Rocket',
-    hint: 'Pay with Rocket (DBBL)',
-    needsAccount: true,
-  },
-  {
-    id: 'Cash',
-    label: 'Cash',
-    hint: 'Record cash payment (office / agent)',
-    needsAccount: false,
-  },
-]
 
 interface PayBillDialogProps {
   bill: Bill | null
@@ -97,17 +64,13 @@ export function PayBillDialog({
 
   if (!bill) return null
 
-  const selected = METHODS.find(m => m.id === method)!
+  const selected = getPaymentMethodOption(method)
   const billName = `${bill.month} ${bill.year} — ${bill.propertyName}`
-
-  const goConfirm = () => {
-    setError(null)
-    setStep('confirm')
-  }
+  const tenantId = userId || getDemoTenantId()
 
   const submitPayment = async () => {
     setError(null)
-    if (selected.needsAccount) {
+    if (selected?.needsAccount) {
       const digits = accountNumber.replace(/\D/g, '')
       if (digits.length < 11) {
         setError('Enter a valid 11-digit wallet / account number')
@@ -120,10 +83,11 @@ export function PayBillDialog({
       billId: bill.id,
       billName,
       propertyName: bill.propertyName,
+      tenantName: bill.tenantName,
       amount: bill.amount,
       paymentMethod: method,
-      accountNumber: selected.needsAccount ? accountNumber.trim() : undefined,
-      userId: userId || getDemoRenterId(),
+      accountNumber: selected?.needsAccount ? accountNumber.trim() : undefined,
+      userId: tenantId,
     })
 
     if (!result.ok) {
@@ -134,6 +98,7 @@ export function PayBillDialog({
 
     setTransaction(result.data)
     setStep('result')
+
     if (result.data.status === 'completed') {
       onSuccess?.(
         {
@@ -145,6 +110,13 @@ export function PayBillDialog({
       )
     }
   }
+
+  const resultVariant =
+    transaction?.status === 'completed'
+      ? 'completed'
+      : transaction?.status === 'pending'
+        ? 'pending'
+        : 'failed'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -182,31 +154,8 @@ export function PayBillDialog({
 
         {step === 'method' && (
           <div className="space-y-4">
-            <div>
-              <Label className="mb-2 block">Payment method</Label>
-              <RadioGroup
-                value={method}
-                onValueChange={v => setMethod(v as PaymentMethod)}
-                className="space-y-2"
-              >
-                {METHODS.map(m => (
-                  <label
-                    key={m.id}
-                    className={cn(
-                      'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
-                      method === m.id && 'border-primary bg-primary/5'
-                    )}
-                  >
-                    <RadioGroupItem value={m.id} id={m.id} className="mt-0.5" />
-                    <div>
-                      <p className="font-medium">{m.label}</p>
-                      <p className="text-xs text-muted-foreground">{m.hint}</p>
-                    </div>
-                  </label>
-                ))}
-              </RadioGroup>
-            </div>
-            <Button className="w-full" onClick={goConfirm}>
+            <PaymentMethodSelector value={method} onChange={setMethod} />
+            <Button className="w-full" onClick={() => setStep('confirm')}>
               Continue
             </Button>
           </div>
@@ -214,23 +163,14 @@ export function PayBillDialog({
 
         {step === 'confirm' && (
           <div className="space-y-4">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="-ml-2"
-              onClick={() => setStep('method')}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Change method
-            </Button>
+            <PaymentResultBackButton onClick={() => setStep('method')} />
 
             <div className="rounded-lg border p-3 text-sm">
               <p className="text-muted-foreground">Paying with</p>
               <p className="font-semibold">{method}</p>
             </div>
 
-            {selected.needsAccount && (
+            {selected?.needsAccount && (
               <div className="space-y-2">
                 <Label htmlFor="wallet">Wallet / account number</Label>
                 <div className="relative">
@@ -245,15 +185,15 @@ export function PayBillDialog({
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Demo mode — no real money is charged.
+                  Demo mode — no real money is charged until gateway is connected.
                 </p>
               </div>
             )}
 
-            {!selected.needsAccount && (
+            {method === 'Cash' && (
               <p className="text-sm text-muted-foreground">
-                Cash payments are recorded immediately for demo. In production,
-                the owner confirms receipt.
+                Cash is recorded as pending until your property owner confirms
+                receipt.
               </p>
             )}
 
@@ -270,92 +210,49 @@ export function PayBillDialog({
         )}
 
         {step === 'processing' && (
-          <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <div>
-              <p className="font-semibold">Processing payment…</p>
-              <p className="text-sm text-muted-foreground">
-                Connecting to {method} gateway
-              </p>
-            </div>
-          </div>
+          <PaymentProcessingState methodLabel={method} />
         )}
 
         {step === 'result' && transaction && (
-          <div className="space-y-4">
-            {transaction.status === 'completed' ? (
+          <PaymentResultView
+            variant={resultVariant}
+            transactionId={transaction.transactionId}
+            methodLabel={transaction.paymentMethod}
+            failureReason={transaction.failureReason}
+            onRetry={() => {
+              setTransaction(null)
+              setStep('confirm')
+            }}
+            onDone={() => onOpenChange(false)}
+            receiptAction={
+              transaction.status === 'completed' ? (
+                <DownloadBillButton
+                  bill={{
+                    ...bill,
+                    status: 'paid',
+                    paidDate: new Date().toISOString().split('T')[0],
+                  }}
+                  className="w-full"
+                />
+              ) : undefined
+            }
+            secondaryAction={
               <>
-                <div className="flex flex-col items-center gap-2 py-4 text-center">
-                  <div className="rounded-full bg-emerald-100 p-3 dark:bg-emerald-950/50">
-                    <CheckCircle2 className="h-8 w-8 text-emerald-600" />
-                  </div>
-                  <p className="text-lg font-semibold">Payment successful</p>
-                  <p className="text-sm text-muted-foreground">
-                    Your bill is marked as paid.
-                  </p>
-                </div>
-                <div className="rounded-lg border bg-muted/40 px-3 py-2 text-sm">
-                  <p className="text-muted-foreground">Transaction ID</p>
-                  <p className="font-mono font-medium">
-                    {transaction.transactionId}
-                  </p>
-                  <p className="mt-2 text-muted-foreground">Method</p>
-                  <p className="font-medium">{transaction.paymentMethod}</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <DownloadBillButton
-                    bill={{
-                      ...bill,
-                      status: 'paid',
-                      paidDate: new Date().toISOString().split('T')[0],
-                    }}
-                    className="w-full"
-                  />
-                  <Button variant="outline" asChild className="w-full">
-                    <Link
-                      href="/payments"
-                      onClick={() => onOpenChange(false)}
-                    >
-                      View payment history
-                    </Link>
-                  </Button>
-                  <Button onClick={() => onOpenChange(false)} className="w-full">
-                    Done
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex flex-col items-center gap-2 py-4 text-center">
-                  <div className="rounded-full bg-red-100 p-3 dark:bg-red-950/50">
-                    <XCircle className="h-8 w-8 text-red-600" />
-                  </div>
-                  <p className="text-lg font-semibold">Payment failed</p>
-                  <p className="text-sm text-muted-foreground">
-                    {transaction.failureReason || 'Please try again.'}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
+                <PaymentHistoryLink onClick={() => onOpenChange(false)} />
+                <Button variant="link" className="w-full" asChild>
+                  <Link
+                    href={paymentResultHref(
+                      transaction.transactionId,
+                      transaction.status
+                    )}
                     onClick={() => onOpenChange(false)}
                   >
-                    Close
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      setTransaction(null)
-                      setStep('confirm')
-                    }}
-                  >
-                    Try again
-                  </Button>
-                </div>
+                    Open payment status page
+                  </Link>
+                </Button>
               </>
-            )}
-          </div>
+            }
+          />
         )}
       </DialogContent>
     </Dialog>

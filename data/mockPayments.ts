@@ -6,6 +6,8 @@ import type {
   PaymentMethod,
 } from '@/types/payment'
 import { markBillPaid } from './mockBills'
+import { addOwnerPayoutFromTransaction } from './mockPayouts'
+import { getDemoOwnerId } from '@/lib/api/demoUser'
 
 export let mockPaymentTransactions: PaymentTransaction[] = [
   {
@@ -14,6 +16,7 @@ export let mockPaymentTransactions: PaymentTransaction[] = [
     billId: 'bill1',
     billName: 'January 2024 — Green Valley Apartments',
     propertyName: 'Green Valley Apartments',
+    tenantName: 'Rahim Uddin',
     amount: 12000,
     paymentMethod: 'bKash',
     accountNumber: '01711111111',
@@ -28,6 +31,7 @@ export let mockPaymentTransactions: PaymentTransaction[] = [
     billId: 'bill2',
     billName: 'February 2024 — Green Valley Apartments',
     propertyName: 'Green Valley Apartments',
+    tenantName: 'Rahim Uddin',
     amount: 12000,
     paymentMethod: 'Nagad',
     accountNumber: '01711111111',
@@ -264,12 +268,20 @@ export function deletePaymentSchedule(scheduleId: string): boolean {
 export function getPaymentTransactionsByUserId(
   userId: string
 ): PaymentTransaction[] {
+  const normalized =
+    userId === 'renter1' || userId === 'user1' ? 'r1' : userId
   return [...mockPaymentTransactions]
-    .filter(t => t.userId === userId)
+    .filter(t => t.userId === normalized || t.userId === userId)
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
+}
+
+export function getPaymentTransactionByTxnId(
+  transactionId: string
+): PaymentTransaction | undefined {
+  return mockPaymentTransactions.find(t => t.transactionId === transactionId)
 }
 
 function methodPrefix(method: PaymentMethod): string {
@@ -297,24 +309,37 @@ function generateTransactionId(method: PaymentMethod): string {
 
 /**
  * Mock Pay Now flow. Simulates gateway delay and occasional failure.
- * On success, marks the bill paid and records a transaction.
+ * TODO: Replace with real payment gateway SDK (bKash/Nagad/Rocket/SSLCommerz).
  */
 export async function processBillPayment(
-  input: PayBillInput,
-  options?: { forceFail?: boolean }
+  input: PayBillInput & {
+    receiptNote?: string
+    receiptFileName?: string
+  },
+  options?: {
+    forceFail?: boolean
+    forceSuccess?: boolean
+    skipPayout?: boolean
+    ownerId?: string
+  }
 ): Promise<PaymentTransaction> {
   const now = new Date().toISOString()
+  const isCash = input.paymentMethod === 'Cash'
+
   const transaction: PaymentTransaction = {
     id: `pt-${Date.now()}`,
     userId: input.userId,
     billId: input.billId,
     billName: input.billName,
     propertyName: input.propertyName,
+    tenantName: input.tenantName,
     amount: input.amount,
     paymentMethod: input.paymentMethod,
     accountNumber: input.accountNumber,
     transactionId: generateTransactionId(input.paymentMethod),
     status: 'processing',
+    receiptNote: input.receiptNote,
+    receiptFileName: input.receiptFileName,
     createdAt: now,
   }
 
@@ -322,27 +347,39 @@ export async function processBillPayment(
 
   await new Promise(resolve => setTimeout(resolve, 1400))
 
-  // ~12% failure for digital methods (demo); cash always succeeds
   const fail =
-    options?.forceFail === true ||
-    (input.paymentMethod !== 'Cash' &&
-      options?.forceFail !== false &&
-      Math.random() < 0.12)
+    options?.forceSuccess === true
+      ? false
+      : options?.forceFail === true ||
+        (!isCash &&
+          options?.forceFail !== false &&
+          Math.random() < 0.12)
 
   if (fail) {
     const failed: PaymentTransaction = {
       ...transaction,
       status: 'failed',
       failureReason:
-        input.paymentMethod === 'Cash'
-          ? 'Cash payment could not be recorded'
-          : 'Payment declined. Insufficient balance or gateway timeout.',
+        'Payment declined. Insufficient balance or gateway timeout.',
       completedAt: new Date().toISOString(),
     }
     mockPaymentTransactions = mockPaymentTransactions.map(t =>
       t.id === transaction.id ? failed : t
     )
     return failed
+  }
+
+  // Renter-initiated cash stays pending until owner confirms
+  if (isCash && !options?.forceSuccess) {
+    const pending: PaymentTransaction = {
+      ...transaction,
+      status: 'pending',
+      completedAt: new Date().toISOString(),
+    }
+    mockPaymentTransactions = mockPaymentTransactions.map(t =>
+      t.id === transaction.id ? pending : t
+    )
+    return pending
   }
 
   markBillPaid(input.billId)
@@ -354,5 +391,13 @@ export async function processBillPayment(
   mockPaymentTransactions = mockPaymentTransactions.map(t =>
     t.id === transaction.id ? completed : t
   )
+
+  if (!options?.skipPayout) {
+    addOwnerPayoutFromTransaction(
+      completed,
+      options?.ownerId || getDemoOwnerId()
+    )
+  }
+
   return completed
 }

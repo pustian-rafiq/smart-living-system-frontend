@@ -231,28 +231,21 @@
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Payment method types (bKash, Nagad, Rocket, Cash, Card) | ✅ Done | In types + selects |
+| Payment method types (bKash, Nagad, Rocket, Cash, Card) | ✅ Done | `PaymentMethodSelector`, types + checkout |
 | Schedule payment | ✅ Done | |
-| Cash method option | ✅ Done | In schedule dialog |
-| **Pay Now flow UI** | ❌ Missing | **Critical** |
-| Payment status screens (pending / success / failed) | ❌ Missing | **Critical** |
-| Auto-receipt UI (view + download) | ❌ Missing | **Critical** |
-| Cash payment record entry (owner marks cash received) | ⚠️ Partial | Mark paid exists; dedicated cash receipt upload weak |
-| Owner payout tracking UI | ❌ Missing | **Important** |
-| Commission display (owner/admin) | ⚠️ Partial | Admin settings rate only |
-| Payment analytics UI | ⚠️ Partial | Admin analytics charts; owner-facing weak |
+| Cash method option | ✅ Done | Renter pending until owner confirms |
+| **Pay Now flow UI** | ✅ Done | `PayBillDialog` — method → confirm → processing → result |
+| Payment status screens (pending / success / failed) | ✅ Done | In-dialog + `/payments/result?txn=` |
+| Auto-receipt UI (view + download) | ✅ Done | `ReceiptViewDialog` + `lib/download/paymentReceipt.ts` |
+| Cash payment record entry (owner marks cash received) | ✅ Done | `RecordCashPaymentDialog` on bills page |
+| Owner payout tracking UI | ✅ Done | `OwnerPaymentsPanel` → Payout ledger tab |
+| Commission display (owner/admin) | ✅ Done | `CommissionBreakdownCard` + admin rate in analytics |
+| Payment analytics UI | ✅ Done | `OwnerPaymentAnalyticsPanel` (owner-facing charts) |
 | Payment reminders UI | ✅ Done | Reminders module |
 
-**This is the largest production gap on the frontend.** Marketing claims bKash/Nagad/Rocket, but there is no checkout experience.
+**Reusable:** `PaymentMethodSelector`, `PaymentProcessingState`, `PaymentResultView`, `ReceiptViewDialog`, `RecordCashPaymentDialog`, `CommissionBreakdownCard`, `PayoutLedgerTable`, `OwnerPaymentAnalyticsPanel`.
 
-### Recommended payment UI to build (frontend-only, mockable)
-
-1. `PayBillDialog` / `PaymentCheckout` — amount, method, account/phone input, confirm  
-2. `PaymentProcessing` — loading state  
-3. `PaymentResult` — success (txn id) / failure (retry)  
-4. `ReceiptView` — printable/downloadable receipt  
-5. Owner: `RecordCashPaymentDialog` — amount, date, optional receipt photo  
-6. Owner: `PayoutsPage` — received, pending, commission line items  
+**TODO (backend / gateway):** Wire real bKash, Nagad, Rocket, SSLCommerz/Card APIs in `lib/api/payments.ts` (placeholders marked).
 
 ---
 

@@ -11,6 +11,7 @@ import { BillGenerationRuleDialog } from '@/components/bill/BillGenerationRuleDi
 import { BulkBillDialog } from '@/components/bulk/BulkBillDialog'
 import { SchedulePaymentDialog } from '@/components/payment/SchedulePaymentDialog'
 import { PayBillDialog } from '@/components/payment/PayBillDialog'
+import { RecordCashPaymentDialog } from '@/components/payment/RecordCashPaymentDialog'
 import { addScheduledPayment } from '@/data/mockPayments'
 import { Button } from '@/components/ui/button'
 import {
@@ -89,6 +90,8 @@ export default function BillsPage() {
     useState(false)
   const [payBillTarget, setPayBillTarget] = useState<Bill | null>(null)
   const [isPayBillOpen, setIsPayBillOpen] = useState(false)
+  const [cashBillTarget, setCashBillTarget] = useState<Bill | null>(null)
+  const [isCashDialogOpen, setIsCashDialogOpen] = useState(false)
 
   const { ready, isOwner } = useStoredRole()
 
@@ -129,18 +132,11 @@ export default function BillsPage() {
     })
   }, [bills, statusFilter, isOwner])
 
-  const handleMarkPaid = (bill: Bill) => {
-    setBills(
-      bills.map(b =>
-        b.id === bill.id
-          ? {
-              ...b,
-              status: 'paid' as BillStatus,
-              paidDate: new Date().toISOString().split('T')[0],
-            }
-          : b
-      )
-    )
+  const refreshBills = () => setBills([...mockBills])
+
+  const handleRecordCash = (bill: Bill) => {
+    setCashBillTarget(bill)
+    setIsCashDialogOpen(true)
   }
 
   const handleSchedulePayment = (bill: Bill) => {
@@ -607,7 +603,7 @@ export default function BillsPage() {
                     <BillCard
                       key={bill.id}
                       bill={bill}
-                      onMarkPaid={handleMarkPaid}
+                      onMarkPaid={isOwner ? handleRecordCash : undefined}
                       onSchedulePayment={handleSchedulePayment}
                       showTenantName={true}
                     />
@@ -1137,6 +1133,16 @@ export default function BillsPage() {
             if (!open) setPayBillTarget(null)
           }}
           onSuccess={handlePaySuccess}
+        />
+
+        <RecordCashPaymentDialog
+          bill={cashBillTarget}
+          open={isCashDialogOpen}
+          onOpenChange={open => {
+            setIsCashDialogOpen(open)
+            if (!open) setCashBillTarget(null)
+          }}
+          onSuccess={refreshBills}
         />
       </div>
     </Layout>

@@ -43,3 +43,14 @@ export function getDemoRenterProfile(): {
     email: 'rahim@example.com',
   }
 }
+
+/** Tenant id used in mockBills for the primary demo renter */
+export function getDemoTenantId(): string {
+  return 'r1'
+}
+
+/** Normalize demo ids (renter1 → r1 for bill/payment mocks) */
+export function resolvePaymentUserId(userId: string): string {
+  if (userId === 'renter1' || userId === 'user1') return 'r1'
+  return userId
+}

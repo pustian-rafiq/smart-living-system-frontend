@@ -72,12 +72,15 @@ export interface PaymentTransaction {
   billId: string
   billName: string
   propertyName?: string
+  tenantName?: string
   amount: number
   paymentMethod: PaymentMethod
   accountNumber?: string
   transactionId: string
   status: PaymentTransactionStatus
   failureReason?: string
+  receiptNote?: string
+  receiptFileName?: string
   createdAt: string
   completedAt?: string
 }
@@ -86,8 +89,54 @@ export interface PayBillInput {
   billId: string
   billName: string
   propertyName?: string
+  tenantName?: string
   amount: number
   paymentMethod: PaymentMethod
   accountNumber?: string
   userId: string
+}
+
+export type PayoutStatus = 'pending' | 'processing' | 'paid' | 'held'
+
+/** Owner settlement line item after tenant payment */
+export interface OwnerPayout {
+  id: string
+  ownerId: string
+  billId: string
+  billName: string
+  tenantName: string
+  propertyName: string
+  grossAmount: number
+  commissionRate: number
+  commissionAmount: number
+  netAmount: number
+  paymentMethod: PaymentMethod
+  transactionId: string
+  status: PayoutStatus
+  paidAt: string
+  payoutDate?: string
+}
+
+export interface RecordCashPaymentInput {
+  billId: string
+  billName: string
+  propertyName?: string
+  tenantName: string
+  amount: number
+  receivedDate: string
+  receivedBy?: string
+  receiptNote?: string
+  receiptFileName?: string
+  ownerId: string
+}
+
+export interface OwnerPaymentAnalytics {
+  totalCollected: number
+  totalCommission: number
+  netEarnings: number
+  pendingPayouts: number
+  paidPayouts: number
+  collectionByMethod: { method: PaymentMethod; amount: number; count: number }[]
+  monthlyTrend: { month: string; gross: number; net: number }[]
+  commissionRate: number
 }

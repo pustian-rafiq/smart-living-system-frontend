@@ -100,8 +100,13 @@ export function PaymentHistoryCard({
             onClick={() => onViewReceipt(payment)}
           >
             <Receipt className="mr-2 h-4 w-4" />
-            View bill receipt
+            View receipt
           </Button>
+        )}
+        {payment.status === 'pending' && (
+          <p className="text-center text-xs text-muted-foreground">
+            Awaiting owner confirmation (cash)
+          </p>
         )}
       </CardContent>
     </Card>

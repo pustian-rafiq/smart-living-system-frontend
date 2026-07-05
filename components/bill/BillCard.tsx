@@ -276,7 +276,7 @@ export function BillCard({
                 className="flex-1"
                 onClick={() => onMarkPaid(bill)}
               >
-                Mark as Paid
+                Record cash
               </Button>
             )}
           </div>
