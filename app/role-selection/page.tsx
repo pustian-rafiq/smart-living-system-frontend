@@ -15,11 +15,15 @@ import {
 } from '@/components/ui/card'
 import { Check, Shield } from 'lucide-react'
 import { UserRole } from '@/types'
+import { ADMIN_ROLE_LABELS } from '@/lib/admin/permissions'
+import { selectRole } from '@/lib/api/auth'
 import {
-  getAdminRoleForPhone,
-  ADMIN_ROLE_LABELS,
-} from '@/lib/admin/permissions'
-import { setAdminSession, setUserSession } from '@/utils/auth'
+  applyAuthSession,
+  getAvailableRolesFromSession,
+  getPendingAdminRole,
+  hasCompleteSession,
+} from '@/utils/auth'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export default function RoleSelection() {
   const router = useRouter()
@@ -27,50 +31,64 @@ export default function RoleSelection() {
   const tc = useTranslations('common')
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [loginPhone, setLoginPhone] = useState<string | null>(null)
-  const adminRoleForPhone = loginPhone
-    ? getAdminRoleForPhone(loginPhone)
-    : null
+  const [availableRoles, setAvailableRoles] = useState<UserRole[]>([
+    'renter',
+    'owner',
+  ])
+  const [adminRoleLabel, setAdminRoleLabel] = useState<string | null>(null)
 
   useEffect(() => {
-    const isVerified =
-      typeof window !== 'undefined' &&
-      sessionStorage.getItem('otpVerified') === 'true'
-    if (!isVerified) {
+    if (typeof window === 'undefined') return
+
+    if (hasCompleteSession()) {
+      router.replace('/dashboard')
+      return
+    }
+
+    const otpOk = sessionStorage.getItem('otpVerified') === 'true'
+    if (!otpOk || !hasAuthTokens()) {
       router.push('/otp-verify')
       return
     }
-    const phone = sessionStorage.getItem('loginPhone')
-    setLoginPhone(phone)
+
+    setLoginPhone(sessionStorage.getItem('loginPhone'))
+    setAvailableRoles(getAvailableRolesFromSession())
+    const pending = getPendingAdminRole()
+    if (pending) {
+      setAdminRoleLabel(ADMIN_ROLE_LABELS[pending])
+    }
   }, [router])
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role)
+    setError('')
   }
 
   const handleContinue = async () => {
     if (!selectedRole) return
 
     setLoading(true)
+    setError('')
+    const result = await selectRole(selectedRole)
+    setLoading(false)
 
-    setTimeout(() => {
-      setLoading(false)
-      if (selectedRole === 'admin' && loginPhone && adminRoleForPhone) {
-        setAdminSession({
-          phone: loginPhone,
-          adminRole: adminRoleForPhone,
-        })
-        router.push('/admin')
-        return
-      }
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
 
-      setUserSession({
-        role: selectedRole,
-        phone: loginPhone || undefined,
-      })
-      router.push('/dashboard')
-    }, 500)
+    applyAuthSession(result.data, { complete: true })
+
+    if (result.data.user.role === 'admin') {
+      router.push('/admin')
+      return
+    }
+    router.push('/dashboard')
   }
+
+  const showAdmin = availableRoles.includes('admin') && Boolean(adminRoleLabel)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -158,7 +176,7 @@ export default function RoleSelection() {
                 </div>
               </button>
 
-              {adminRoleForPhone && (
+              {showAdmin && (
                 <button
                   type="button"
                   onClick={() => handleRoleSelect('admin')}
@@ -186,15 +204,19 @@ export default function RoleSelection() {
                         {t('admin')}
                       </h3>
                       <p className="text-sm sm:text-base text-muted-foreground">
-                        {t('adminDesc', {
-                          role: ADMIN_ROLE_LABELS[adminRoleForPhone],
-                        })}
+                        {t('adminDesc', { role: adminRoleLabel ?? '' })}
                       </p>
                     </div>
                   </div>
                 </button>
               )}
             </div>
+
+            {error && (
+              <p className="text-sm text-destructive text-center" role="alert">
+                {error}
+              </p>
+            )}
 
             <p className="text-center text-xs text-muted-foreground">
               {t('staffAdmin')}{' '}

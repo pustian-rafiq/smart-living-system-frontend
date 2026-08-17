@@ -27,11 +27,10 @@ import {
   deleteExpense,
 } from '@/lib/api/messDomain'
 import { fetchMessById } from '@/lib/api/mess'
-import { getDemoOwnerId } from '@/lib/api/demoUser'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, DollarSign, FileText, TrendingUp } from 'lucide-react'
-import type { MessExpense } from '@/types/messExpense'
+import type { MessExpense, MonthlyExpenseSummary } from '@/types/messExpense'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { useConfirm } from '@/components/feedback'
 import { toast } from '@/lib/feedback/toast'
@@ -44,20 +43,89 @@ export default function ExpensesManagementPage() {
   const router = useRouter()
   const role = getStoredRole()
   const messId = params.messId as string
-  const ownerId = getDemoOwnerId()
 
   const loadMess = useCallback(() => fetchMessById(messId), [messId])
   const { data: mess } = useMockQuery(loadMess)
-  const [expenses, setExpenses] = useState(getExpensesByMess(messId))
+  const [expenses, setExpenses] = useState<MessExpense[]>([])
+  const [monthlySummary, setMonthlySummary] = useState<MonthlyExpenseSummary | null>(
+    null
+  )
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<MessExpense | null>(null)
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+
+  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
+  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
+
+  useEffect(() => {
+    void getExpensesByMess(messId).then(setExpenses)
+  }, [messId])
+
+  useEffect(() => {
+    void getMonthlyExpenseSummary(
+      messId,
+      format(new Date(), 'MMMM'),
+      new Date().getFullYear()
+    ).then(setMonthlySummary)
+  }, [messId])
 
   useEffect(() => {
     if (role !== 'owner') {
       router.replace('/dashboard')
     }
   }, [role, router])
+
+  const filteredExpenses = useMemo(() => {
+    if (categoryFilter === 'all') return expenses
+    return expenses.filter(e => e.category === categoryFilter)
+  }, [expenses, categoryFilter])
+
+  const handleExpenseSubmit = async (data: Parameters<typeof addExpense>[0]) => {
+    if (editingExpense) {
+      await updateExpense(editingExpense.id, { ...data, messId })
+    } else {
+      await addExpense(data)
+    }
+    setExpenses(await getExpensesByMess(messId))
+    setMonthlySummary(
+      await getMonthlyExpenseSummary(
+        messId,
+        format(new Date(), 'MMMM'),
+        new Date().getFullYear()
+      )
+    )
+    setEditingExpense(null)
+  }
+
+  const handleExpenseDelete = async (expense: MessExpense) => {
+    const ok = await confirm({
+      title: t('expenses.deleteTitle'),
+      description: t('expenses.deleteDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    await deleteExpense(messId, expense.id)
+    setExpenses(await getExpensesByMess(messId))
+  }
+
+  const handleGenerateReport = async () => {
+    const report = await generateExpenseReport(
+      messId,
+      monthStart,
+      monthEnd,
+      'monthly'
+    )
+    if (report) {
+      toast.success(
+        t('expenses.reportGenerated', { fileName: report.fileName ?? '' })
+      )
+    }
+  }
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
+  const thisMonthExpenses = expenses
+    .filter(e => e.date >= monthStart && e.date <= monthEnd)
+    .reduce((sum, e) => sum + e.amount, 0)
 
   if (role !== 'owner') {
     return null
@@ -72,62 +140,6 @@ export default function ExpensesManagementPage() {
       </Layout>
     )
   }
-
-  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
-  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
-  const monthlySummary = useMemo(
-    () =>
-      getMonthlyExpenseSummary(
-        messId,
-        format(new Date(), 'MMMM'),
-        new Date().getFullYear()
-      ),
-    [messId]
-  )
-
-  const filteredExpenses = useMemo(() => {
-    if (categoryFilter === 'all') return expenses
-    return expenses.filter(e => e.category === categoryFilter)
-  }, [expenses, categoryFilter])
-
-  const handleExpenseSubmit = (data: any) => {
-    if (editingExpense) {
-      updateExpense(editingExpense.id, data)
-    } else {
-      addExpense(data)
-    }
-    setExpenses(getExpensesByMess(messId))
-    setEditingExpense(null)
-  }
-
-  const handleExpenseDelete = async (expense: MessExpense) => {
-    const ok = await confirm({
-      title: t('expenses.deleteTitle'),
-      description: t('expenses.deleteDesc'),
-      variant: 'destructive',
-    })
-    if (!ok) return
-    deleteExpense(expense.id)
-    setExpenses(getExpensesByMess(messId))
-  }
-
-  const handleGenerateReport = () => {
-    const report = generateExpenseReport(
-      messId,
-      'monthly',
-      monthStart,
-      monthEnd,
-      ownerId
-    )
-    toast.success(
-      t('expenses.reportGenerated', { fileName: report.fileName ?? '' })
-    )
-  }
-
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
-  const thisMonthExpenses = expenses
-    .filter(e => e.date >= monthStart && e.date <= monthEnd)
-    .reduce((sum, e) => sum + e.amount, 0)
 
   return (
     <Layout userRole="owner">
@@ -356,26 +368,28 @@ export default function ExpensesManagementPage() {
                   type="bar"
                   title={t('expenses.expensesByMonth')}
                 />
-                <CategoryBreakdown
-                  categories={monthlySummary.categoryBreakdown.map(cat => ({
-                    categoryId: cat.category,
-                    categoryName:
-                      cat.category.charAt(0).toUpperCase() +
-                      cat.category.slice(1),
-                    amount: cat.amount,
-                    percentage: cat.percentage,
-                  }))}
-                  categoryColors={
-                    new Map(
-                      monthlySummary.categoryBreakdown.map((cat, i) => [
-                        cat.category,
-                        ['#0ea5e9', '#22c55e', '#eab308', '#a855f7', '#f97316'][
-                          i % 5
-                        ],
-                      ])
-                    )
-                  }
-                />
+                {monthlySummary && monthlySummary.categoryBreakdown.length > 0 && (
+                  <CategoryBreakdown
+                    categories={monthlySummary.categoryBreakdown.map(cat => ({
+                      categoryId: cat.category,
+                      categoryName:
+                        cat.category.charAt(0).toUpperCase() +
+                        cat.category.slice(1),
+                      amount: cat.amount,
+                      percentage: cat.percentage,
+                    }))}
+                    categoryColors={
+                      new Map(
+                        monthlySummary.categoryBreakdown.map((cat, i) => [
+                          cat.category,
+                          ['#0ea5e9', '#22c55e', '#eab308', '#a855f7', '#f97316'][
+                            i % 5
+                          ],
+                        ])
+                      )
+                    }
+                  />
+                )}
               </div>
             ) : (
               <Card>

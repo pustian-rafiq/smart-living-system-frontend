@@ -1,47 +1,86 @@
 import type { Reminder, ReminderSettings, ReminderHistory } from '@/types/reminder'
-import {
-  getReminderSettings,
-  updateReminderSettings,
-  getReminders,
-  getReminderHistory,
-  addReminder,
-} from '@/data/mockReminders'
-import { getDemoUserId } from './demoUser'
-import { mockDelay, ok, type ApiResult } from './http'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export async function fetchReminderSettings(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<ReminderSettings>> {
-  await mockDelay()
-  return ok(getReminderSettings(userId || getDemoUserId()))
+  if (!hasAuthTokens()) {
+    return {
+      ok: true,
+      data: {
+        userId: '',
+        rentReminders: {
+          enabled: true,
+          daysBefore: [7, 3, 1],
+          channels: ['sms', 'push'],
+          time: '09:00',
+        },
+        billReminders: {
+          enabled: true,
+          daysBefore: [5, 2],
+          channels: ['sms'],
+          time: '09:00',
+        },
+        maintenanceReminders: {
+          enabled: true,
+          channels: ['push'],
+        },
+        customReminders: {
+          enabled: true,
+          defaultChannels: ['push'],
+        },
+      },
+    }
+  }
+  return apiRequest<ReminderSettings>('/reminders/settings/')
 }
 
 export async function saveReminderSettings(
-  userId: string,
-  settings: ReminderSettings
+  _userId: string,
+  settings: ReminderSettings,
 ): Promise<ApiResult<ReminderSettings>> {
-  await mockDelay(100)
-  return ok(updateReminderSettings(userId, settings))
+  return apiRequest<ReminderSettings>('/reminders/settings/', {
+    method: 'PUT',
+    body: settings,
+  })
 }
 
 export async function fetchReminders(
-  userId?: string,
-  filters?: Parameters<typeof getReminders>[1]
+  _userId?: string,
+  filters?: { status?: string; type?: string },
 ): Promise<ApiResult<Reminder[]>> {
-  await mockDelay()
-  return ok(getReminders(userId || getDemoUserId(), filters))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  const params = new URLSearchParams()
+  if (filters?.status) params.set('status', filters.status)
+  if (filters?.type) params.set('type', filters.type)
+  const qs = params.toString()
+  return apiRequest<Reminder[]>(`/reminders/${qs ? `?${qs}` : ''}`)
 }
 
 export async function fetchReminderHistory(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<ReminderHistory>> {
-  await mockDelay()
-  return ok(getReminderHistory(userId || getDemoUserId()))
+  if (!hasAuthTokens()) {
+    return {
+      ok: true,
+      data: {
+        reminders: [],
+        totalSent: 0,
+        totalFailed: 0,
+        totalPending: 0,
+      },
+    }
+  }
+  return apiRequest<ReminderHistory>('/reminders/history/')
 }
 
 export async function createReminder(
-  reminder: Omit<Reminder, 'id'>
+  reminder: Omit<Reminder, 'id'> & { id?: string },
 ): Promise<ApiResult<Reminder>> {
-  await mockDelay(150)
-  return ok(addReminder(reminder))
+  return apiRequest<Reminder>('/reminders/', {
+    method: 'POST',
+    body: reminder,
+  })
 }

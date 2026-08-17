@@ -1,11 +1,13 @@
 'use client'
 
-import { useMemo, useState, useEffect, useCallback } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ServerSearchInput } from '@/components/data/ServerSearchInput'
+import { PaginationBar } from '@/components/data/PaginationBar'
 import {
   Select,
   SelectContent,
@@ -13,8 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Search, Eye } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { fetchAdminBookings } from '@/lib/api/admin'
 import { patchBookingStatus } from '@/lib/api/bookings'
 import type { Booking, BookingStatus } from '@/types/booking'
@@ -25,6 +26,8 @@ import { format } from 'date-fns'
 import { hasAdminPermission } from '@/lib/admin/permissions'
 import { getStoredAdminRole } from '@/utils/auth'
 import { useConfirm } from '@/components/feedback'
+import { toast } from '@/lib/feedback/toast'
+import { useServerPagedList } from '@/hooks/useServerPagedList'
 
 export default function AdminBookingsPage() {
   const { confirm } = useConfirm()
@@ -33,62 +36,76 @@ export default function AdminBookingsPage() {
   const ts = useTranslations('search.page.propertyTypes')
   const ta = useTranslations('admin.actions')
   const tc = useTranslations('common')
-  const [bookings, setBookings] = useState<Booking[]>([])
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [showDetail, setShowDetail] = useState(false)
 
   const adminRole = getStoredAdminRole()
   const canManage = hasAdminPermission(adminRole, 'bookings.manage')
 
-  const loadBookings = useCallback(async () => {
-    const result = await fetchAdminBookings()
-    if (result.ok) setBookings(result.data)
-  }, [])
+  const filters = useMemo(
+    () => ({
+      status: statusFilter,
+      type: typeFilter,
+    }),
+    [statusFilter, typeFilter],
+  )
 
-  useEffect(() => {
-    loadBookings()
-  }, [loadBookings])
+  const fetcher = useCallback(
+    (params: {
+      page: number
+      pageSize: number
+      search: string
+      filters: Record<string, string>
+    }) =>
+      fetchAdminBookings({
+        page: params.page,
+        pageSize: params.pageSize,
+        search: params.search,
+        status: params.filters.status,
+        type: params.filters.type,
+      }),
+    [],
+  )
 
-  const filteredBookings = useMemo(() => {
-    return bookings.filter(b => {
-      const matchesStatus = statusFilter === 'all' || b.status === statusFilter
-      const matchesType = typeFilter === 'all' || b.propertyType === typeFilter
-      const q = searchTerm.toLowerCase()
-      const matchesSearch =
-        b.propertyName.toLowerCase().includes(q) ||
-        b.renterName.toLowerCase().includes(q) ||
-        b.ownerName.toLowerCase().includes(q) ||
-        b.id.toLowerCase().includes(q)
-      return matchesStatus && matchesType && matchesSearch
-    })
-  }, [bookings, statusFilter, typeFilter, searchTerm])
+  const list = useServerPagedList<Booking>({
+    fetcher,
+    filters,
+    pageSize: 20,
+  })
 
   const stats = useMemo(
     () => ({
-      total: bookings.length,
-      pending: bookings.filter(b => b.status === 'pending').length,
-      approved: bookings.filter(b => b.status === 'approved').length,
-      revenue: bookings
+      total: list.count,
+      pending: list.items.filter(b => b.status === 'pending').length,
+      approved: list.items.filter(b => b.status === 'approved').length,
+      revenue: list.items
         .filter(b => b.status === 'approved' || b.status === 'completed')
         .reduce((sum, b) => sum + b.totalAmount, 0),
     }),
-    [bookings]
+    [list.count, list.items],
   )
 
   const handleStatusChange = async (
     bookingId: string,
-    status: BookingStatus
+    status: BookingStatus,
   ) => {
     if (!canManage) return
     const ok = await confirm({
       title: t('markAs', { status: BOOKING_STATUS_LABELS[status] }),
     })
     if (!ok) return
-    const result = await patchBookingStatus(bookingId, status)
-    if (result.ok) await loadBookings()
+    const result = await patchBookingStatus(
+      bookingId,
+      status,
+      status === 'rejected' ? 'Rejected by admin' : undefined,
+    )
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
+    list.updateItem(b => b.id === bookingId, result.data)
   }
 
   const openDetail = (booking: Booking) => {
@@ -98,13 +115,13 @@ export default function AdminBookingsPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl">
-        <div className="mb-6">
+      <div className="max-w-7xl space-y-4">
+        <div>
           <h2 className="mb-2 text-2xl font-bold">{t('managementTitle')}</h2>
           <p className="text-muted-foreground">{t('managementDesc')}</p>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Card>
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">{t('stats.total')}</p>
@@ -129,7 +146,9 @@ export default function AdminBookingsPage() {
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">{t('stats.bookedValue')}</p>
+              <p className="text-sm text-muted-foreground">
+                {t('stats.bookedValue')}
+              </p>
               <p className="text-2xl font-bold">
                 ৳{stats.revenue.toLocaleString()}
               </p>
@@ -137,16 +156,14 @@ export default function AdminBookingsPage() {
           </Card>
         </div>
 
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t('searchPlaceholder')}
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <ServerSearchInput
+            className="flex-1"
+            value={list.searchInput}
+            onChange={list.setSearchInput}
+            pending={list.searchPending}
+            placeholder={t('searchPlaceholder')}
+          />
           <Select
             value={statusFilter}
             onValueChange={v => setStatusFilter(v as BookingStatus | 'all')}
@@ -161,7 +178,7 @@ export default function AdminBookingsPage() {
                   <SelectItem key={s} value={s}>
                     {BOOKING_STATUS_LABELS[s]}
                   </SelectItem>
-                )
+                ),
               )}
             </SelectContent>
           </Select>
@@ -179,8 +196,12 @@ export default function AdminBookingsPage() {
           </Select>
         </div>
 
+        {list.error && (
+          <p className="text-sm text-destructive">{list.error}</p>
+        )}
+
         <div className="space-y-3">
-          {filteredBookings.map(booking => (
+          {list.items.map(booking => (
             <Card key={booking.id}>
               <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 flex-1">
@@ -196,7 +217,8 @@ export default function AdminBookingsPage() {
                     {format(new Date(booking.createdAt), 'MMM d, yyyy')}
                   </p>
                   <p className="text-sm">
-                    ৳{booking.rent.toLocaleString()}{t('perMonth')} · {t('total')} ৳
+                    ৳{booking.rent.toLocaleString()}
+                    {t('perMonth')} · {t('total')} ৳
                     {booking.totalAmount.toLocaleString()}
                   </p>
                 </div>
@@ -236,11 +258,21 @@ export default function AdminBookingsPage() {
           ))}
         </div>
 
-        {filteredBookings.length === 0 && (
+        {list.items.length === 0 && !list.loading && (
           <div className="py-12 text-center text-muted-foreground">
             {t('emptyFiltered')}
           </div>
         )}
+
+        <PaginationBar
+          page={list.page}
+          totalPages={list.totalPages}
+          count={list.count}
+          pageSize={list.pageSize}
+          loading={list.loading}
+          onPageChange={list.setPage}
+          onPageSizeChange={list.setPageSize}
+        />
       </div>
 
       <BookingDetailDialog

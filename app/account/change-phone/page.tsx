@@ -14,8 +14,11 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { requestPhoneChange } from '@/lib/api/account'
-import { getLoginPhone } from '@/utils/auth'
+import {
+  requestPhoneChange,
+  requestPhoneChangeOtp,
+} from '@/lib/api/account'
+import { getLoginPhone, syncUserDisplay } from '@/utils/auth'
 import { Phone, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -36,6 +39,12 @@ export default function ChangePhonePage() {
     ? `+${currentPhone.slice(0, 3)} ${currentPhone.slice(3)}`
     : '—'
 
+  const handleSendOtp = async (phone: string) => {
+    const result = await requestPhoneChangeOtp({ newPhone: phone })
+    if (!result.ok) return { error: result.error }
+    return { devOtp: result.data.devOtp }
+  }
+
   const handleSubmit = async (phone: string, otp: string) => {
     setLoading(true)
     setError(null)
@@ -45,8 +54,9 @@ export default function ChangePhonePage() {
       setError(result.error)
       return
     }
+    syncUserDisplay(result.data.user)
     setDone(true)
-    setCurrentPhone(phone)
+    setCurrentPhone(result.data.phoneDigits)
   }
 
   return (
@@ -91,6 +101,7 @@ export default function ChangePhonePage() {
                 submitLabel={t('changePhone.confirmSubmit')}
                 loading={loading}
                 error={error}
+                onSendOtp={handleSendOtp}
                 onSubmit={handleSubmit}
               />
             )}

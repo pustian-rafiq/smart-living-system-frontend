@@ -21,9 +21,9 @@ import {
 import {
   fetchBuildingById,
   fetchFloorsByBuilding,
-  addFloor,
-  updateFloor,
-  deleteFloor,
+  createFloor,
+  patchFloor,
+  removeFloor,
 } from '@/lib/api/buildings'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import type { Floor, FloorFormData } from '@/types/floor'
@@ -70,29 +70,18 @@ export default function FloorsPage() {
     setIsDeleteDialogOpen(true)
   }
 
-  const handleSubmit = (data: FloorFormData) => {
+  const handleSubmit = async (data: FloorFormData) => {
     if (selectedFloor) {
-      updateFloor(selectedFloor.id, {
-        ...selectedFloor,
-        ...data,
-      })
+      await patchFloor(selectedFloor.id, data)
     } else {
-      addFloor({
-        buildingId,
-        ...data,
-        totalFlats: 0,
-        occupiedFlats: 0,
-        availableFlats: 0,
-        maintenanceFlats: 0,
-        flats: [],
-      })
+      await createFloor(buildingId, data)
     }
     void refetchFloors()
   }
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deleteFloorData) {
-      deleteFloor(deleteFloorData.id)
+      await removeFloor(deleteFloorData.id)
       setIsDeleteDialogOpen(false)
       setDeleteFloorData(null)
       void refetchFloors()

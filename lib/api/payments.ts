@@ -7,154 +7,219 @@ import type {
   OwnerPayout,
   OwnerPaymentAnalytics,
 } from '@/types/payment'
-import {
-  getPaymentTransactionsByUserId,
-  getScheduledPaymentsByUserId,
-  getPaymentSchedulesByUserId,
-  processBillPayment,
-  mockPaymentTransactions,
-  getPaymentTransactionByTxnId,
-  addScheduledPayment,
-  updateScheduledPayment,
-  cancelScheduledPayment,
-} from '@/data/mockPayments'
-import {
-  getOwnerPayouts,
-  getOwnerPaymentAnalytics,
-  recordCashPayment,
-  markPayoutSettled,
-} from '@/data/mockPayouts'
-import { mockDelay, ok, err, type ApiResult } from './http'
-import { getDemoTenantId, getDemoOwnerId } from './demoUser'
-
-// TODO: Integrate bKash Checkout API — https://developer.bka.sh/docs
-// TODO: Integrate Nagad merchant API
-// TODO: Integrate DBBL Rocket merchant API
-// TODO: Integrate SSLCommerz / Stripe for Card payments
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export async function fetchPaymentHistory(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<PaymentTransaction[]>> {
-  await mockDelay()
-  const id = userId || getDemoTenantId()
-  return ok(getPaymentTransactionsByUserId(id))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<PaymentTransaction[]>('/payments/history/')
 }
 
 export async function fetchScheduledPayments(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<ScheduledPayment[]>> {
-  await mockDelay()
-  return ok(getScheduledPaymentsByUserId(userId || getDemoTenantId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<ScheduledPayment[]>('/payments/scheduled/')
 }
 
 export async function payBill(
-  input: Omit<PayBillInput, 'userId'> & { userId?: string }
+  input: Omit<PayBillInput, 'userId'> & { userId?: string },
 ): Promise<ApiResult<PaymentTransaction>> {
-  await mockDelay(100)
   if (!input.billId || input.amount <= 0) {
-    return err('Invalid bill payment', 'INVALID')
+    return { ok: false, error: 'Invalid bill payment', code: 'INVALID' }
   }
 
   const method = input.paymentMethod
-  const needsAccount =
-    method !== 'Cash' && method !== 'Card'
+  const needsAccount = method !== 'Cash' && method !== 'Card'
 
   if (needsAccount) {
     if (
       !input.accountNumber ||
       input.accountNumber.replace(/\D/g, '').length < 11
     ) {
-      return err('Enter a valid wallet / account number', 'INVALID_ACCOUNT')
+      return {
+        ok: false,
+        error: 'Enter a valid wallet / account number',
+        code: 'INVALID_ACCOUNT',
+      }
     }
   }
 
   if (method === 'Card') {
-    // TODO: Open card gateway redirect / tokenization flow
-    return err(
-      'Card payments will be available when the payment gateway is connected.',
-      'GATEWAY_TODO'
-    )
+    return {
+      ok: false,
+      error:
+        'Card payments will be available when the payment gateway is connected.',
+      code: 'GATEWAY_TODO',
+    }
   }
 
-  const result = await processBillPayment({
-    ...input,
-    userId: input.userId || getDemoTenantId(),
+  return apiRequest<PaymentTransaction>('/payments/pay-bill/', {
+    method: 'POST',
+    body: {
+      billId: input.billId,
+      billName: input.billName,
+      propertyName: input.propertyName,
+      tenantName: input.tenantName,
+      amount: input.amount,
+      paymentMethod: input.paymentMethod,
+      accountNumber: input.accountNumber || '',
+    },
   })
-  return ok(result)
 }
 
 export async function recordCashPaymentApi(
-  input: RecordCashPaymentInput
+  input: RecordCashPaymentInput,
 ): Promise<
   ApiResult<{ transaction: PaymentTransaction; payout: OwnerPayout }>
 > {
-  await mockDelay(200)
-  try {
-    const data = await recordCashPayment(input, txn => {
-      mockPaymentTransactions = [txn, ...mockPaymentTransactions]
-    })
-    return ok(data)
-  } catch (e) {
-    return err(e instanceof Error ? e.message : 'Could not record payment')
-  }
+  return apiRequest<{ transaction: PaymentTransaction; payout: OwnerPayout }>(
+    '/payments/record-cash/',
+    {
+      method: 'POST',
+      body: {
+        billId: input.billId,
+        billName: input.billName,
+        propertyName: input.propertyName,
+        tenantName: input.tenantName,
+        amount: input.amount,
+        receivedDate: input.receivedDate,
+        receivedBy: input.receivedBy || '',
+        receiptNote: input.receiptNote || '',
+        receiptFileName: input.receiptFileName || '',
+      },
+    },
+  )
 }
 
 export async function fetchOwnerPayouts(
-  ownerId?: string
+  _ownerId?: string,
 ): Promise<ApiResult<OwnerPayout[]>> {
-  await mockDelay()
-  return ok(getOwnerPayouts(ownerId || getDemoOwnerId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<OwnerPayout[]>('/payments/owner/payouts/')
 }
 
 export async function fetchOwnerPaymentAnalytics(
-  ownerId?: string
+  _ownerId?: string,
 ): Promise<ApiResult<OwnerPaymentAnalytics>> {
-  await mockDelay()
-  return ok(getOwnerPaymentAnalytics(ownerId || getDemoOwnerId()))
+  if (!hasAuthTokens()) {
+    return {
+      ok: true,
+      data: {
+        totalCollected: 0,
+        totalCommission: 0,
+        netEarnings: 0,
+        pendingPayouts: 0,
+        paidPayouts: 0,
+        collectionByMethod: [],
+        monthlyTrend: [],
+        commissionRate: 5,
+      },
+    }
+  }
+  return apiRequest<OwnerPaymentAnalytics>('/payments/owner/analytics/')
 }
 
 export async function fetchPaymentByTxnId(
-  transactionId: string
+  transactionId: string,
 ): Promise<ApiResult<PaymentTransaction | undefined>> {
-  await mockDelay()
-  const txn = getPaymentTransactionByTxnId(transactionId)
-  return ok(txn)
+  const result = await apiRequest<PaymentTransaction>(
+    `/payments/transactions/${encodeURIComponent(transactionId)}/`,
+    { auth: false },
+  )
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') return { ok: true, data: undefined }
+    return result
+  }
+  return result
 }
 
 export async function fetchPaymentSchedules(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<PaymentSchedule[]>> {
-  await mockDelay()
-  return ok(getPaymentSchedulesByUserId(userId || getDemoTenantId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<PaymentSchedule[]>('/payments/schedules/')
 }
 
 export async function createScheduledPayment(
-  payment: Omit<ScheduledPayment, 'id' | 'createdAt' | 'updatedAt'>
+  payment: Omit<ScheduledPayment, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<ApiResult<ScheduledPayment>> {
-  await mockDelay(100)
-  return ok(addScheduledPayment(payment))
+  return apiRequest<ScheduledPayment>('/payments/scheduled/', {
+    method: 'POST',
+    body: {
+      billId: payment.billId || null,
+      billName: payment.billName,
+      amount: payment.amount,
+      scheduledDate: payment.scheduledDate,
+      scheduledTime: payment.scheduledTime || '',
+      paymentMethod: payment.paymentMethod,
+      accountNumber: payment.accountNumber || '',
+      reminderEnabled: payment.reminderEnabled,
+      reminderDays: payment.reminderDays,
+      autoRetry: payment.autoRetry,
+      maxRetries: payment.maxRetries,
+      metadata: payment.metadata || {},
+    },
+  })
 }
 
 export async function patchScheduledPayment(
   paymentId: string,
-  updates: Partial<ScheduledPayment>
+  updates: Partial<ScheduledPayment>,
 ): Promise<ApiResult<ScheduledPayment>> {
-  await mockDelay(100)
-  const updated = updateScheduledPayment(paymentId, updates)
-  if (!updated) return err('Scheduled payment not found', 'NOT_FOUND')
-  return ok(updated)
+  return apiRequest<ScheduledPayment>(`/payments/scheduled/${paymentId}/`, {
+    method: 'PATCH',
+    body: {
+      ...(updates.billName !== undefined ? { billName: updates.billName } : {}),
+      ...(updates.amount !== undefined ? { amount: updates.amount } : {}),
+      ...(updates.scheduledDate !== undefined
+        ? { scheduledDate: updates.scheduledDate }
+        : {}),
+      ...(updates.scheduledTime !== undefined
+        ? { scheduledTime: updates.scheduledTime }
+        : {}),
+      ...(updates.paymentMethod !== undefined
+        ? { paymentMethod: updates.paymentMethod }
+        : {}),
+      ...(updates.accountNumber !== undefined
+        ? { accountNumber: updates.accountNumber }
+        : {}),
+      ...(updates.reminderEnabled !== undefined
+        ? { reminderEnabled: updates.reminderEnabled }
+        : {}),
+      ...(updates.reminderDays !== undefined
+        ? { reminderDays: updates.reminderDays }
+        : {}),
+      ...(updates.autoRetry !== undefined
+        ? { autoRetry: updates.autoRetry }
+        : {}),
+      ...(updates.maxRetries !== undefined
+        ? { maxRetries: updates.maxRetries }
+        : {}),
+      ...(updates.metadata !== undefined ? { metadata: updates.metadata } : {}),
+    },
+  })
 }
 
 export async function cancelScheduledPaymentApi(
-  paymentId: string
+  paymentId: string,
 ): Promise<ApiResult<boolean>> {
-  await mockDelay(100)
-  return ok(cancelScheduledPayment(paymentId))
+  const result = await apiRequest<ScheduledPayment>(
+    `/payments/scheduled/${paymentId}/cancel/`,
+    { method: 'POST' },
+  )
+  if (!result.ok) return result
+  return { ok: true, data: true }
 }
 
 export async function settlePayout(
-  payoutId: string
+  payoutId: string,
 ): Promise<ApiResult<OwnerPayout | undefined>> {
-  await mockDelay(100)
-  return ok(markPayoutSettled(payoutId))
+  return apiRequest<OwnerPayout>(
+    `/payments/owner/payouts/${payoutId}/settle/`,
+    { method: 'POST' },
+  )
 }

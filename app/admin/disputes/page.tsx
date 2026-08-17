@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ServerSearchInput } from '@/components/data/ServerSearchInput'
+import { PaginationBar } from '@/components/data/PaginationBar'
 import {
   Select,
   SelectContent,
@@ -13,13 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Search, Check, User } from 'lucide-react'
-import { fetchDisputes } from '@/lib/api/admin'
+import { Check, User } from 'lucide-react'
+import { fetchDisputes, patchDispute } from '@/lib/api/admin'
 import type { Dispute, DisputeStatus } from '@/types/admin'
 import { format } from 'date-fns'
 import { useConfirm } from '@/components/feedback'
 import { toast } from '@/lib/feedback/toast'
+import { useServerPagedList } from '@/hooks/useServerPagedList'
 
 export default function AdminDisputesPage() {
   const { confirm } = useConfirm()
@@ -27,56 +29,58 @@ export default function AdminDisputesPage() {
   const tp = useTranslations('admin.properties')
   const ta = useTranslations('admin.actions')
   const tc = useTranslations('common')
-  const [disputes, setDisputes] = useState<Dispute[]>([])
   const [statusFilter, setStatusFilter] = useState<DisputeStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
 
-  useEffect(() => {
-    fetchDisputes().then(result => {
-      if (result.ok) setDisputes(result.data)
-    })
-  }, [])
+  const filters = useMemo(
+    () => ({
+      status: statusFilter,
+      type: typeFilter,
+    }),
+    [statusFilter, typeFilter],
+  )
 
-  const filteredDisputes = useMemo(() => {
-    return disputes.filter(d => {
-      const matchesStatus = statusFilter === 'all' || d.status === statusFilter
-      const matchesType = typeFilter === 'all' || d.type === typeFilter
-      const matchesSearch =
-        d.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.createdByName.toLowerCase().includes(searchTerm.toLowerCase())
-      return matchesStatus && matchesType && matchesSearch
-    })
-  }, [disputes, statusFilter, typeFilter, searchTerm])
+  const fetcher = useCallback(
+    (params: {
+      page: number
+      pageSize: number
+      search: string
+      filters: Record<string, string>
+    }) =>
+      fetchDisputes({
+        page: params.page,
+        pageSize: params.pageSize,
+        search: params.search,
+        status: params.filters.status,
+        type: params.filters.type,
+      }),
+    [],
+  )
+
+  const list = useServerPagedList<Dispute>({
+    fetcher,
+    filters,
+    pageSize: 20,
+  })
 
   const handleStatusChange = async (
     disputeId: string,
-    newStatus: DisputeStatus
+    newStatus: DisputeStatus,
   ) => {
     const ok = await confirm({
       title: t('statusChangeTitle', { status: newStatus }),
     })
     if (!ok) return
-    setDisputes(
-      disputes.map(d =>
-        d.id === disputeId
-          ? {
-              ...d,
-              status: newStatus,
-              updatedAt: new Date().toISOString(),
-              resolvedAt:
-                newStatus === 'resolved'
-                  ? new Date().toISOString()
-                  : undefined,
-            }
-          : d
-      )
-    )
+    const result = await patchDispute(disputeId, { status: newStatus })
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
+    list.updateItem(d => d.id === disputeId, result.data)
     toast.success(t('statusUpdated'))
   }
 
-  const handleAssign = (disputeId: string) => {
+  const handleAssign = (_disputeId: string) => {
     toast.info(t('assignComingSoon'))
   }
 
@@ -97,25 +101,25 @@ export default function AdminDisputesPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">{t('managementTitle')}</h2>
+      <div className="max-w-7xl space-y-4">
+        <div>
+          <h2 className="mb-2 text-2xl font-bold">{t('managementTitle')}</h2>
           <p className="text-muted-foreground">{t('managementDesc')}</p>
         </div>
 
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t('searchPlaceholder')}
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <ServerSearchInput
+            className="flex-1"
+            value={list.searchInput}
+            onChange={list.setSearchInput}
+            pending={list.searchPending}
+            placeholder={t('searchPlaceholder')}
+          />
           <Select
             value={statusFilter}
-            onValueChange={value => setStatusFilter(value as DisputeStatus | 'all')}
+            onValueChange={value =>
+              setStatusFilter(value as DisputeStatus | 'all')
+            }
           >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder={tp('filterByStatus')} />
@@ -143,8 +147,12 @@ export default function AdminDisputesPage() {
           </Select>
         </div>
 
+        {list.error && (
+          <p className="text-sm text-destructive">{list.error}</p>
+        )}
+
         <div className="space-y-4">
-          {filteredDisputes.map(dispute => (
+          {list.items.map(dispute => (
             <Card key={dispute.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -167,7 +175,9 @@ export default function AdminDisputesPage() {
                       {dispute.assignedToName && (
                         <>
                           <span>•</span>
-                          <span>{t('assignedTo', { name: dispute.assignedToName })}</span>
+                          <span>
+                            {t('assignedTo', { name: dispute.assignedToName })}
+                          </span>
                         </>
                       )}
                     </div>
@@ -198,7 +208,7 @@ export default function AdminDisputesPage() {
 
                 {dispute.resolution && (
                   <div className="mb-4 rounded bg-green-50 p-3">
-                    <p className="text-sm font-semibold text-green-800 mb-1">
+                    <p className="mb-1 text-sm font-semibold text-green-800">
                       {t('resolution')}
                     </p>
                     <p className="text-sm text-green-700">
@@ -241,11 +251,21 @@ export default function AdminDisputesPage() {
           ))}
         </div>
 
-        {filteredDisputes.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
+        {list.items.length === 0 && !list.loading && (
+          <div className="py-12 text-center text-muted-foreground">
             {t('emptyFiltered')}
           </div>
         )}
+
+        <PaginationBar
+          page={list.page}
+          totalPages={list.totalPages}
+          count={list.count}
+          pageSize={list.pageSize}
+          loading={list.loading}
+          onPageChange={list.setPage}
+          onPageSizeChange={list.setPageSize}
+        />
       </div>
     </AdminLayout>
   )

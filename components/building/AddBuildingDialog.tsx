@@ -22,6 +22,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import type { Building } from '@/types/building'
+import { createBuilding } from '@/lib/api/buildings'
+import { useState } from 'react'
 
 const buildingSchema = z.object({
   name: z.string().min(1, 'Building name is required'),
@@ -44,6 +46,8 @@ export function AddBuildingDialog({
   onOpenChange,
   onAdd,
 }: AddBuildingDialogProps) {
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const form = useForm<BuildingFormData>({
     resolver: zodResolver(buildingSchema) as never,
     defaultValues: {
@@ -55,14 +59,16 @@ export function AddBuildingDialog({
     },
   })
 
-  const onSubmit = (data: BuildingFormData) => {
-    const newBuilding: Building = {
-      id: `b${Date.now()}`,
-      ...data,
-      occupiedFlats: 0,
-      createdAt: new Date().toISOString().split('T')[0],
+  const onSubmit = async (data: BuildingFormData) => {
+    setSaving(true)
+    setError(null)
+    const result = await createBuilding(data)
+    setSaving(false)
+    if (!result.ok) {
+      setError(result.error)
+      return
     }
-    onAdd(newBuilding)
+    onAdd(result.data)
     form.reset()
   }
 
@@ -156,18 +162,28 @@ export function AddBuildingDialog({
               />
             </div>
 
+            {error && (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            )}
+
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
+                disabled={saving}
                 onClick={() => {
                   form.reset()
+                  setError(null)
                   onOpenChange(false)
                 }}
               >
                 Cancel
               </Button>
-              <Button type="submit">Add Building</Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Saving…' : 'Add Building'}
+              </Button>
             </div>
           </form>
         </Form>

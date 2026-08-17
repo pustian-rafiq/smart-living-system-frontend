@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -27,12 +27,12 @@ import {
   acceptRule,
   updateViolation,
 } from '@/lib/api/messDomain'
-import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
+import { fetchMessById } from '@/lib/api/mess'
 import { getDemoTenantId, getDemoOwnerId } from '@/lib/api/demoUser'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react'
-import type { MessRule, RuleViolation } from '@/types/messRules'
+import type { MessRule, RuleAcceptance, RuleViolation } from '@/types/messRules'
 import { useConfirm } from '@/components/feedback'
 import { toast } from '@/lib/feedback/toast'
 
@@ -41,17 +41,16 @@ export default function RulesManagementPage() {
   const tc = useTranslations('common')
   const { confirm } = useConfirm()
   const params = useParams()
-  const router = useRouter()
   const role = getStoredRole()
   const messId = params.messId as string
 
   const loadMess = useCallback(() => fetchMessById(messId), [messId])
   const { data: mess } = useMockQuery(loadMess)
-
-  const loadStudents = useCallback(() => fetchMessStudents(messId), [messId])
-  const { data: students } = useMockQuery(loadStudents)
-  const [rules, setRules] = useState(getRulesByMess(messId))
-  const [violations, setViolations] = useState(getViolationsByMess(messId))
+  const [rules, setRules] = useState<MessRule[]>([])
+  const [violations, setViolations] = useState<RuleViolation[]>([])
+  const [studentAcceptances, setStudentAcceptances] = useState<RuleAcceptance[]>(
+    []
+  )
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<MessRule | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -60,20 +59,14 @@ export default function RulesManagementPage() {
   const currentStudentId = getDemoTenantId()
   const ownerId = getDemoOwnerId()
 
-  if (!mess) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-6">
-          <p className="text-center">{t('notFound')}</p>
-        </div>
-      </Layout>
-    )
-  }
+  useEffect(() => {
+    void getRulesByMess(messId).then(setRules)
+    void getViolationsByMess(messId).then(setViolations)
+  }, [messId])
 
-  const studentAcceptances = useMemo(
-    () => getAcceptancesByStudent(currentStudentId),
-    [currentStudentId]
-  )
+  useEffect(() => {
+    void getAcceptancesByStudent(currentStudentId).then(setStudentAcceptances)
+  }, [currentStudentId])
 
   const acceptedRuleIds = useMemo(
     () => new Set(studentAcceptances.map(acc => acc.ruleId)),
@@ -93,13 +86,13 @@ export default function RulesManagementPage() {
     return filtered
   }, [violations, statusFilter, severityFilter])
 
-  const handleRuleSubmit = (data: any) => {
+  const handleRuleSubmit = async (data: Parameters<typeof addRule>[0]) => {
     if (editingRule) {
-      updateRule(editingRule.id, data)
+      await updateRule(editingRule.id, { ...data, messId })
     } else {
-      addRule(data)
+      await addRule(data)
     }
-    setRules(getRulesByMess(messId))
+    setRules(await getRulesByMess(messId))
     setEditingRule(null)
   }
 
@@ -110,36 +103,46 @@ export default function RulesManagementPage() {
       variant: 'destructive',
     })
     if (!ok) return
-    deleteRule(ruleId)
-    setRules(getRulesByMess(messId))
+    await deleteRule(messId, ruleId)
+    setRules(await getRulesByMess(messId))
   }
 
-  const handleAcceptRule = (rule: MessRule) => {
-    const student = students?.find(s => s.id === currentStudentId)
-    if (student) {
-      acceptRule(rule.id, currentStudentId, student.name)
-      setRules(getRulesByMess(messId))
+  const handleAcceptRule = async (rule: MessRule) => {
+    const result = await acceptRule(messId, rule.id)
+    if (result) {
+      setRules(await getRulesByMess(messId))
       toast.success(t('rules.acceptSuccess'))
     }
   }
 
-  const handleResolveViolation = (violation: RuleViolation) => {
+  const handleResolveViolation = async (violation: RuleViolation) => {
     const notes = prompt(t('rules.resolutionPrompt'))
     if (notes) {
-      updateViolation(violation.id, {
+      await updateViolation(violation.id, {
         status: 'resolved',
         resolutionNotes: notes,
         resolvedBy: role === 'owner' ? ownerId : currentStudentId,
+        messId,
       })
-      setViolations(getViolationsByMess(messId))
+      setViolations(await getViolationsByMess(messId))
     }
+  }
+
+  if (!mess) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-6">
+          <p className="text-center">{t('notFound')}</p>
+        </div>
+      </Layout>
+    )
   }
 
   const isOwner = role === 'owner'
   const isRenter = role === 'renter'
 
   return (
-    <Layout userRole={role as any}>
+    <Layout userRole={role as 'owner' | 'renter'}>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">

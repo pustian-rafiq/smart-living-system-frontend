@@ -19,11 +19,13 @@ import {
 } from '@/lib/api/messDomain'
 import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
 import { getDemoTenantId } from '@/lib/api/demoUser'
+import { ok } from '@/lib/api/http'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { Calendar, Heart, UtensilsCrossed } from 'lucide-react'
 import { format } from 'date-fns'
+import type { DailyMenu, MealPreference, MealTiming, WeeklySchedule } from '@/types/meal'
 
 export default function StudentMenuPage() {
   const t = useTranslations('mess')
@@ -33,38 +35,50 @@ export default function StudentMenuPage() {
 
   const loadStudents = useCallback(() => fetchMessStudents(), [])
   const { data: students } = useMockQuery(loadStudents)
-  const student = students?.[0]
+  const student = useMemo(
+    () =>
+      students?.find(s => s.id === tenantId) ??
+      students?.find(s => s.messId) ??
+      students?.[0],
+    [students, tenantId]
+  )
 
-  const loadMess = useCallback(() => fetchMessById('m1'), [])
+  const loadMess = useCallback(
+    () =>
+      student?.messId
+        ? fetchMessById(student.messId)
+        : Promise.resolve(ok(undefined)),
+    [student?.messId]
+  )
   const { data: mess } = useMockQuery(loadMess)
 
-  const [mealPreference, setMealPreference] = useState(
-    getMealPreferenceByUser(tenantId, mess?.id || '')
-  )
+  const messId = mess?.id ?? ''
+  const [mealPreference, setMealPreference] = useState<MealPreference | undefined>()
+  const [todayMenu, setTodayMenu] = useState<DailyMenu | undefined>()
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule | undefined>()
+  const [mealTiming, setMealTiming] = useState<MealTiming | undefined>()
+  const [menuHistory, setMenuHistory] = useState<DailyMenu[]>([])
   const [isPreferenceDialogOpen, setIsPreferenceDialogOpen] = useState(false)
 
   useEffect(() => {
-    if (mess?.id) {
-      setMealPreference(getMealPreferenceByUser(tenantId, mess.id))
-    }
-  }, [mess?.id, tenantId])
+    if (!messId) return
+    void getMealPreferenceByUser(tenantId, messId).then(setMealPreference)
+  }, [messId, tenantId])
 
-  const todayMenu = useMemo(
-    () => getDailyMenuByDate(mess?.id || '', format(new Date(), 'yyyy-MM-dd')),
-    [mess]
-  )
-
-  const weeklySchedule = useMemo(
-    () => getWeeklyScheduleByMess(mess?.id || ''),
-    [mess]
-  )
-
-  const mealTiming = useMemo(() => getMealTimingByMess(mess?.id || ''), [mess])
-
-  const menuHistory = useMemo(
-    () => getDailyMenusByMess(mess?.id || '', 7),
-    [mess]
-  )
+  useEffect(() => {
+    if (!messId) return
+    const today = format(new Date(), 'yyyy-MM-dd')
+    void getDailyMenuByDate(messId, today).then(setTodayMenu)
+    void getWeeklyScheduleByMess(messId).then(setWeeklySchedule)
+    void getMealTimingByMess(messId).then(setMealTiming)
+    void getDailyMenusByMess(messId).then(menus =>
+      setMenuHistory(
+        [...menus]
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .slice(0, 7)
+      )
+    )
+  }, [messId])
 
   useEffect(() => {
     if (role !== 'renter') {
@@ -88,10 +102,10 @@ export default function StudentMenuPage() {
     )
   }
 
-  const handlePreferenceSubmit = (data: {
+  const handlePreferenceSubmit = async (data: {
     preferences: Parameters<typeof updateMealPreference>[2]
   }) => {
-    const updated = updateMealPreference(tenantId, mess.id, data.preferences)
+    const updated = await updateMealPreference(tenantId, mess.id, data.preferences)
     setMealPreference(updated)
   }
 

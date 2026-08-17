@@ -26,7 +26,7 @@ import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import { Plus, Calendar, Clock, UtensilsCrossed } from 'lucide-react'
-import type { DailyMenu, WeeklySchedule } from '@/types/meal'
+import type { DailyMenu, WeeklySchedule, MealTiming } from '@/types/meal'
 import { format } from 'date-fns'
 
 export default function MealManagementPage() {
@@ -40,11 +40,9 @@ export default function MealManagementPage() {
 
   const loadMess = useCallback(() => fetchMessById(messId), [messId])
   const { data: mess } = useMockQuery(loadMess)
-  const [dailyMenus, setDailyMenus] = useState(getDailyMenusByMess(messId))
-  const [weeklySchedule, setWeeklySchedule] = useState(
-    getWeeklyScheduleByMess(messId)
-  )
-  const [mealTiming, setMealTiming] = useState(getMealTimingByMess(messId))
+  const [dailyMenus, setDailyMenus] = useState<DailyMenu[]>([])
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule | undefined>()
+  const [mealTiming, setMealTiming] = useState<MealTiming | undefined>()
   const [isDailyMenuDialogOpen, setIsDailyMenuDialogOpen] = useState(false)
   const [isWeeklyScheduleDialogOpen, setIsWeeklyScheduleDialogOpen] =
     useState(false)
@@ -55,10 +53,21 @@ export default function MealManagementPage() {
   )
 
   useEffect(() => {
+    void getDailyMenusByMess(messId).then(setDailyMenus)
+    void getWeeklyScheduleByMess(messId).then(setWeeklySchedule)
+    void getMealTimingByMess(messId).then(setMealTiming)
+  }, [messId])
+
+  useEffect(() => {
     if (role !== 'owner') {
       router.replace('/dashboard')
     }
   }, [role, router])
+
+  const todayMenu = useMemo(
+    () => dailyMenus.find(m => m.date === format(new Date(), 'yyyy-MM-dd')),
+    [dailyMenus]
+  )
 
   if (role !== 'owner') {
     return null
@@ -74,37 +83,34 @@ export default function MealManagementPage() {
     )
   }
 
-  const handleDailyMenuSubmit = (data: Parameters<typeof addDailyMenu>[0]) => {
+  const handleDailyMenuSubmit = async (
+    data: Parameters<typeof addDailyMenu>[0]
+  ) => {
     if (editingMenu) {
-      updateDailyMenu(editingMenu.id, data)
+      await updateDailyMenu(editingMenu.id, { ...data, messId })
     } else {
-      addDailyMenu(data)
+      await addDailyMenu(data)
     }
-    setDailyMenus(getDailyMenusByMess(messId))
+    setDailyMenus(await getDailyMenusByMess(messId))
     setEditingMenu(null)
   }
 
-  const handleWeeklyScheduleSubmit = (
+  const handleWeeklyScheduleSubmit = async (
     data: Parameters<typeof addWeeklySchedule>[0]
   ) => {
     if (!editingSchedule) {
-      addWeeklySchedule(data)
+      await addWeeklySchedule(data)
     }
-    setWeeklySchedule(getWeeklyScheduleByMess(messId))
+    setWeeklySchedule(await getWeeklyScheduleByMess(messId))
     setEditingSchedule(null)
   }
 
-  const handleMealTimingSubmit = (
+  const handleMealTimingSubmit = async (
     data: Parameters<typeof updateMealTiming>[1]
   ) => {
-    updateMealTiming(messId, data)
-    setMealTiming(getMealTimingByMess(messId))
+    const updated = await updateMealTiming(messId, data)
+    if (updated) setMealTiming(updated)
   }
-
-  const todayMenu = useMemo(
-    () => dailyMenus.find(m => m.date === format(new Date(), 'yyyy-MM-dd')),
-    [dailyMenus]
-  )
 
   return (
     <Layout userRole="owner">

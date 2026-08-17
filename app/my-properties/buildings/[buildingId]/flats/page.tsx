@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ArrowLeft, Filter, Layers } from 'lucide-react'
-import { fetchBuildingById, fetchFlatsByBuilding } from '@/lib/api/buildings'
+import { fetchBuildingById, fetchFlatsByBuilding, assignRenter } from '@/lib/api/buildings'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import type { Flat, FlatStatus, Renter } from '@/types/building'
 
@@ -96,19 +96,24 @@ function FlatsPageContent() {
     setIsAssignOpen(true)
   }
 
-  const handleAssignSubmit = (flat: Flat, renter: Renter) => {
+  const handleAssignSubmit = async (flat: Flat, renter: Renter) => {
+    const result = await assignRenter(flat.id, {
+      name: renter.name,
+      phone: renter.phone,
+      email: renter.email,
+      nid: renter.nid,
+      address: renter.address,
+      joinedDate: renter.joinedDate,
+    })
+    const updated = result.ok
+      ? result.data
+      : { ...flat, renter, status: 'occupied' as const }
     setLocalFlats(prev =>
-      (prev ?? fetchedFlats ?? []).map(f =>
-        f.id === flat.id ? { ...f, renter, status: 'occupied' as const } : f
-      )
+      (prev ?? fetchedFlats ?? []).map(f => (f.id === flat.id ? updated : f)),
     )
-    setSelectedFlat(prev =>
-      prev?.id === flat.id
-        ? { ...prev, renter, status: 'occupied' as const }
-        : prev
-    )
+    setSelectedFlat(prev => (prev?.id === flat.id ? updated : prev))
     setSuccessMessage(
-      t('assignSuccess', { renter: renter.name, flat: flat.flatNumber })
+      t('assignSuccess', { renter: renter.name, flat: flat.flatNumber }),
     )
   }
 

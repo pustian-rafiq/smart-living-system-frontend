@@ -17,14 +17,7 @@ import {
   ShieldAlert,
 } from 'lucide-react'
 import {
-  fetchAdminAnalytics,
-  fetchAdminComplaints,
-  fetchVerificationRequests,
-  fetchDisputes,
-  fetchFraudReports,
-  getVerificationRequestsByStatus,
-  getDisputesByStatus,
-  getFraudReportsByStatus,
+  fetchAdminDashboardData,
 } from '@/lib/api/admin'
 import type { AnalyticsData } from '@/types/admin'
 import type { Complaint } from '@/types/complaint'
@@ -35,19 +28,48 @@ export default function AdminDashboardPage() {
   const tProp = useTranslations('search.page.propertyTypes')
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [complaints, setComplaints] = useState<Complaint[]>([])
+  const [pendingVerificationsCount, setPendingVerificationsCount] = useState(0)
+  const [openDisputesCount, setOpenDisputesCount] = useState(0)
+  const [pendingFraud, setPendingFraud] = useState(0)
+  const [investigatingFraud, setInvestigatingFraud] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([
-      fetchAdminAnalytics(),
-      fetchAdminComplaints(),
-      fetchVerificationRequests(),
-      fetchDisputes(),
-      fetchFraudReports(),
-    ]).then(([analyticsRes, complaintsRes]) => {
-      if (analyticsRes.ok) setAnalytics(analyticsRes.data)
-      if (complaintsRes.ok) setComplaints(complaintsRes.data)
+    let cancelled = false
+    fetchAdminDashboardData().then(result => {
+      if (cancelled) return
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      const data = result.data
+      setAnalytics(data.analytics)
+      setComplaints(data.openComplaints)
+      setPendingVerificationsCount(data.pendingVerifications.length)
+      setOpenDisputesCount(
+        data.openDisputes.length + data.inProgressDisputes.length,
+      )
+      setPendingFraud(data.pendingFraudReports.length)
+      setInvestigatingFraud(data.investigatingFraudReports.length)
     })
+    return () => {
+      cancelled = true
+    }
   }, [])
+
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="max-w-7xl space-y-2 p-8">
+          <p className="font-medium text-destructive">Failed to load dashboard</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <p className="text-sm text-muted-foreground">
+            Sign in again at /admin/login so a JWT is stored, then refresh.
+          </p>
+        </div>
+      </AdminLayout>
+    )
+  }
 
   if (!analytics) {
     return (
@@ -56,10 +78,6 @@ export default function AdminDashboardPage() {
       </AdminLayout>
     )
   }
-
-  const pendingVerifications = getVerificationRequestsByStatus('pending')
-  const openDisputes = getDisputesByStatus('open')
-  const inProgressDisputes = getDisputesByStatus('in_progress')
 
   const stats = [
     {
@@ -100,13 +118,10 @@ export default function AdminDashboardPage() {
     },
   ]
 
-  const pendingFraud = getFraudReportsByStatus('pending').length
-  const investigatingFraud = getFraudReportsByStatus('investigating').length
-
   const quickActions = [
     {
       title: t('pending.verifications'),
-      count: pendingVerifications.length,
+      count: pendingVerificationsCount,
       icon: FileCheck,
       color: 'text-yellow-500',
       bgColor: 'bg-yellow-500/10',
@@ -114,7 +129,7 @@ export default function AdminDashboardPage() {
     },
     {
       title: t('pending.disputes'),
-      count: openDisputes.length + inProgressDisputes.length,
+      count: openDisputesCount,
       icon: MessageSquare,
       color: 'text-red-500',
       bgColor: 'bg-red-500/10',

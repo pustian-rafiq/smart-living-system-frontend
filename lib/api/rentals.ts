@@ -1,6 +1,7 @@
 import type { Booking } from '@/types/booking'
-import { getBookingsByRenter } from '@/data/mockBookings'
-import { mockDelay, ok, type ApiResult } from './http'
+import { fetchBookingsForRenter } from './bookings'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export type RentalSummary = {
   booking: Booking
@@ -24,18 +25,19 @@ function classify(booking: Booking): RentalSummary['phase'] {
 
 /** Renter-centric view of booking requests and stays */
 export async function fetchRentalSummariesForRenter(
-  renterId: string
+  _renterId?: string,
 ): Promise<ApiResult<RentalSummary[]>> {
-  await mockDelay()
-  const bookings = getBookingsByRenter(renterId)
-  const summaries: RentalSummary[] = bookings.map(booking => ({
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  const result = await fetchBookingsForRenter()
+  if (!result.ok) return result
+  const summaries: RentalSummary[] = result.data.map(booking => ({
     booking,
     phase: classify(booking),
   }))
   summaries.sort(
     (a, b) =>
       new Date(b.booking.updatedAt).getTime() -
-      new Date(a.booking.updatedAt).getTime()
+      new Date(a.booking.updatedAt).getTime(),
   )
-  return ok(summaries)
+  return { ok: true, data: summaries }
 }

@@ -12,41 +12,59 @@ import {
   getAttendanceSummary,
 } from '@/lib/api/messDomain'
 import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
+import { getDemoTenantId } from '@/lib/api/demoUser'
+import { ok } from '@/lib/api/http'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { Calendar, FileText } from 'lucide-react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
+import type { AttendanceRecord, AttendanceSummary } from '@/types/attendance'
 
 export default function StudentAttendancePage() {
   const t = useTranslations('mess')
   const router = useRouter()
   const role = getStoredRole()
+  const tenantId = getDemoTenantId()
 
   const loadStudents = useCallback(() => fetchMessStudents(), [])
   const { data: students } = useMockQuery(loadStudents)
-  const student = students?.[0]
-
-  const loadMess = useCallback(() => fetchMessById('m1'), [])
-  const { data: mess } = useMockQuery(loadMess)
-
-  const [attendanceRecords, setAttendanceRecords] = useState(
-    getAttendanceByStudent(student?.id || '', mess?.id || '')
+  const student = useMemo(
+    () =>
+      students?.find(s => s.id === tenantId) ??
+      students?.find(s => s.messId) ??
+      students?.[0],
+    [students, tenantId]
   )
 
-  useEffect(() => {
-    if (student?.id && mess?.id) {
-      setAttendanceRecords(getAttendanceByStudent(student.id, mess.id))
-    }
-  }, [student?.id, mess?.id])
+  const loadMess = useCallback(
+    () =>
+      student?.messId
+        ? fetchMessById(student.messId)
+        : Promise.resolve(ok(undefined)),
+    [student?.messId]
+  )
+  const { data: mess } = useMockQuery(loadMess)
+
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+  const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | null>(
+    null
+  )
 
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
   const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
 
-  const attendanceSummary = useMemo(() => {
-    if (!student || !mess) return null
-    return getAttendanceSummary(student.id, mess.id, monthStart, monthEnd)
-  }, [student, mess, monthStart, monthEnd])
+  useEffect(() => {
+    if (!student?.id || !mess?.id) return
+    void getAttendanceByStudent(student.id, mess.id).then(setAttendanceRecords)
+  }, [student?.id, mess?.id])
+
+  useEffect(() => {
+    if (!student?.id || !mess?.id) return
+    void getAttendanceSummary(student.id, mess.id, monthStart, monthEnd).then(
+      setAttendanceSummary
+    )
+  }, [student?.id, mess?.id, monthStart, monthEnd])
 
   useEffect(() => {
     if (role !== 'renter') {

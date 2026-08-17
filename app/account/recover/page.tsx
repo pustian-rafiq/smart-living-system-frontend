@@ -14,7 +14,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { recoverAccount } from '@/lib/api/account'
+import { recoverAccount, requestRecoverOtp } from '@/lib/api/account'
+import { applyAuthSession } from '@/utils/auth'
 import { KeyRound, ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 
@@ -26,6 +27,12 @@ export default function AccountRecoverPage() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
 
+  const handleSendOtp = async (phone: string) => {
+    const result = await requestRecoverOtp({ phone })
+    if (!result.ok) return { error: result.error }
+    return { devOtp: result.data.devOtp }
+  }
+
   const handleSubmit = async (phone: string, otp: string) => {
     setLoading(true)
     setError(null)
@@ -35,8 +42,17 @@ export default function AccountRecoverPage() {
       setError(result.error)
       return
     }
+    applyAuthSession(result.data, {
+      complete: result.data.user.roleSelected,
+    })
     setDone(true)
-    setTimeout(() => router.push('/dashboard'), 1500)
+    const next =
+      !result.data.user.roleSelected || result.data.needsRoleSelection
+        ? '/role-selection'
+        : result.data.user.role === 'admin'
+          ? '/admin'
+          : '/dashboard'
+    setTimeout(() => router.push(next), 1200)
   }
 
   return (
@@ -67,6 +83,7 @@ export default function AccountRecoverPage() {
                 submitLabel={t('recover.submit')}
                 loading={loading}
                 error={error}
+                onSendOtp={handleSendOtp}
                 onSubmit={handleSubmit}
               />
             )}

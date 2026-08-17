@@ -5,8 +5,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
-const DEMO_OTP = '123456'
-
 interface PhoneOtpFormProps {
   phoneLabel?: string
   otpLabel?: string
@@ -14,6 +12,10 @@ interface PhoneOtpFormProps {
   loading?: boolean
   error?: string | null
   onSubmit: (phone: string, otp: string) => void
+  /** Called when user taps Send OTP. Return error string or optional dev OTP. */
+  onSendOtp?: (
+    phone: string,
+  ) => Promise<{ error?: string; devOtp?: string } | void>
   requireOtp?: boolean
   defaultPhone?: string
 }
@@ -32,6 +34,7 @@ export function PhoneOtpForm({
   loading,
   error,
   onSubmit,
+  onSendOtp,
   requireOtp = true,
   defaultPhone = '',
 }: PhoneOtpFormProps) {
@@ -43,15 +46,32 @@ export function PhoneOtpForm({
   const [phone, setPhone] = useState(defaultPhone)
   const [otp, setOtp] = useState('')
   const [otpSent, setOtpSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [localError, setLocalError] = useState<string | null>(null)
 
   const displayPhone = phone
     ? `+${phone.slice(0, 3)} ${phone.slice(3)}`
     : ''
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     const normalized = formatPhone(phone)
     if (normalized.length !== 13) return
     setPhone(normalized)
+    setLocalError(null)
+
+    if (onSendOtp) {
+      setSending(true)
+      const result = await onSendOtp(normalized)
+      setSending(false)
+      if (result?.error) {
+        setLocalError(result.error)
+        return
+      }
+      if (result?.devOtp) {
+        setOtp(result.devOtp)
+      }
+    }
+
     setOtpSent(true)
   }
 
@@ -59,9 +79,11 @@ export function PhoneOtpForm({
     e.preventDefault()
     const normalized = formatPhone(phone)
     if (normalized.length !== 13) return
-    if (requireOtp && otp !== DEMO_OTP) return
+    if (requireOtp && otp.length !== 6) return
     onSubmit(normalized, otp)
   }
+
+  const displayError = error || localError
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -77,11 +99,12 @@ export function PhoneOtpForm({
           onChange={e => {
             setPhone(formatPhone(e.target.value))
             setOtpSent(false)
+            setLocalError(null)
           }}
           aria-describedby={phoneHintId}
-          aria-invalid={error ? true : undefined}
+          aria-invalid={displayError ? true : undefined}
           required
-          disabled={loading}
+          disabled={loading || sending}
         />
         <p id={phoneHintId} className="text-xs text-muted-foreground">
           Bangladesh mobile number starting with +880
@@ -96,10 +119,12 @@ export function PhoneOtpForm({
               variant="outline"
               className="w-full"
               onClick={handleSendOtp}
-              disabled={formatPhone(phone).length !== 13 || loading}
+              disabled={
+                formatPhone(phone).length !== 13 || loading || sending
+              }
               aria-describedby={phoneHintId}
             >
-              Send OTP
+              {sending ? 'Sending…' : 'Send OTP'}
             </Button>
           ) : (
             <div className="space-y-2">
@@ -109,27 +134,27 @@ export function PhoneOtpForm({
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 maxLength={6}
-                placeholder="123456"
+                placeholder="6-digit code"
                 value={otp}
                 onChange={e =>
                   setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
                 }
                 aria-describedby={[otpHintId, errorId].filter(Boolean).join(' ')}
-                aria-invalid={error ? true : undefined}
+                aria-invalid={displayError ? true : undefined}
                 required
                 disabled={loading}
               />
               <p id={otpHintId} className="text-xs text-muted-foreground">
-                Enter the 6-digit code sent to your phone. Demo OTP: {DEMO_OTP}
+                Enter the 6-digit code sent to your phone.
               </p>
             </div>
           )}
         </>
       )}
 
-      {error && (
+      {displayError && (
         <p id={errorId} role="alert" className="text-sm text-destructive">
-          {error}
+          {displayError}
         </p>
       )}
 
@@ -138,6 +163,7 @@ export function PhoneOtpForm({
         className="w-full"
         disabled={
           loading ||
+          sending ||
           formatPhone(phone).length !== 13 ||
           (requireOtp && (!otpSent || otp.length !== 6))
         }

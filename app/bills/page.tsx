@@ -47,10 +47,14 @@ import {
 import {
   fetchBillsBoard,
   scheduleBillPayment,
-  getMeterReading,
+  generateBill,
+  bulkGenerateBills,
+  saveBillTemplates,
+  saveBillRules,
+  saveMeterReadings,
   getPreviousMeterReading,
 } from '@/lib/api/bills'
-import { getDemoTenantId, getDemoOwnerId } from '@/lib/api/demoUser'
+import { getDemoTenantId } from '@/lib/api/demoUser'
 import type { Building, Flat, Renter } from '@/types/building'
 import type { Mess } from '@/types/mess'
 import type {
@@ -232,99 +236,35 @@ export default function BillsPage() {
     'December',
   ]
 
-  const handleBulkBillSubmit = (data: BulkBillGenerationData) => {
-    const building = buildings.find(b => b.id === data.buildingId)
-    if (!data.buildingId || !building) {
+  const handleBulkBillSubmit = async (data: BulkBillGenerationData) => {
+    if (!data.buildingId) {
       setIsBulkBillDialogOpen(false)
       return
     }
-    const flatIds =
-      data.flatIds && data.flatIds.length > 0
-        ? data.flatIds
-        : flats.filter(f => f.buildingId === data.buildingId).map(f => f.id)
-
-    const newBills: Bill[] = []
-    for (const flatId of flatIds) {
-      const flat = flats.find(f => f.id === flatId)
-      if (!flat?.renter) continue
-      const amount = flat.rent
-      newBills.push({
-        id: `bill-bulk-${flatId}-${Date.now()}`,
-        tenantName: flat.renter.name,
-        tenantId: flat.renter.id,
-        propertyType: 'apartment',
-        propertyName: building.name,
-        propertyId: data.buildingId,
-        flatNumber: flat.flatNumber,
-        month: data.month,
-        year: data.year,
-        amount,
-        dueDate: new Date(data.year, months.indexOf(data.month), 5)
-          .toISOString()
-          .split('T')[0],
-        status: 'unpaid',
-        items: [
-          {
-            id: `item-${flatId}-${Date.now()}`,
-            description: 'Monthly rent',
-            amount,
-            type: 'rent',
-          },
-        ],
-        createdAt: new Date().toISOString().split('T')[0],
-      })
+    const result = await bulkGenerateBills({
+      buildingId: data.buildingId,
+      flatIds: data.flatIds,
+      month: data.month,
+      year: data.year,
+      templateId: data.templateId,
+      includeUnpaid: data.includeUnpaid,
+    })
+    if (result.ok && result.data.length) {
+      setBills(prev => [...result.data, ...prev])
     }
-    if (newBills.length) setBills([...newBills, ...bills])
     setIsBulkBillDialogOpen(false)
   }
 
-  const handleGenerate = (data: any) => {
-    // Get property name
-    const property = [...buildings, ...messList].find(
-      p => p.id === data.propertyId
-    )
-    const propertyName = property?.name || t('misc.unknownProperty')
-
-    // Get tenant name
-    const tenant = renters.find(tenantItem => tenantItem.id === data.tenantId)
-    const tenantName = tenant?.name || t('misc.unknownTenant')
-
-    // Get flat number if apartment
-    let flatNumber: string | undefined
-    if (data.flatId) {
-      const flat = flats.find(f => f.id === data.flatId)
-      flatNumber = flat?.flatNumber
-    }
-
-    // Get meter reading if available
-    const meterReading = getMeterReading(
-      data.propertyId,
-      data.flatId,
-      undefined,
-      data.month,
-      data.year
-    )
-
-    const newBill: Bill = {
-      id: `bill${Date.now()}`,
-      tenantName,
-      tenantId: data.tenantId,
-      propertyType: data.propertyType,
-      propertyName,
+  const handleGenerate = async (data: any) => {
+    const result = await generateBill({
       propertyId: data.propertyId,
-      flatNumber,
+      propertyType: data.propertyType,
       month: data.month,
       year: data.year,
-      amount: data.items.reduce(
-        (sum: number, item: any) => sum + (item.amount || 0),
-        0
-      ),
-      dueDate: new Date(data.year, months.indexOf(data.month), 5)
-        .toISOString()
-        .split('T')[0],
-      status: 'unpaid',
-      items: data.items.map((item: any, idx: number) => ({
-        id: `item${idx}`,
+      tenantId: data.tenantId,
+      flatId: data.flatId,
+      templateId: data.templateId,
+      items: data.items.map((item: any) => ({
         description: item.description,
         amount: item.amount || 0,
         type: item.type,
@@ -334,108 +274,120 @@ export default function BillsPage() {
         currentReading: item.currentReading,
         consumption: item.consumption,
       })),
-      templateId: data.templateId,
-      meterReadings: meterReading,
-      createdAt: new Date().toISOString().split('T')[0],
+    })
+    if (result.ok) {
+      setBills(prev => [result.data, ...prev])
     }
-    setBills([newBill, ...bills])
     setIsGenerateDialogOpen(false)
   }
 
-  const handleTemplateSubmit = (data: any) => {
+  const handleTemplateSubmit = async (data: any) => {
+    let next: BillTemplate[]
     if (selectedTemplate) {
-      setTemplates(
-        templates.map(t =>
-          t.id === selectedTemplate.id
-            ? {
-                ...t,
-                ...data,
-                updatedAt: new Date().toISOString().split('T')[0],
-              }
-            : t
-        )
+      next = templates.map(t =>
+        t.id === selectedTemplate.id
+          ? {
+              ...t,
+              ...data,
+              updatedAt: new Date().toISOString().split('T')[0],
+            }
+          : t,
       )
     } else {
-      const newTemplate: BillTemplate = {
-        id: `template${Date.now()}`,
-        ...data,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0],
-      }
-      setTemplates([...templates, newTemplate])
+      next = [
+        ...templates,
+        {
+          id: `template${Date.now()}`,
+          ...data,
+          createdAt: new Date().toISOString().split('T')[0],
+          updatedAt: new Date().toISOString().split('T')[0],
+        },
+      ]
     }
+    const saved = await saveBillTemplates(next)
+    if (saved.ok) setTemplates(saved.data)
+    else setTemplates(next)
     setIsTemplateDialogOpen(false)
     setSelectedTemplate(undefined)
   }
 
-  const handleMeterReadingSubmit = (data: any) => {
-    // Get previous reading for consumption calculation
-    const prevReading = getPreviousMeterReading(
+  const handleMeterReadingSubmit = async (data: any) => {
+    const prevReading = await getPreviousMeterReading(
       data.propertyId,
       data.flatId,
       data.seatId,
       data.month,
-      data.year
+      data.year,
     )
 
+    let next: MeterReading[]
     if (selectedReading) {
-      setMeterReadings(
-        meterReadings.map(r =>
-          r.id === selectedReading.id
-            ? { ...r, ...data, submittedAt: new Date().toISOString() }
-            : r
-        )
+      next = meterReadings.map(r =>
+        r.id === selectedReading.id
+          ? { ...r, ...data, submittedAt: new Date().toISOString() }
+          : r,
       )
     } else {
-      const newReading: MeterReading = {
-        id: `reading${Date.now()}`,
-        ...data,
-        submittedAt: new Date().toISOString(),
-        submittedBy: getDemoOwnerId(),
-        previousElectricity: prevReading?.electricity,
-        previousGas: prevReading?.gas,
-        previousWater: prevReading?.water,
-        electricityConsumption:
-          data.electricity && prevReading?.electricity
-            ? data.electricity - prevReading.electricity
-            : undefined,
-        gasConsumption:
-          data.gas && prevReading?.gas ? data.gas - prevReading.gas : undefined,
-        waterConsumption:
-          data.water && prevReading?.water
-            ? data.water - prevReading.water
-            : undefined,
-      }
-      setMeterReadings([...meterReadings, newReading])
+      next = [
+        ...meterReadings,
+        {
+          id: `reading${Date.now()}`,
+          ...data,
+          submittedAt: new Date().toISOString(),
+          submittedBy: 'owner',
+          previousElectricity: prevReading?.electricity,
+          previousGas: prevReading?.gas,
+          previousWater: prevReading?.water,
+          electricityConsumption:
+            data.electricity && prevReading?.electricity
+              ? data.electricity - prevReading.electricity
+              : undefined,
+          gasConsumption:
+            data.gas && prevReading?.gas
+              ? data.gas - prevReading.gas
+              : undefined,
+          waterConsumption:
+            data.water && prevReading?.water
+              ? data.water - prevReading.water
+              : undefined,
+        },
+      ]
     }
+    const saved = await saveMeterReadings(next)
+    if (saved.ok) setMeterReadings(saved.data)
+    else setMeterReadings(next)
     setIsMeterReadingDialogOpen(false)
     setSelectedReading(undefined)
   }
 
-  const handleRuleSubmit = (data: any) => {
+  const handleRuleSubmit = async (data: any) => {
+    let next: BillGenerationRule[]
     if (selectedRule) {
-      setRules(
-        rules.map(r =>
-          r.id === selectedRule.id
-            ? {
-                ...r,
-                ...data,
-                updatedAt: new Date().toISOString().split('T')[0],
-              }
-            : r
-        )
+      next = rules.map(r =>
+        r.id === selectedRule.id
+          ? {
+              ...r,
+              ...data,
+              updatedAt: new Date().toISOString().split('T')[0],
+            }
+          : r,
       )
     } else {
-      const newRule: BillGenerationRule = {
-        id: `rule${Date.now()}`,
-        ...data,
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0],
-        lastRun: undefined,
-        nextRun: calculateNextRun(data.schedule),
-      }
-      setRules([...rules, newRule])
+      next = [
+        ...rules,
+        {
+          id: `rule${Date.now()}`,
+          ...data,
+          createdAt: new Date().toISOString().split('T')[0],
+          updatedAt: new Date().toISOString().split('T')[0],
+          lastRun: undefined,
+          nextRun: calculateNextRun(data.schedule),
+        },
+      ]
     }
+    const saved = await saveBillRules(next)
+    if (saved.ok) setRules(saved.data)
+    else setRules(next)
     setIsRuleDialogOpen(false)
     setSelectedRule(undefined)
   }

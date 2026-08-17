@@ -3,169 +3,256 @@ import type {
   BillTemplate,
   BillGenerationRule,
   MeterReading,
+  GenerateBillData,
 } from '@/types/bill'
-import type { Building, Flat, Renter } from '@/types/building'
-import type { Mess } from '@/types/mess'
-import {
-  mockBills,
-  getBillsByTenantId,
-  getBillById,
-  markBillPaid,
-} from '@/data/mockBills'
-import {
-  mockBillTemplates,
-  mockBillGenerationRules,
-  mockMeterReadings,
-  getMeterReading,
-  getPreviousMeterReading,
-  getTemplateById,
-  getRuleById,
-  getActiveTemplates,
-  getTemplatesByProperty,
-  getActiveRules,
-} from '@/data/mockBillTemplates'
-import { mockBuildings, mockFlats, mockRenters } from '@/data/mockBuildings'
-import { mockMess } from '@/data/mockMess'
-import { addScheduledPayment } from '@/data/mockPayments'
 import type { ScheduledPayment } from '@/types/payment'
 import type { BillsBoardResponse } from './contracts'
-import { getDemoOwnerId, getDemoTenantId } from './demoUser'
-import { mockDelay, ok, err, type ApiResult } from './http'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export async function fetchBillsBoard(): Promise<ApiResult<BillsBoardResponse>> {
-  await mockDelay()
-  return ok({
-    bills: [...mockBills],
-    templates: [...mockBillTemplates],
-    rules: [...mockBillGenerationRules],
-    meterReadings: [...mockMeterReadings],
-    buildings: [...mockBuildings],
-    flats: [...mockFlats],
-    renters: [...mockRenters],
-    messList: [...mockMess],
-  })
+  if (!hasAuthTokens()) {
+    return {
+      ok: true,
+      data: {
+        bills: [],
+        templates: [],
+        rules: [],
+        meterReadings: [],
+        buildings: [],
+        flats: [],
+        renters: [],
+        messList: [],
+      },
+    }
+  }
+  return apiRequest<BillsBoardResponse>('/bills/board/')
 }
 
 export async function fetchBillsForTenant(
-  tenantId?: string
+  _tenantId?: string,
 ): Promise<ApiResult<Bill[]>> {
-  await mockDelay()
-  return ok(getBillsByTenantId(tenantId || getDemoTenantId()))
+  return apiRequest<Bill[]>('/bills/mine/')
 }
 
 export async function fetchBillsForOwner(
-  ownerId?: string
+  _ownerId?: string,
 ): Promise<ApiResult<Bill[]>> {
-  await mockDelay()
-  const id = ownerId || getDemoOwnerId()
-  return ok(mockBills.filter(b => b.ownerId === id))
+  return apiRequest<Bill[]>('/bills/owner/')
 }
 
-export async function fetchBillById(id: string): Promise<ApiResult<Bill | undefined>> {
-  await mockDelay(150)
-  return ok(getBillById(id))
+export async function fetchBillById(
+  id: string,
+): Promise<ApiResult<Bill | undefined>> {
+  const result = await apiRequest<Bill>(`/bills/${id}/`)
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') return { ok: true, data: undefined }
+    return result
+  }
+  return result
 }
 
 export async function saveBillsSnapshot(
-  bills: Bill[]
+  bills: Bill[],
 ): Promise<ApiResult<Bill[]>> {
-  await mockDelay(100)
-  mockBills.length = 0
-  mockBills.push(...bills)
-  return ok([...mockBills])
+  return apiRequest<Bill[]>('/bills/bulk/', {
+    method: 'PUT',
+    body: bills,
+  })
+}
+
+export async function generateBill(
+  data: GenerateBillData & {
+    flatNumber?: string
+    seatNumber?: string
+    tenantName?: string
+    propertyName?: string
+    templateId?: string
+  },
+): Promise<ApiResult<Bill>> {
+  return apiRequest<Bill>('/bills/generate/', {
+    method: 'POST',
+    body: data,
+  })
+}
+
+export async function bulkGenerateBills(data: {
+  buildingId?: string
+  flatIds?: string[]
+  month: string
+  year: number
+  templateId?: string
+  includeUnpaid?: boolean
+}): Promise<ApiResult<Bill[]>> {
+  return apiRequest<Bill[]>('/bills/bulk-generate/', {
+    method: 'POST',
+    body: data,
+  })
 }
 
 export async function saveBillTemplates(
-  templates: BillTemplate[]
+  templates: BillTemplate[],
 ): Promise<ApiResult<BillTemplate[]>> {
-  await mockDelay(100)
-  mockBillTemplates.length = 0
-  mockBillTemplates.push(...templates)
-  return ok([...mockBillTemplates])
+  return apiRequest<BillTemplate[]>('/bill-templates/bulk/', {
+    method: 'PUT',
+    body: templates,
+  })
 }
 
 export async function saveBillRules(
-  rules: BillGenerationRule[]
+  rules: BillGenerationRule[],
 ): Promise<ApiResult<BillGenerationRule[]>> {
-  await mockDelay(100)
-  mockBillGenerationRules.length = 0
-  mockBillGenerationRules.push(...rules)
-  return ok([...mockBillGenerationRules])
+  return apiRequest<BillGenerationRule[]>('/bill-rules/bulk/', {
+    method: 'PUT',
+    body: rules,
+  })
 }
 
 export async function saveMeterReadings(
-  readings: MeterReading[]
+  readings: MeterReading[],
 ): Promise<ApiResult<MeterReading[]>> {
-  await mockDelay(100)
-  mockMeterReadings.length = 0
-  mockMeterReadings.push(...readings)
-  return ok([...mockMeterReadings])
+  return apiRequest<MeterReading[]>('/meter-readings/bulk/', {
+    method: 'PUT',
+    body: readings,
+  })
 }
 
 export async function scheduleBillPayment(
-  payment: ScheduledPayment
+  payment: ScheduledPayment,
 ): Promise<ApiResult<ScheduledPayment>> {
-  await mockDelay(150)
-  addScheduledPayment(payment)
-  return ok(payment)
+  const { createScheduledPayment } = await import('./payments')
+  return createScheduledPayment(payment)
 }
 
 export async function markBillAsPaid(
   billId: string,
-  paidAt?: string
+  paidAt?: string,
 ): Promise<ApiResult<Bill>> {
-  await mockDelay(100)
-  const updated = markBillPaid(billId, paidAt)
-  if (!updated) return err('Bill not found', 'NOT_FOUND')
-  return ok(updated)
+  return apiRequest<Bill>(`/bills/${billId}/mark-paid/`, {
+    method: 'POST',
+    body: { paidAt },
+  })
 }
 
 export async function fetchActiveBillTemplates(): Promise<
   ApiResult<BillTemplate[]>
 > {
-  await mockDelay()
-  return ok(getActiveTemplates())
+  return apiRequest<BillTemplate[]>('/bill-templates/active/')
 }
 
 export async function fetchBillTemplatesByProperty(
-  propertyId: string
+  propertyId: string,
 ): Promise<ApiResult<BillTemplate[]>> {
-  await mockDelay()
-  return ok(getTemplatesByProperty(propertyId))
+  return apiRequest<BillTemplate[]>(
+    `/bill-templates/?property_id=${encodeURIComponent(propertyId)}`,
+  )
 }
 
 export async function fetchActiveBillRules(): Promise<
   ApiResult<BillGenerationRule[]>
 > {
-  await mockDelay()
-  return ok(getActiveRules())
+  return apiRequest<BillGenerationRule[]>('/bill-rules/active/')
 }
 
 export async function fetchPreviousMeterReadingApi(
   propertyId: string,
-  meterType: MeterReading['meterType'],
+  _meterType: string | undefined,
   month: string,
-  year: number
+  year: number,
+  flatId?: string,
 ): Promise<ApiResult<MeterReading | undefined>> {
-  await mockDelay(100)
-  return ok(getPreviousMeterReading(propertyId, meterType, month, year))
+  const params = new URLSearchParams({
+    property_id: propertyId,
+    month,
+    year: String(year),
+  })
+  if (flatId) params.set('flat_id', flatId)
+  const result = await apiRequest<MeterReading | null>(
+    `/meter-readings/previous/?${params}`,
+  )
+  if (!result.ok) return result
+  return { ok: true, data: result.data ?? undefined }
 }
 
 export async function fetchMeterReadingApi(
   propertyId: string,
-  meterType: MeterReading['meterType'],
+  _meterType: string | undefined,
   month: string,
-  year: number
+  year: number,
+  flatId?: string,
 ): Promise<ApiResult<MeterReading | undefined>> {
-  await mockDelay(100)
-  return ok(getMeterReading(propertyId, meterType, month, year))
+  const params = new URLSearchParams({
+    property_id: propertyId,
+    month,
+    year: String(year),
+  })
+  if (flatId) params.set('flat_id', flatId)
+  const result = await apiRequest<MeterReading | null>(
+    `/meter-readings/current/?${params}`,
+  )
+  if (!result.ok) return result
+  return { ok: true, data: result.data ?? undefined }
 }
 
-export {
-  getMeterReading,
-  getPreviousMeterReading,
-  getTemplateById,
-  getRuleById,
-  getActiveTemplates,
-  getTemplatesByProperty,
+export async function getMeterReading(
+  propertyId: string,
+  flatId: string | undefined,
+  _seatId: string | undefined,
+  month: string,
+  year: number,
+): Promise<MeterReading | undefined> {
+  const r = await fetchMeterReadingApi(
+    propertyId,
+    undefined,
+    month,
+    year,
+    flatId,
+  )
+  return r.ok ? r.data : undefined
+}
+
+export async function getPreviousMeterReading(
+  propertyId: string,
+  flatId: string | undefined,
+  _seatId: string | undefined,
+  month: string,
+  year: number,
+): Promise<MeterReading | undefined> {
+  const r = await fetchPreviousMeterReadingApi(
+    propertyId,
+    undefined,
+    month,
+    year,
+    flatId,
+  )
+  return r.ok ? r.data : undefined
+}
+
+export async function getTemplateById(
+  id: string,
+): Promise<BillTemplate | undefined> {
+  const board = await fetchBillsBoard()
+  if (!board.ok) return undefined
+  return board.data.templates.find(t => t.id === id)
+}
+
+export async function getRuleById(
+  id: string,
+): Promise<BillGenerationRule | undefined> {
+  const board = await fetchBillsBoard()
+  if (!board.ok) return undefined
+  return board.data.rules.find(r => r.id === id)
+}
+
+export async function getActiveTemplates(): Promise<BillTemplate[]> {
+  const r = await fetchActiveBillTemplates()
+  return r.ok ? r.data : []
+}
+
+export async function getTemplatesByProperty(
+  propertyId: string,
+): Promise<BillTemplate[]> {
+  const r = await fetchBillTemplatesByProperty(propertyId)
+  return r.ok ? r.data : []
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import {
@@ -11,8 +11,9 @@ import {
   CardDescription,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ServerSearchInput } from '@/components/data/ServerSearchInput'
+import { PaginationBar } from '@/components/data/PaginationBar'
 import {
   Select,
   SelectContent,
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AuditLogTable } from '@/components/audit/AuditLogTable'
 import { AuditLogCard } from '@/components/audit/AuditLogCard'
 import { AuditLogDetailDialog } from '@/components/audit/AuditLogDetailDialog'
@@ -28,14 +29,13 @@ import { RollbackDialog } from '@/components/audit/RollbackDialog'
 import { fetchAuditLogs, rollbackAudit } from '@/lib/api/admin'
 import type { AuditLog, AuditAction, AuditEntityType } from '@/types/audit'
 import { Download, X } from 'lucide-react'
+import { useServerPagedList } from '@/hooks/useServerPagedList'
 
 export default function AuditLogsPage() {
   const t = useTranslations('admin.audit')
   const tc = useTranslations('common')
-  const [allLogs, setAllLogs] = useState<AuditLog[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
   const [selectedAction, setSelectedAction] = useState<AuditAction | 'all'>(
-    'all'
+    'all',
   )
   const [selectedEntityType, setSelectedEntityType] = useState<
     AuditEntityType | 'all'
@@ -49,45 +49,38 @@ export default function AuditLogsPage() {
   const [isRollbackDialogOpen, setIsRollbackDialogOpen] = useState(false)
   const [rollbackLog, setRollbackLog] = useState<AuditLog | null>(null)
 
-  const loadLogs = useCallback(async () => {
-    const result = await fetchAuditLogs()
-    if (result.ok) setAllLogs(result.data)
-  }, [])
+  const filters = useMemo(
+    () => ({
+      action: selectedAction,
+      entityType: selectedEntityType,
+      userRole: selectedUserRole,
+    }),
+    [selectedAction, selectedEntityType, selectedUserRole],
+  )
 
-  useEffect(() => {
-    loadLogs()
-  }, [loadLogs])
+  const fetcher = useCallback(
+    (params: {
+      page: number
+      pageSize: number
+      search: string
+      filters: Record<string, string>
+    }) =>
+      fetchAuditLogs({
+        page: params.page,
+        pageSize: params.pageSize,
+        search: params.search,
+        action: params.filters.action,
+        entityType: params.filters.entityType,
+        userRole: params.filters.userRole,
+      }),
+    [],
+  )
 
-  const filteredLogs = useMemo(() => {
-    let filtered = [...allLogs]
-
-    if (selectedAction !== 'all') {
-      filtered = filtered.filter(log => log.action === selectedAction)
-    }
-
-    if (selectedEntityType !== 'all') {
-      filtered = filtered.filter(log => log.entityType === selectedEntityType)
-    }
-
-    if (selectedUserRole !== 'all') {
-      filtered = filtered.filter(log => log.userRole === selectedUserRole)
-    }
-
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        log =>
-          log.entityName.toLowerCase().includes(searchLower) ||
-          log.userName.toLowerCase().includes(searchLower) ||
-          log.id.toLowerCase().includes(searchLower)
-      )
-    }
-
-    return filtered.sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    )
-  }, [allLogs, searchQuery, selectedAction, selectedEntityType, selectedUserRole])
+  const list = useServerPagedList<AuditLog>({
+    fetcher,
+    filters,
+    pageSize: 20,
+  })
 
   const handleViewDetails = (log: AuditLog) => {
     setSelectedLog(log)
@@ -105,19 +98,19 @@ export default function AuditLogsPage() {
       if (result.ok && result.data) {
         setIsRollbackDialogOpen(false)
         setRollbackLog(null)
-        await loadLogs()
+        await list.refetch()
       }
     }
   }
 
   const hasActiveFilters =
-    searchQuery ||
+    list.searchInput ||
     selectedAction !== 'all' ||
     selectedEntityType !== 'all' ||
     selectedUserRole !== 'all'
 
   const clearFilters = () => {
-    setSearchQuery('')
+    list.setSearchInput('')
     setSelectedAction('all')
     setSelectedEntityType('all')
     setSelectedUserRole('all')
@@ -127,7 +120,7 @@ export default function AuditLogsPage() {
     <AdminLayout>
       <div className="max-w-7xl space-y-6">
         <div>
-          <h2 className="text-2xl font-bold mb-2">{t('title')}</h2>
+          <h2 className="mb-2 text-2xl font-bold">{t('title')}</h2>
           <p className="text-muted-foreground">{t('trackDesc')}</p>
         </div>
 
@@ -140,7 +133,7 @@ export default function AuditLogsPage() {
               </div>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="mr-2 h-4 w-4" />
                   {t('clearFilters')}
                 </Button>
               )}
@@ -150,11 +143,11 @@ export default function AuditLogsPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="search">{tc('search')}</Label>
-                <Input
-                  id="search"
+                <ServerSearchInput
+                  value={list.searchInput}
+                  onChange={list.setSearchInput}
+                  pending={list.searchPending}
                   placeholder={t('searchPlaceholder')}
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -201,7 +194,9 @@ export default function AuditLogsPage() {
                     <SelectItem value="bill">{t('entities.bill')}</SelectItem>
                     <SelectItem value="booking">{t('entities.booking')}</SelectItem>
                     <SelectItem value="user">{t('entities.user')}</SelectItem>
-                    <SelectItem value="verification">{t('entities.verification')}</SelectItem>
+                    <SelectItem value="verification">
+                      {t('entities.verification')}
+                    </SelectItem>
                     <SelectItem value="dispute">{t('entities.dispute')}</SelectItem>
                     <SelectItem value="complaint">{t('entities.complaint')}</SelectItem>
                     <SelectItem value="notice">{t('entities.notice')}</SelectItem>
@@ -217,7 +212,7 @@ export default function AuditLogsPage() {
                   value={selectedUserRole}
                   onValueChange={v =>
                     setSelectedUserRole(
-                      v as 'renter' | 'owner' | 'admin' | 'all'
+                      v as 'renter' | 'owner' | 'admin' | 'all',
                     )
                   }
                 >
@@ -241,12 +236,12 @@ export default function AuditLogsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg">
-                  {t('logsCount', { count: filteredLogs.length })}
+                  {t('logsCount', { count: list.count })}
                 </CardTitle>
                 <CardDescription>
-                  {filteredLogs.length === 1
-                    ? t('showingLogs', { count: filteredLogs.length })
-                    : t('showingLogsPlural', { count: filteredLogs.length })}
+                  {list.count === 1
+                    ? t('showingLogs', { count: list.count })
+                    : t('showingLogsPlural', { count: list.count })}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -260,22 +255,26 @@ export default function AuditLogsPage() {
                   </TabsList>
                 </Tabs>
                 <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="mr-2 h-4 w-4" />
                   {tc('export')}
                 </Button>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {list.error && (
+              <p className="text-sm text-destructive">{list.error}</p>
+            )}
+
             {viewMode === 'table' ? (
               <AuditLogTable
-                logs={filteredLogs}
+                logs={list.items}
                 onViewDetails={handleViewDetails}
                 onRollback={handleRollback}
               />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredLogs.map(log => (
+                {list.items.map(log => (
                   <AuditLogCard
                     key={log.id}
                     log={log}
@@ -285,6 +284,16 @@ export default function AuditLogsPage() {
                 ))}
               </div>
             )}
+
+            <PaginationBar
+              page={list.page}
+              totalPages={list.totalPages}
+              count={list.count}
+              pageSize={list.pageSize}
+              loading={list.loading}
+              onPageChange={list.setPage}
+              onPageSizeChange={list.setPageSize}
+            />
           </CardContent>
         </Card>
 

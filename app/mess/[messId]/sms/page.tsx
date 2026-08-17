@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
@@ -39,7 +39,7 @@ import {
   MessageSquare,
   DollarSign,
 } from 'lucide-react'
-import type { SMSTemplate, SMSGroup, SMSMessage } from '@/types/sms'
+import type { SMSTemplate, SMSGroup, SMSMessage, SMSHistory } from '@/types/sms'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { useConfirm } from '@/components/feedback'
 import { toast } from '@/lib/feedback/toast'
@@ -56,9 +56,16 @@ export default function SMSManagementPage() {
 
   const loadMess = useCallback(() => fetchMessById(messId), [messId])
   const { data: mess } = useMockQuery(loadMess)
-  const [templates, setTemplates] = useState(getSMSTemplatesByMess(messId))
-  const [groups, setGroups] = useState(getSMSGroupsByMess(messId))
-  const [smsHistory, setSMSHistory] = useState(getSMSMessagesByMess(messId))
+  const [templates, setTemplates] = useState<SMSTemplate[]>([])
+  const [groups, setGroups] = useState<SMSGroup[]>([])
+  const [smsHistory, setSMSHistory] = useState<SMSMessage[]>([])
+  const [history, setHistory] = useState<SMSHistory>({
+    messages: [],
+    totalSent: 0,
+    totalFailed: 0,
+    totalCost: 0,
+    period: { startDate: '', endDate: '' },
+  })
   const [isBulkSMSDialogOpen, setIsBulkSMSDialogOpen] = useState(false)
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false)
@@ -67,11 +74,83 @@ export default function SMSManagementPage() {
   )
   const [editingGroup, setEditingGroup] = useState<SMSGroup | null>(null)
 
+  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
+  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
+
+  useEffect(() => {
+    void getSMSTemplatesByMess(messId).then(setTemplates)
+    void getSMSGroupsByMess(messId).then(setGroups)
+    void getSMSMessagesByMess(messId).then(setSMSHistory)
+  }, [messId])
+
+  useEffect(() => {
+    void getSMSHistory(messId, monthStart, monthEnd).then(setHistory)
+  }, [messId, monthStart, monthEnd])
+
   useEffect(() => {
     if (role !== 'owner') {
       router.replace('/dashboard')
     }
   }, [role, router])
+
+  const handleTemplateSubmit = async (data: Parameters<typeof addSMSTemplate>[0]) => {
+    if (editingTemplate) {
+      await updateSMSTemplate(editingTemplate.id, { ...data, messId })
+    } else {
+      await addSMSTemplate({ ...data, messId })
+    }
+    setTemplates(await getSMSTemplatesByMess(messId))
+    setEditingTemplate(null)
+  }
+
+  const handleTemplateDelete = async (templateId: string) => {
+    const ok = await confirm({
+      title: t('sms.deleteTemplateTitle'),
+      description: t('sms.deleteTemplateDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    await deleteSMSTemplate(messId, templateId)
+    setTemplates(await getSMSTemplatesByMess(messId))
+  }
+
+  const handleGroupSubmit = async (data: Parameters<typeof addSMSGroup>[0]) => {
+    if (editingGroup) {
+      await updateSMSGroup(editingGroup.id, { ...data, messId })
+    } else {
+      await addSMSGroup(data)
+    }
+    setGroups(await getSMSGroupsByMess(messId))
+    setEditingGroup(null)
+  }
+
+  const handleGroupDelete = async (groupId: string) => {
+    const ok = await confirm({
+      title: t('sms.deleteGroupTitle'),
+      description: t('sms.deleteGroupDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    await deleteSMSGroup(messId, groupId)
+    setGroups(await getSMSGroupsByMess(messId))
+  }
+
+  const handleBulkSMSSubmit = async (data: Record<string, unknown>) => {
+    const message = await sendBulkSMS(messId, {
+      templateId: data.templateId || undefined,
+      content: data.content,
+      recipientType: data.recipientType,
+      recipients: data.recipients,
+      totalRecipients: data.totalRecipients,
+      sentBy: ownerId,
+      gateway: data.gateway || 'bKash',
+    })
+    setSMSHistory(await getSMSMessagesByMess(messId))
+    void getSMSHistory(messId, monthStart, monthEnd).then(setHistory)
+    if (message) {
+      toast.success(t('sms.sendSuccess', { count: message.successful }))
+    }
+  }
 
   if (role !== 'owner') {
     return null
@@ -84,69 +163,6 @@ export default function SMSManagementPage() {
           <p className="text-center">{t('notFound')}</p>
         </div>
       </Layout>
-    )
-  }
-
-  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
-  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
-  const history = getSMSHistory(messId, monthStart, monthEnd)
-
-  const handleTemplateSubmit = (data: any) => {
-    if (editingTemplate) {
-      updateSMSTemplate(editingTemplate.id, data)
-    } else {
-      addSMSTemplate(data)
-    }
-    setTemplates(getSMSTemplatesByMess(messId))
-    setEditingTemplate(null)
-  }
-
-  const handleTemplateDelete = async (templateId: string) => {
-    const ok = await confirm({
-      title: t('sms.deleteTemplateTitle'),
-      description: t('sms.deleteTemplateDesc'),
-      variant: 'destructive',
-    })
-    if (!ok) return
-    deleteSMSTemplate(templateId)
-    setTemplates(getSMSTemplatesByMess(messId))
-  }
-
-  const handleGroupSubmit = (data: any) => {
-    if (editingGroup) {
-      updateSMSGroup(editingGroup.id, data)
-    } else {
-      addSMSGroup(data)
-    }
-    setGroups(getSMSGroupsByMess(messId))
-    setEditingGroup(null)
-  }
-
-  const handleGroupDelete = async (groupId: string) => {
-    const ok = await confirm({
-      title: t('sms.deleteGroupTitle'),
-      description: t('sms.deleteGroupDesc'),
-      variant: 'destructive',
-    })
-    if (!ok) return
-    deleteSMSGroup(groupId)
-    setGroups(getSMSGroupsByMess(messId))
-  }
-
-  const handleBulkSMSSubmit = (data: any) => {
-    const message = sendBulkSMS({
-      messId,
-      templateId: data.templateId || undefined,
-      content: data.content,
-      recipientType: data.recipientType,
-      recipients: data.recipients,
-      totalRecipients: data.totalRecipients,
-      sentBy: ownerId,
-      gateway: data.gateway || 'bKash',
-    })
-    setSMSHistory(getSMSMessagesByMess(messId))
-    toast.success(
-      t('sms.sendSuccess', { count: message.successful })
     )
   }
 

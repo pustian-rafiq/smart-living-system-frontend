@@ -1,107 +1,152 @@
-import type { Hotel, Booking, Room, Review, RoomPricing, HotelRegistrationInput } from '@/types/hotel'
-import {
-  mockHotels,
-  mockRooms,
-  mockBookings,
-  mockReviews,
-  mockRoomPricing,
-  addHotel,
-  updateHotelPricing,
-  addHotelBooking,
-  getRoomsByHotelId,
-  getBookingsByHotelId,
-  getBookingsByUserId,
-  getReviewsByHotelId,
-  getRoomPricing,
-} from '@/data/mockHotels'
-import { getDemoOwnerId, getDemoUserId } from './demoUser'
-import { mockDelay, ok, err, type ApiResult } from './http'
+import type {
+  Hotel,
+  Booking,
+  Room,
+  Review,
+  RoomPricing,
+  HotelRegistrationInput,
+  HotelPricingRules,
+  CancellationPolicy,
+} from '@/types/hotel'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export async function fetchHotels(): Promise<ApiResult<Hotel[]>> {
-  await mockDelay()
-  return ok([...mockHotels])
+  return apiRequest<Hotel[]>('/hotels/', { auth: false })
 }
 
 export async function fetchHotelById(
-  id: string
+  id: string,
 ): Promise<ApiResult<Hotel | undefined>> {
-  await mockDelay(150)
-  return ok(mockHotels.find(h => h.id === id))
+  const result = await apiRequest<Hotel>(`/hotels/${id}/`, { auth: false })
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') return { ok: true, data: undefined }
+    return result
+  }
+  return result
 }
 
 export async function fetchOwnerHotels(
-  ownerId?: string
+  _ownerId?: string,
 ): Promise<ApiResult<Hotel[]>> {
-  await mockDelay()
-  const id = ownerId || getDemoOwnerId()
-  return ok(mockHotels.filter(h => h.ownerId === id))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<Hotel[]>('/hotels/mine/')
 }
 
 export async function registerHotel(
   input: HotelRegistrationInput,
-  ownerId?: string
+  _ownerId?: string,
 ): Promise<ApiResult<Hotel>> {
-  await mockDelay(200)
-  const hotel = addHotel(input, ownerId || getDemoOwnerId())
-  return ok(hotel)
+  return apiRequest<Hotel>('/hotels/', {
+    method: 'POST',
+    body: input,
+  })
 }
 
 export async function patchHotelPricing(
   hotelId: string,
-  rules: Parameters<typeof updateHotelPricing>[1]
+  rules:
+    | HotelPricingRules
+    | {
+        pricingRules?: HotelPricingRules
+        cancellationPolicy?: CancellationPolicy
+        advancePaymentPercent?: number
+      },
 ): Promise<ApiResult<Hotel>> {
-  await mockDelay(150)
-  const updated = updateHotelPricing(hotelId, rules)
-  if (!updated) return err('Hotel not found', 'NOT_FOUND')
-  return ok(updated)
+  const body =
+    'weekendMultiplier' in rules
+      ? { pricingRules: rules as HotelPricingRules }
+      : rules
+  return apiRequest<Hotel>(`/hotels/${hotelId}/pricing/`, {
+    method: 'PATCH',
+    body,
+  })
 }
 
 export async function fetchHotelRooms(
-  hotelId: string
+  hotelId: string,
 ): Promise<ApiResult<Room[]>> {
-  await mockDelay()
-  return ok(getRoomsByHotelId(hotelId))
+  return apiRequest<Room[]>(`/hotels/${hotelId}/rooms/`, { auth: false })
 }
 
 export async function fetchHotelBookings(
-  hotelId: string
+  hotelId: string,
 ): Promise<ApiResult<Booking[]>> {
-  await mockDelay()
-  return ok(getBookingsByHotelId(hotelId))
+  return apiRequest<Booking[]>(`/hotels/${hotelId}/bookings/`, {
+    auth: hasAuthTokens(),
+  })
 }
 
 export async function fetchUserHotelBookings(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<Booking[]>> {
-  await mockDelay()
-  return ok(getBookingsByUserId(userId || getDemoUserId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<Booking[]>('/hotels/bookings/mine/')
 }
 
 export async function createHotelBooking(
-  booking: Booking
+  booking: Omit<Booking, 'id' | 'createdAt' | 'updatedAt'> & {
+    id?: string
+    createdAt?: string
+    updatedAt?: string
+  },
 ): Promise<ApiResult<Booking>> {
-  await mockDelay(200)
-  return ok(addHotelBooking(booking))
+  return apiRequest<Booking>(`/hotels/${booking.hotelId}/bookings/`, {
+    method: 'POST',
+    body: {
+      roomId: booking.roomId,
+      guestName: booking.guestName,
+      guestPhone: booking.guestPhone,
+      guestEmail: booking.guestEmail || '',
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      guests: booking.guests,
+      paymentMethod: booking.paymentMethod || '',
+      transactionId: booking.transactionId || '',
+      specialRequests: booking.specialRequests || '',
+      paymentStatus: booking.paymentStatus || 'pending',
+      advanceAmount: booking.advanceAmount,
+    },
+  })
+}
+
+export async function cancelHotelBooking(
+  bookingId: string,
+  reason?: string,
+): Promise<ApiResult<Booking & { cancellation?: Record<string, unknown> }>> {
+  return apiRequest(`/hotels/bookings/${bookingId}/cancel/`, {
+    method: 'POST',
+    body: { reason: reason || '' },
+  })
 }
 
 export async function fetchHotelReviews(
-  hotelId: string
+  hotelId: string,
 ): Promise<ApiResult<Review[]>> {
-  await mockDelay()
-  return ok(getReviewsByHotelId(hotelId))
+  return apiRequest<Review[]>(`/hotels/${hotelId}/reviews/`, { auth: false })
 }
 
 export async function fetchRoomPricing(
   hotelId: string,
-  roomId: string
+  roomId: string,
 ): Promise<ApiResult<RoomPricing | undefined>> {
-  await mockDelay(100)
-  return ok(getRoomPricing(hotelId, roomId))
+  const result = await apiRequest<RoomPricing[] | RoomPricing>(
+    `/hotels/${hotelId}/rooms/pricing/?roomId=${encodeURIComponent(roomId)}`,
+    { auth: false },
+  )
+  if (!result.ok) return result
+  const data = result.data
+  if (Array.isArray(data)) {
+    return { ok: true, data: data[0] }
+  }
+  return { ok: true, data }
 }
 
-/** Sync list for layouts / server metadata */
-export function getHotelsSync(): Hotel[] {
-  return [...mockHotels]
+/** Async helper for owner dashboard stats (replaces sync mock). */
+export async function getBookingsByHotelId(
+  hotelId: string,
+): Promise<Booking[]> {
+  const result = await fetchHotelBookings(hotelId)
+  return result.ok ? result.data : []
 }
-
-export { mockRooms, mockBookings, mockRoomPricing, getBookingsByHotelId }

@@ -1033,68 +1033,69 @@ Build in this order. Each phase ends with **frontend integration test** against 
 
 ### Phase 1 — Auth & accounts (Week 2)
 
-- [ ] OTP request/verify (SMS adapter stub in dev)
-- [ ] Role selection, profile CRUD
-- [ ] Verification document upload
-- [ ] Wire frontend: login → OTP → dashboard
+- [x] OTP request/verify (SMS adapter stub in dev)
+- [x] Role selection, profile CRUD
+- [x] Verification document upload
+- [x] Wire frontend: login → OTP → dashboard
 
 ### Phase 2 — Listings & discovery (Week 3)
 
-- [ ] Property CRUD, images, search filters
-- [ ] Favorites, saved searches, search history
-- [ ] Reviews
-- [ ] Wire: `/search`, `/listings/[id]`, `/favorites`
+- [x] Property CRUD, images, search filters
+- [x] Favorites, saved searches, search history
+- [x] Reviews
+- [x] Wire: `/search`, `/listings/[id]`, `/favorites`
 
 ### Phase 3 — Portfolio & billing (Week 4–5)
 
-- [ ] Buildings, floors, flats, tenancy
-- [ ] Bills, templates, meter readings, generation
-- [ ] Subscription flat limits
-- [ ] Wire: `/my-properties`, `/bills`
+- [x] Buildings, floors, flats, tenancy
+- [x] Bills, templates, meter readings, generation
+- [x] Subscription flat limits
+- [x] Wire: `/my-properties`, `/bills`
 
 ### Phase 4 — Payments (Week 6–7) **critical**
 
-- [ ] PaymentTransaction, pay-bill, cash record
-- [ ] bKash sandbox + webhook
-- [ ] Nagad/Rocket adapters (stubs → sandbox)
-- [ ] Owner payouts + commission
-- [ ] Wire: `PayBillDialog`, `/payments`
+- [x] PaymentTransaction, pay-bill, cash record
+- [x] bKash sandbox + webhook
+- [x] Nagad/Rocket adapters (stubs → sandbox)
+- [x] Owner payouts + commission
+- [x] Wire: `PayBillDialog`, `/payments`
 
 ### Phase 5 — Bookings & hotels (Week 8)
 
-- [ ] Property bookings workflow
-- [ ] Hotel, rooms, pricing, hotel bookings
-- [ ] Cancellation + fee breakdown
-- [ ] Wire: `/my-bookings`, `/hotels/*/book`
+- [x] Property bookings workflow
+- [x] Hotel, rooms, pricing, hotel bookings
+- [x] Cancellation + fee breakdown
+- [x] Wire: `/my-bookings`, `/hotels/*/book`
 
 ### Phase 6 — Mess module (Week 9)
 
-- [ ] Mess, seats, students, notices
-- [ ] Meals, attendance, SMS, rules, expenses
-- [ ] Wire: `/mess/*`, student dashboard
+- [x] Mess, seats, students, notices
+- [x] Meals, attendance, SMS, rules, expenses
+- [x] Wire: `/mess/*`, student dashboard
 
 ### Phase 7 — Renter tools & documents (Week 10)
 
-- [ ] Complaints, agreements, checklists
-- [ ] Expenses, reports, reminders
-- [ ] Notifications
-- [ ] Wire: remaining renter pages
+- [x] Complaints, agreements, checklists
+- [x] Expenses, reports, reminders
+- [x] Notifications
+- [x] Wire: remaining renter pages
 
 ### Phase 8 — Admin & monetization (Week 11)
 
-- [ ] Admin API + permissions
-- [ ] Fraud, disputes, moderation
-- [ ] Subscriptions, featured boost
-- [ ] Audit logs
-- [ ] Wire: `/admin/*`, `/subscription`
+- [x] Admin API + permissions
+- [x] Fraud, disputes, moderation
+- [x] Subscriptions, featured boost
+- [x] Audit logs
+- [x] Wire: `/admin/*`, `/subscription`
 
 ### Phase 9 — Hardening (Week 12)
 
-- [ ] Rate limits, security audit
-- [ ] Celery tasks (reminders, overdue bills)
+- [x] Rate limits (configurable via `API_THROTTLING_ENABLED` / OTP limits)
+- [x] Celery tasks (reminders, overdue bills) — eager in dev, Redis workers in prod
 - [ ] Load testing payment webhooks
 - [ ] Production deployment + CI/CD
-- [ ] Remove `mockDelay` from frontend `lib/api`
+- [x] Remove active `mockDelay` usage from frontend `lib/api` (no-op unless `NEXT_PUBLIC_USE_MOCK_DELAY=true`)
+- [x] `GET /renters/{id}/history/` + wire `profile.ts` / `rentals.ts`
 
 ---
 

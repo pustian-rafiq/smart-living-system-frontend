@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { requestOtp } from '@/lib/api/auth'
 
 export default function Login() {
   const router = useRouter()
@@ -51,12 +52,21 @@ export default function Login() {
     }
 
     setLoading(true)
+    const result = await requestOtp({ phone, purpose: 'login' })
+    setLoading(false)
 
-    setTimeout(() => {
-      setLoading(false)
-      sessionStorage.setItem('loginPhone', phone)
-      router.push('/otp-verify')
-    }, 1000)
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
+    sessionStorage.setItem('loginPhone', phone)
+    if (result.data.devOtp) {
+      sessionStorage.setItem('devOtp', result.data.devOtp)
+    } else {
+      sessionStorage.removeItem('devOtp')
+    }
+    router.push('/otp-verify')
   }
 
   const displayPhone = phone ? `+${phone.slice(0, 3)} ${phone.slice(3)}` : ''

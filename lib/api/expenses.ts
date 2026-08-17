@@ -3,57 +3,72 @@ import type {
   MonthlyExpense,
   YearlyExpense,
   Budget,
+  ExpenseCategory,
 } from '@/types/expense'
-import {
-  expenseCategories,
-  getExpenseAnalytics,
-  getMonthlyExpenses,
-  getYearlyExpenses,
-  getBudgets,
-  updateBudget,
-} from '@/data/mockExpenses'
-import { getDemoUserId } from './demoUser'
-import { mockDelay, ok, type ApiResult } from './http'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
-export async function fetchExpenseCategories() {
-  await mockDelay(50)
-  return ok([...expenseCategories])
+export async function fetchExpenseCategories(): Promise<
+  ApiResult<ExpenseCategory[]>
+> {
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<ExpenseCategory[]>('/expenses/categories/')
 }
 
 export async function fetchExpenseAnalytics(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<ExpenseAnalytics>> {
-  await mockDelay()
-  return ok(getExpenseAnalytics(userId || getDemoUserId()))
+  if (!hasAuthTokens()) {
+    return {
+      ok: true,
+      data: {
+        userId: '',
+        monthlyExpenses: [],
+        yearlyExpenses: [],
+        trends: [],
+        budgets: [],
+        categories: [],
+      },
+    }
+  }
+  return apiRequest<ExpenseAnalytics>('/expenses/analytics/')
 }
 
 export async function fetchMonthlyExpenses(
   year: number,
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<MonthlyExpense[]>> {
-  await mockDelay()
-  return ok(getMonthlyExpenses(userId || getDemoUserId(), year))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<MonthlyExpense[]>(
+    `/expenses/monthly/?year=${encodeURIComponent(String(year))}`,
+  )
 }
 
 export async function fetchYearlyExpenses(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<YearlyExpense[]>> {
-  await mockDelay()
-  return ok(getYearlyExpenses(userId || getDemoUserId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<YearlyExpense[]>('/expenses/yearly/')
 }
 
 export async function fetchBudgets(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<Budget[]>> {
-  await mockDelay()
-  return ok(getBudgets(userId || getDemoUserId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<Budget[]>('/expenses/budgets/')
 }
 
 export async function patchBudget(
-  userId: string,
+  _userId: string,
   categoryId: string,
-  amount: number
+  amount: number,
 ): Promise<ApiResult<Budget>> {
-  await mockDelay(100)
-  return ok(updateBudget(userId, categoryId, amount))
+  return apiRequest<Budget>(
+    `/expenses/budgets/by-category/${encodeURIComponent(categoryId)}/`,
+    {
+      method: 'PATCH',
+      body: { monthlyLimit: amount },
+    },
+  )
 }

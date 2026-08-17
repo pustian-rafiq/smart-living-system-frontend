@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
+import { useCallback, useMemo, useState } from 'react'
+import { useMessages, useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { PropertyModerationCard } from '@/components/admin/PropertyModerationCard'
+import { PropertyDetailsDialog } from '@/components/admin/PropertyDetailsDialog'
+import { ServerSearchInput } from '@/components/data/ServerSearchInput'
+import { PaginationBar } from '@/components/data/PaginationBar'
 import {
   Select,
   SelectContent,
@@ -11,12 +14,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
-import { fetchPropertyModerations } from '@/lib/api/admin'
+import { fetchPropertyModerations, patchPropertyModeration } from '@/lib/api/admin'
 import type { PropertyModeration, PropertyStatus } from '@/types/admin'
 import { useConfirm } from '@/components/feedback'
 import { toast } from '@/lib/feedback/toast'
+import { useServerPagedList } from '@/hooks/useServerPagedList'
+import {
+  PROPERTY_ADMIN_COPY,
+  readAdminPropertyCopy,
+  type PropertyAdminCopyKey,
+} from '@/lib/i18n/property-admin-copy'
 
 export default function AdminPropertiesPage() {
   const { confirm } = useConfirm()
@@ -24,110 +31,190 @@ export default function AdminPropertiesPage() {
   const ta = useTranslations('admin.actions')
   const tc = useTranslations('common')
   const tProp = useTranslations('search.page.propertyTypes')
-  const [properties, setProperties] = useState<PropertyModeration[]>([])
+  const messages = useMessages()
+  const propertyCopy = useMemo(
+    () => ({ ...PROPERTY_ADMIN_COPY, ...readAdminPropertyCopy(messages) }),
+    [messages],
+  )
+
+  const text = useCallback(
+    (key: PropertyAdminCopyKey) => propertyCopy[key] || PROPERTY_ADMIN_COPY[key],
+    [propertyCopy],
+  )
+
   const [statusFilter, setStatusFilter] = useState<PropertyStatus | 'all'>(
-    'all'
+    'all',
   )
   const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [busyPropertyId, setBusyPropertyId] = useState<string | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [detailsProperty, setDetailsProperty] =
+    useState<PropertyModeration | null>(null)
 
-  useEffect(() => {
-    fetchPropertyModerations().then(result => {
-      if (result.ok) setProperties(result.data)
-    })
-  }, [])
+  const filters = useMemo(
+    () => ({
+      status: statusFilter,
+      type: typeFilter,
+    }),
+    [statusFilter, typeFilter],
+  )
 
-  const filteredProperties = useMemo(() => {
-    return properties.filter(p => {
-      const matchesStatus = statusFilter === 'all' || p.status === statusFilter
-      const matchesType = typeFilter === 'all' || p.propertyType === typeFilter
-      const matchesSearch =
-        p.propertyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.city.toLowerCase().includes(searchTerm.toLowerCase())
-      return matchesStatus && matchesType && matchesSearch
-    })
-  }, [properties, statusFilter, typeFilter, searchTerm])
+  const fetcher = useCallback(
+    (params: {
+      page: number
+      pageSize: number
+      search: string
+      filters: Record<string, string>
+    }) =>
+      fetchPropertyModerations({
+        page: params.page,
+        pageSize: params.pageSize,
+        search: params.search,
+        status: params.filters.status,
+        type: params.filters.type,
+      }),
+    [],
+  )
+
+  const list = useServerPagedList<PropertyModeration>({
+    fetcher,
+    filters,
+    pageSize: 20,
+  })
+
+  const applyUpdate = (updated: PropertyModeration) => {
+    list.updateItem(p => p.propertyId === updated.propertyId, updated)
+    setDetailsProperty(prev =>
+      prev?.propertyId === updated.propertyId ? updated : prev,
+    )
+  }
+
+  const patchProperty = async (
+    propertyId: string,
+    updates: {
+      status?: PropertyStatus
+      rejectionReason?: string
+      featured?: boolean
+      verified?: boolean
+    },
+  ) => {
+    const target = list.items.find(p => p.propertyId === propertyId)
+    if (!target) return null
+
+    setBusyPropertyId(propertyId)
+    const result = await patchPropertyModeration(target.id, updates)
+    setBusyPropertyId(null)
+
+    if (!result.ok) {
+      toast.error(result.error)
+      return null
+    }
+    applyUpdate(result.data)
+    return result.data
+  }
 
   const handleApprove = async (propertyId: string) => {
     const ok = await confirm({
-      title: t('approveTitle'),
+      title: text('approveTitle'),
+      description: text('approveDesc'),
     })
     if (!ok) return
-    setProperties(
-      properties.map(p =>
-        p.propertyId === propertyId
-          ? {
-              ...p,
-              status: 'approved' as PropertyStatus,
-              reviewedAt: new Date().toISOString(),
-            }
-          : p
-      )
-    )
-    toast.success(t('approved'))
+    const updated = await patchProperty(propertyId, { status: 'approved' })
+    if (updated) toast.success(text('approved'))
   }
 
-  const handleReject = (propertyId: string) => {
-    const reason = prompt(t('rejectReason'))
-    if (reason) {
-      setProperties(
-        properties.map(p =>
-          p.propertyId === propertyId
-            ? {
-                ...p,
-                status: 'rejected' as PropertyStatus,
-                reviewedAt: new Date().toISOString(),
-                rejectionReason: reason,
-              }
-            : p
-        )
-      )
-      toast.success(t('rejected'))
+  const handleReject = async (propertyId: string) => {
+    const reason = prompt(text('rejectReason'))
+    if (!reason?.trim()) return
+    const updated = await patchProperty(propertyId, {
+      status: 'rejected',
+      rejectionReason: reason.trim(),
+    })
+    if (updated) toast.success(text('rejected'))
+  }
+
+  const handleSuspend = async (propertyId: string) => {
+    const ok = await confirm({
+      title: text('suspendTitle'),
+      description: text('suspendDesc'),
+      variant: 'destructive',
+    })
+    if (!ok) return
+    const updated = await patchProperty(propertyId, { status: 'suspended' })
+    if (updated) toast.success(text('suspended'))
+  }
+
+  const handleReactivate = async (propertyId: string) => {
+    const ok = await confirm({
+      title: text('reactivateTitle'),
+      description: text('reactivateDesc'),
+    })
+    if (!ok) return
+    const updated = await patchProperty(propertyId, { status: 'approved' })
+    if (updated) toast.success(text('reactivated'))
+  }
+
+  const handleToggleFeatured = async (propertyId: string) => {
+    const target =
+      list.items.find(p => p.propertyId === propertyId) ??
+      (detailsProperty?.propertyId === propertyId ? detailsProperty : null)
+    if (!target) return
+    const next = !target.featured
+    const ok = await confirm({
+      title: next ? text('featureTitle') : text('removeFeatureTitle'),
+      description: next ? text('featureDesc') : text('removeFeatureDesc'),
+    })
+    if (!ok) return
+    const updated = await patchProperty(propertyId, { featured: next })
+    if (updated) {
+      toast.success(next ? text('featureSuccess') : text('removeFeatureSuccess'))
     }
   }
 
-  const handleToggleFeatured = (propertyId: string) => {
-    setProperties(
-      properties.map(p =>
-        p.propertyId === propertyId ? { ...p, featured: !p.featured } : p
-      )
-    )
-  }
-
-  const handleToggleVerified = (propertyId: string) => {
-    setProperties(
-      properties.map(p =>
-        p.propertyId === propertyId ? { ...p, verified: !p.verified } : p
-      )
-    )
+  const handleToggleVerified = async (propertyId: string) => {
+    const target =
+      list.items.find(p => p.propertyId === propertyId) ??
+      (detailsProperty?.propertyId === propertyId ? detailsProperty : null)
+    if (!target) return
+    const next = !target.verified
+    const ok = await confirm({
+      title: next ? text('verifyTitle') : text('removeVerifyTitle'),
+      description: next ? text('verifyDesc') : text('removeVerifyDesc'),
+    })
+    if (!ok) return
+    const updated = await patchProperty(propertyId, { verified: next })
+    if (updated) {
+      toast.success(next ? text('verifySuccess') : text('removeVerifySuccess'))
+    }
   }
 
   const handleView = (propertyId: string) => {
-    toast.info(t('viewProperty', { id: propertyId }))
+    const property = list.items.find(p => p.propertyId === propertyId) ?? null
+    setDetailsProperty(property)
+    setDetailsOpen(Boolean(property))
   }
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">{t('managementTitle')}</h2>
+      <div className="max-w-7xl space-y-4">
+        <div>
+          <h2 className="mb-2 text-2xl font-bold">{t('managementTitle')}</h2>
           <p className="text-muted-foreground">{t('managementDesc')}</p>
         </div>
 
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t('searchPlaceholder')}
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <ServerSearchInput
+            className="flex-1"
+            value={list.searchInput}
+            onChange={list.setSearchInput}
+            pending={list.searchPending}
+            placeholder={t('searchPlaceholder')}
+          />
           <Select
             value={statusFilter}
-            onValueChange={value => setStatusFilter(value as PropertyStatus | 'all')}
+            onValueChange={value =>
+              setStatusFilter(value as PropertyStatus | 'all')
+            }
           >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder={t('filterByStatus')} />
@@ -153,25 +240,61 @@ export default function AdminPropertiesPage() {
           </Select>
         </div>
 
+        {list.error && (
+          <p className="text-sm text-destructive">{list.error}</p>
+        )}
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredProperties.map(property => (
+          {list.items.map(property => (
             <PropertyModerationCard
               key={property.id}
               property={property}
+              busy={busyPropertyId === property.propertyId}
               onApprove={handleApprove}
               onReject={handleReject}
               onView={handleView}
+              onSuspend={handleSuspend}
+              onReactivate={handleReactivate}
               onToggleFeatured={handleToggleFeatured}
               onToggleVerified={handleToggleVerified}
             />
           ))}
         </div>
 
-        {filteredProperties.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
+        {list.items.length === 0 && !list.loading && (
+          <div className="py-12 text-center text-muted-foreground">
             {t('emptyFiltered')}
           </div>
         )}
+
+        <PaginationBar
+          page={list.page}
+          totalPages={list.totalPages}
+          count={list.count}
+          pageSize={list.pageSize}
+          loading={list.loading}
+          onPageChange={list.setPage}
+          onPageSizeChange={list.setPageSize}
+        />
+
+        <PropertyDetailsDialog
+          property={detailsProperty}
+          open={detailsOpen}
+          onOpenChange={open => {
+            setDetailsOpen(open)
+            if (!open) setDetailsProperty(null)
+          }}
+          busy={
+            detailsProperty != null &&
+            busyPropertyId === detailsProperty.propertyId
+          }
+          onApprove={handleApprove}
+          onReject={handleReject}
+          onSuspend={handleSuspend}
+          onReactivate={handleReactivate}
+          onToggleFeatured={handleToggleFeatured}
+          onToggleVerified={handleToggleVerified}
+        />
       </div>
     </AdminLayout>
   )

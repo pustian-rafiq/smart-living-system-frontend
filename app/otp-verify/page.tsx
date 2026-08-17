@@ -15,6 +15,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
+import { requestOtp, verifyOtp } from '@/lib/api/auth'
+import { applyAuthSession } from '@/utils/auth'
 
 export default function OTPVerify() {
   const router = useRouter()
@@ -25,22 +27,35 @@ export default function OTPVerify() {
   const [error, setError] = useState('')
   const [timer, setTimer] = useState(60)
   const [canResend, setCanResend] = useState(false)
-
-  const phone =
-    typeof window !== 'undefined' ? sessionStorage.getItem('loginPhone') : null
-
-  const mockOtp = '123456'
+  const [phone, setPhone] = useState<string | null>(null)
   const [hasAutoRead, setHasAutoRead] = useState(false)
 
   useEffect(() => {
-    if (!hasAutoRead) {
-      const autoTimer = setTimeout(() => {
-        setOtp(mockOtp.split(''))
-        setHasAutoRead(true)
-      }, 2000)
-      return () => clearTimeout(autoTimer)
+    const stored =
+      typeof window !== 'undefined'
+        ? sessionStorage.getItem('loginPhone')
+        : null
+    if (!stored) {
+      router.push('/login')
+      return
     }
-  }, [hasAutoRead])
+    setPhone(stored)
+  }, [router])
+
+  useEffect(() => {
+    if (!phone || hasAutoRead) return
+    const devOtp =
+      typeof window !== 'undefined' ? sessionStorage.getItem('devOtp') : null
+    if (!devOtp || devOtp.length !== 6) {
+      setHasAutoRead(true)
+      return
+    }
+    const autoTimer = setTimeout(() => {
+      setOtp(devOtp.split(''))
+      setHasAutoRead(true)
+    }, 800)
+    return () => clearTimeout(autoTimer)
+  }, [phone, hasAutoRead])
 
   useEffect(() => {
     if (timer > 0) {
@@ -60,6 +75,11 @@ export default function OTPVerify() {
   const handleVerify = async (otpOverride?: string) => {
     const otpString = otpOverride ?? otp.join('')
 
+    if (!phone) {
+      router.push('/login')
+      return
+    }
+
     if (otpString.length !== 6) {
       setError(t('incomplete'))
       return
@@ -68,35 +88,55 @@ export default function OTPVerify() {
     setLoading(true)
     setError('')
 
-    setTimeout(() => {
-      setLoading(false)
-      if (otpString === mockOtp) {
-        sessionStorage.setItem('otpVerified', 'true')
-        router.push('/role-selection')
-      } else {
-        setError(t('invalid'))
-        setOtp(['', '', '', '', '', ''])
-      }
-    }, 1000)
+    const result = await verifyOtp({ phone, otp: otpString, purpose: 'login' })
+    setLoading(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      setOtp(['', '', '', '', '', ''])
+      return
+    }
+
+    applyAuthSession(result.data)
+
+    if (result.data.needsRoleSelection || !result.data.user.roleSelected) {
+      router.push('/role-selection')
+      return
+    }
+
+    if (result.data.user.role === 'admin') {
+      router.push('/admin')
+      return
+    }
+    router.push('/dashboard')
   }
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    if (!phone) return
+    setError('')
+    setLoading(true)
+    const result = await requestOtp({ phone, purpose: 'login' })
+    setLoading(false)
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+    if (result.data.devOtp) {
+      sessionStorage.setItem('devOtp', result.data.devOtp)
+      setOtp(result.data.devOtp.split(''))
+    } else {
+      sessionStorage.removeItem('devOtp')
+      setOtp(['', '', '', '', '', ''])
+    }
     setTimer(60)
     setCanResend(false)
-    setOtp(['', '', '', '', '', ''])
-    setError('')
   }
 
   const handleChangeNumber = () => {
     sessionStorage.removeItem('loginPhone')
+    sessionStorage.removeItem('devOtp')
     router.push('/login')
   }
-
-  useEffect(() => {
-    if (!phone) {
-      router.push('/login')
-    }
-  }, [phone, router])
 
   if (!phone) {
     return null
@@ -165,7 +205,13 @@ export default function OTPVerify() {
                   {t('resendIn')} {timer} {t('seconds')}
                 </p>
               ) : (
-                <Button onClick={handleResend} variant="link" size="sm" type="button">
+                <Button
+                  onClick={handleResend}
+                  variant="link"
+                  size="sm"
+                  type="button"
+                  disabled={loading}
+                >
                   {t('resend')}
                 </Button>
               )}

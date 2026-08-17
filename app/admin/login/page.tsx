@@ -21,11 +21,53 @@ import {
   getAdminRoleForPhone,
   ADMIN_ROLE_LABELS,
 } from '@/lib/admin/permissions'
-import { isAdminSession, setAdminSession } from '@/utils/auth'
-import { fetchAdminUsers } from '@/lib/api/admin'
-import type { AdminUser } from '@/types/admin'
+import { applyAuthSession, isAdminSession, hasCompleteSession } from '@/utils/auth'
+import { hasAuthTokens } from '@/utils/auth-tokens'
+import { requestOtp, selectRole, verifyOtp } from '@/lib/api/auth'
+import type { AuthSession } from '@/lib/api/auth'
+import type { ApiResult } from '@/lib/api/http'
 
-const MOCK_OTP = '123456'
+function toE164(digitsOrE164: string): string {
+  const digits = digitsOrE164.replace(/\D/g, '')
+  return digits.startsWith('880') ? `+${digits}` : `+880${digits.replace(/^0/, '')}`
+}
+
+async function establishAdminSession(
+  phoneE164: string,
+  otp: string,
+): Promise<ApiResult<AuthSession>> {
+  const verified = await verifyOtp({ phone: phoneE164, otp, purpose: 'login' })
+  if (!verified.ok) return verified
+
+  let session = verified.data
+
+  if (session.needsRoleSelection || !session.user.roleSelected) {
+    const canBeAdmin =
+      Boolean(session.adminRole) ||
+      session.availableRoles.includes('admin')
+    if (!canBeAdmin) {
+      return {
+        ok: false,
+        error: 'This phone is not registered as a platform admin.',
+        code: 'FORBIDDEN',
+      }
+    }
+    const selected = await selectRole('admin')
+    if (!selected.ok) return selected
+    session = selected.data
+  }
+
+  if (session.user.role !== 'admin' || !session.adminRole) {
+    return {
+      ok: false,
+      error: 'Admin access is not available for this account.',
+      code: 'FORBIDDEN',
+    }
+  }
+
+  applyAuthSession(session, { complete: true })
+  return { ok: true, data: session }
+}
 
 function AdminLoginForm() {
   const t = useTranslations('admin.login')
@@ -39,16 +81,10 @@ function AdminLoginForm() {
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([])
+  const [devHint, setDevHint] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchAdminUsers().then(result => {
-      if (result.ok) setAdminUsers(result.data)
-    })
-  }, [])
-
-  useEffect(() => {
-    if (isAdminSession()) {
+    if (isAdminSession() && hasAuthTokens() && hasCompleteSession()) {
       router.replace(next)
     }
   }, [router, next])
@@ -60,9 +96,10 @@ function AdminLoginForm() {
     return '880' + digits.slice(0, 10)
   }
 
-  const handlePhoneSubmit = (e: React.FormEvent) => {
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setDevHint(null)
     const normalized = formatPhone(phone)
     if (normalized.length !== 13) {
       setError(t('invalidPhone'))
@@ -73,48 +110,65 @@ function AdminLoginForm() {
       setError(t('notRegistered'))
       return
     }
+
+    setLoading(true)
+    const result = await requestOtp({ phone: toE164(normalized), purpose: 'login' })
+    setLoading(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
     setPhone(normalized)
+    if (result.data.devOtp) {
+      setDevHint(result.data.devOtp)
+      setOtp(result.data.devOtp)
+    }
     setStep('otp')
   }
 
-  const handleOtpSubmit = (e: React.FormEvent) => {
+  const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (otp !== MOCK_OTP) {
+    if (otp.length !== 6) {
       setError(t('invalidOtp'))
       return
     }
 
     setLoading(true)
-    const adminRole = getAdminRoleForPhone(phone)!
-    const adminUser = adminUsers.find(
-      u => u.phone.replace(/\D/g, '') === phone
-    )
+    const result = await establishAdminSession(toE164(phone), otp)
+    setLoading(false)
 
-    setAdminSession({
-      phone,
-      adminRole,
-      adminId: adminUser?.id,
-      name: adminUser?.name,
-    })
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
 
-    setTimeout(() => {
-      setLoading(false)
-      router.replace(next)
-    }, 400)
+    router.replace(next)
   }
 
-  const quickLogin = (demoPhone: string) => {
-    const adminRole = getAdminRoleForPhone(demoPhone)!
-    const adminUser = adminUsers.find(
-      u => u.phone.replace(/\D/g, '') === demoPhone
-    )
-    setAdminSession({
-      phone: demoPhone,
-      adminRole,
-      adminId: adminUser?.id,
-      name: adminUser?.name,
-    })
+  const quickLogin = async (demoPhone: string) => {
+    setError('')
+    setLoading(true)
+    const e164 = toE164(demoPhone)
+
+    const requested = await requestOtp({ phone: e164, purpose: 'login' })
+    if (!requested.ok) {
+      setLoading(false)
+      setError(requested.error)
+      return
+    }
+
+    const code = requested.data.devOtp || '123456'
+    const result = await establishAdminSession(e164, code)
+    setLoading(false)
+
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+
     router.replace(next)
   }
 
@@ -141,7 +195,10 @@ function AdminLoginForm() {
             <CardDescription>
               {step === 'phone'
                 ? t('phoneDesc')
-                : t('otpDesc', { phone: displayPhone, otp: MOCK_OTP })}
+                : t('otpDesc', {
+                    phone: displayPhone,
+                    otp: devHint || '******',
+                  })}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -161,8 +218,8 @@ function AdminLoginForm() {
                 {error && (
                   <p className="text-sm text-destructive">{error}</p>
                 )}
-                <Button type="submit" className="w-full">
-                  {t('sendOtp')}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? t('signingIn') : t('sendOtp')}
                 </Button>
               </form>
             ) : (
@@ -199,6 +256,7 @@ function AdminLoginForm() {
                     setStep('phone')
                     setOtp('')
                     setError('')
+                    setDevHint(null)
                   }}
                 >
                   {t('changeNumber')}
@@ -217,6 +275,7 @@ function AdminLoginForm() {
                     type="button"
                     variant="outline"
                     className="w-full justify-between"
+                    disabled={loading}
                     onClick={() => quickLogin(num)}
                   >
                     <span>

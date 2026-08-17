@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { fetchRentalSummariesForRenter } from '@/lib/api/rentals'
-import { getDemoRenterId } from '@/lib/api/demoUser'
+import { getStoredUserId } from '@/utils/auth-tokens'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import type { RentalSummary } from '@/lib/api/rentals'
 import {
@@ -32,7 +32,7 @@ export default function RentalsPage() {
   const t = useTranslations('portfolio.rentals')
   const tc = useTranslations('common')
   const { formatCurrency, formatDate } = useAppFormat()
-  const renterId = getDemoRenterId()
+  const renterId = getStoredUserId() || ''
   const load = useCallback(
     () => fetchRentalSummariesForRenter(renterId),
     [renterId]

@@ -48,6 +48,7 @@ import {
   fetchRenterHistory,
 } from '@/lib/api/profile'
 import { getDemoUserId, getDemoChatUserId } from '@/lib/api/demoUser'
+import { getStoredUserId } from '@/utils/auth-tokens'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import type { RenterProfile } from '@/types/renterProfile'
 import { RenterHistoryDialog } from '@/components/renter/RenterHistoryDialog'
@@ -85,7 +86,7 @@ export default function ProfilePage() {
     [profileUserId]
   )
   const { data: profileData, refetch: refetchProfile } = useMockQuery(loadProfile)
-  const renterHistoryUserId = getDemoUserId('renter')
+  const renterHistoryUserId = getStoredUserId() || getDemoUserId('renter')
   const loadHistory = useCallback(
     () => fetchRenterHistory(renterHistoryUserId),
     [renterHistoryUserId]

@@ -1,48 +1,95 @@
-import { mockDelay, ok, err, type ApiResult } from './http'
+import { apiRequest } from './client'
+import { getStoredUserId } from '@/utils/auth-tokens'
 import { getDemoOwnerId, getDemoRenterId } from './demoUser'
 import { getStoredRole } from '@/utils/auth'
+import type { ApiResult } from './http'
+import type { AuthSession } from './auth'
+import { setAuthTokens } from '@/utils/auth-tokens'
+
+export async function requestPhoneChangeOtp(params: {
+  newPhone: string
+}): Promise<
+  ApiResult<{ phone: string; expiresIn: number; purpose: string; devOtp?: string }>
+> {
+  return apiRequest('/account/phone-change/request/', {
+    method: 'POST',
+    body: { newPhone: params.newPhone },
+  })
+}
 
 export async function requestPhoneChange(params: {
   newPhone: string
   otp: string
-}): Promise<ApiResult<{ phone: string }>> {
-  await mockDelay(400)
-  if (params.otp !== '123456') {
-    return err('Invalid OTP. Demo code is 123456')
+}): Promise<
+  ApiResult<{
+    phone: string
+    phoneDigits: string
+    user: AuthSession['user']
+    access: string
+    refresh: string
+  }>
+> {
+  const result = await apiRequest<{
+    phone: string
+    phoneDigits: string
+    user: AuthSession['user']
+    access: string
+    refresh: string
+  }>('/account/phone-change/confirm/', {
+    method: 'POST',
+    body: { newPhone: params.newPhone, otp: params.otp },
+  })
+  if (result.ok) {
+    setAuthTokens({
+      access: result.data.access,
+      refresh: result.data.refresh,
+      userId: result.data.user.id,
+    })
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('loginPhone', result.data.phoneDigits)
+    }
   }
-  if (params.newPhone.replace(/\D/g, '').length !== 13) {
-    return err('Enter a valid +880 phone number')
-  }
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem('loginPhone', params.newPhone.replace(/\D/g, ''))
-  }
-  return ok({ phone: params.newPhone })
+  return result
+}
+
+export async function requestRecoverOtp(params: {
+  phone: string
+}): Promise<
+  ApiResult<{ phone: string; expiresIn: number; purpose: string; devOtp?: string }>
+> {
+  return apiRequest('/auth/otp/request/', {
+    method: 'POST',
+    auth: false,
+    body: { phone: params.phone, purpose: 'recover' },
+  })
 }
 
 export async function recoverAccount(params: {
   phone: string
   otp: string
-}): Promise<ApiResult<{ recovered: true }>> {
-  await mockDelay(500)
-  if (params.otp !== '123456') {
-    return err('Invalid OTP. Demo code is 123456')
+}): Promise<ApiResult<AuthSession & { recovered: true }>> {
+  const result = await apiRequest<AuthSession & { recovered: true }>(
+    '/account/recover/',
+    {
+      method: 'POST',
+      auth: false,
+      body: { phone: params.phone, otp: params.otp },
+    },
+  )
+  if (result.ok) {
+    setAuthTokens({
+      access: result.data.access,
+      refresh: result.data.refresh,
+      userId: result.data.user.id,
+    })
   }
-  const normalized = params.phone.replace(/\D/g, '')
-  if (normalized.length !== 13) {
-    return err('Enter a valid Bangladesh phone number')
-  }
-  // Demo: any valid phone can "recover" — production would verify account exists
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem('loginPhone', normalized)
-    sessionStorage.setItem('otpVerified', 'true')
-    sessionStorage.setItem('isLoggedIn', 'true')
-    const role = sessionStorage.getItem('userRole') || 'renter'
-    sessionStorage.setItem('userRole', role)
-  }
-  return ok({ recovered: true })
+  return result
 }
 
+/** Prefer real user id from JWT session; fall back to demo ids for mock modules. */
 export function getCurrentAccountUserId(): string {
+  const stored = getStoredUserId()
+  if (stored) return stored
   const role = getStoredRole()
   if (role === 'owner') return getDemoOwnerId()
   if (role === 'admin') return 'admin1'

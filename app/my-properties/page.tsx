@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/dialog'
 import { Plus, FileText, MessageSquare, Receipt } from 'lucide-react'
 import { fetchBuildings } from '@/lib/api/buildings'
-import { getDemoOwnerId } from '@/lib/api/demoUser'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { fetchFlatLimitStatus } from '@/lib/api/subscriptions'
 import type { Building } from '@/types/building'
@@ -30,10 +29,10 @@ import type { Building } from '@/types/building'
 export default function MyPropertiesPage() {
   const t = useTranslations('portfolio.myProperties')
   const tc = useTranslations('common')
-  const ownerId = getDemoOwnerId()
 
-  const loadBuildings = useCallback(() => fetchBuildings(ownerId), [ownerId])
-  const { data: fetchedBuildings } = useMockQuery(loadBuildings)
+  const loadBuildings = useCallback(() => fetchBuildings(), [])
+  const { data: fetchedBuildings, refetch: refetchBuildings } =
+    useMockQuery(loadBuildings)
 
   const [localBuildings, setLocalBuildings] = useState<Building[] | null>(null)
   const buildings = localBuildings ?? fetchedBuildings ?? []
@@ -41,11 +40,13 @@ export default function MyPropertiesPage() {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false)
 
   const loadLimit = useCallback(() => fetchFlatLimitStatus(), [])
-  const { data: limitStatus } = useMockQuery(loadLimit)
+  const { data: limitStatus, refetch: refetchLimit } = useMockQuery(loadLimit)
 
   const handleAddBuilding = (newBuilding: Building) => {
     setLocalBuildings(prev => [...(prev ?? fetchedBuildings ?? []), newBuilding])
     setIsAddDialogOpen(false)
+    refetchBuildings()
+    refetchLimit()
   }
 
   const tryAddBuilding = () => {

@@ -1,10 +1,5 @@
-import {
-  getUserVerification,
-  submitUserVerification,
-  getUserVerificationStatus,
-} from '@/data/mockUserVerification'
-import { getCurrentAccountUserId } from './account'
-import { mockDelay, ok, err, type ApiResult } from './http'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
 import type {
   UserVerificationRequest,
   UserVerificationStatus,
@@ -16,26 +11,35 @@ export async function fetchUserVerificationStatus(): Promise<
     request: UserVerificationRequest | null
   }>
 > {
-  await mockDelay(150)
-  const userId = getCurrentAccountUserId()
-  const request = getUserVerification(userId)
-  const status = getUserVerificationStatus(userId)
-  return ok({ status, request })
+  return apiRequest('/account/verification/')
 }
 
 export async function submitVerificationRequest(data: {
   verificationType: 'nid' | 'phone' | 'document'
   documentNumber?: string
   documentFileName?: string
+  file?: File | null
 }): Promise<ApiResult<UserVerificationRequest>> {
-  await mockDelay(400)
-  if (data.verificationType === 'nid' && !data.documentNumber?.trim()) {
-    return err('NID number is required')
+  if (data.file) {
+    const form = new FormData()
+    form.append('verificationType', data.verificationType)
+    if (data.documentNumber) form.append('documentNumber', data.documentNumber)
+    if (data.documentFileName) {
+      form.append('documentFileName', data.documentFileName)
+    }
+    form.append('file', data.file)
+    return apiRequest<UserVerificationRequest>('/account/verification/', {
+      method: 'POST',
+      formData: form,
+    })
   }
-  const userId = getCurrentAccountUserId()
-  const request = submitUserVerification(userId, data)
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem('verificationStatus', request.status)
-  }
-  return ok(request)
+
+  return apiRequest<UserVerificationRequest>('/account/verification/', {
+    method: 'POST',
+    body: {
+      verificationType: data.verificationType,
+      documentNumber: data.documentNumber,
+      documentFileName: data.documentFileName,
+    },
+  })
 }

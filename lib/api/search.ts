@@ -1,87 +1,83 @@
 import type { SavedSearch } from '@/types/savedSearch'
 import type { SearchHistory } from '@/types/favorites'
-import type { Property, SearchFilters } from '@/types/property'
-import {
-  mockSavedSearches,
-  getSavedSearchesByUserId,
-  getSavedSearchById,
-  getActiveSavedSearches,
-} from '@/data/mockSavedSearches'
-import { getPublishedProperties } from '@/data/mockProperties'
-import {
-  mockSearchHistory,
-  getSearchHistoryByUserId,
-  addSearchHistory,
-  clearSearchHistory,
-} from '@/data/mockSearchHistory'
-import { getDemoUserId } from './demoUser'
-import { mockDelay, ok, type ApiResult } from './http'
+import type { Property } from '@/types/property'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export async function fetchSavedSearches(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<SavedSearch[]>> {
-  await mockDelay()
-  return ok(getSavedSearchesByUserId(userId || getDemoUserId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<SavedSearch[]>('/saved-searches/')
 }
 
 export async function createSavedSearch(
-  search: SavedSearch
+  search: Pick<SavedSearch, 'name' | 'filters' | 'isActive'> &
+    Partial<SavedSearch>,
 ): Promise<ApiResult<SavedSearch>> {
-  await mockDelay(150)
-  mockSavedSearches.unshift(search)
-  return ok(search)
+  return apiRequest<SavedSearch>('/saved-searches/', {
+    method: 'POST',
+    body: {
+      name: search.name,
+      filters: search.filters,
+      isActive: search.isActive,
+    },
+  })
 }
 
-export async function deleteSavedSearch(id: string): Promise<ApiResult<void>> {
-  await mockDelay(100)
-  const idx = mockSavedSearches.findIndex(s => s.id === id)
-  if (idx >= 0) mockSavedSearches.splice(idx, 1)
-  return ok(undefined)
+export async function deleteSavedSearch(id: string): Promise<ApiResult<null>> {
+  return apiRequest<null>(`/saved-searches/${id}/`, { method: 'DELETE' })
 }
 
 export async function patchSavedSearch(
   id: string,
-  updates: Partial<SavedSearch>
-): Promise<ApiResult<SavedSearch | undefined>> {
-  await mockDelay(100)
-  const idx = mockSavedSearches.findIndex(s => s.id === id)
-  if (idx < 0) return ok(undefined)
-  mockSavedSearches[idx] = { ...mockSavedSearches[idx], ...updates }
-  return ok(mockSavedSearches[idx])
+  updates: Partial<SavedSearch>,
+): Promise<ApiResult<SavedSearch>> {
+  return apiRequest<SavedSearch>(`/saved-searches/${id}/`, {
+    method: 'PATCH',
+    body: {
+      name: updates.name,
+      filters: updates.filters,
+      isActive: updates.isActive,
+      matchCount: updates.matchCount,
+      lastChecked: updates.lastChecked,
+    },
+  })
 }
 
 export async function fetchSearchHistory(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<SearchHistory[]>> {
-  await mockDelay()
-  return ok(getSearchHistoryByUserId(userId || getDemoUserId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<SearchHistory[]>('/search-history/')
 }
 
 export async function recordSearchHistory(
-  entry: Omit<SearchHistory, 'id' | 'searchedAt'>
-): Promise<ApiResult<SearchHistory>> {
-  await mockDelay(50)
-  return ok(addSearchHistory(entry))
+  entry: Omit<SearchHistory, 'id' | 'searchedAt'>,
+): Promise<ApiResult<SearchHistory | null>> {
+  if (!hasAuthTokens()) return { ok: true, data: null }
+  return apiRequest<SearchHistory>('/search-history/', {
+    method: 'POST',
+    body: {
+      searchQuery: entry.searchQuery ?? '',
+      filters: entry.filters,
+      resultCount: entry.resultCount,
+    },
+  })
 }
 
 export async function clearUserSearchHistory(
-  userId?: string
-): Promise<ApiResult<void>> {
-  await mockDelay(100)
-  clearSearchHistory(userId || getDemoUserId())
-  return ok(undefined)
+  _userId?: string,
+): Promise<ApiResult<null>> {
+  return apiRequest<null>('/search-history/clear/', { method: 'DELETE' })
 }
 
 export async function deleteSearchHistoryEntry(
-  id: string
-): Promise<ApiResult<void>> {
-  await mockDelay(100)
-  const idx = mockSearchHistory.findIndex(h => h.id === id)
-  if (idx >= 0) mockSearchHistory.splice(idx, 1)
-  return ok(undefined)
+  id: string,
+): Promise<ApiResult<null>> {
+  return apiRequest<null>(`/search-history/${id}/`, { method: 'DELETE' })
 }
-
-export { getSavedSearchById }
 
 export type SearchMatchNotification = {
   savedSearch: SavedSearch
@@ -89,56 +85,17 @@ export type SearchMatchNotification = {
   matchCount: number
 }
 
-function propertyMatchesFilters(
-  property: Property,
-  filters: SearchFilters
-): boolean {
-  if (
-    filters.propertyType !== 'all' &&
-    property.type !== filters.propertyType
-  ) {
-    return false
-  }
-  if (filters.city && property.city !== filters.city) return false
-  if (filters.area && property.area !== filters.area) return false
-  if (
-    property.rent < filters.rentRange[0] ||
-    property.rent > filters.rentRange[1]
-  ) {
-    return false
-  }
-  if (filters.gender && property.gender && property.gender !== filters.gender) {
-    return false
-  }
-  if (filters.verifiedOnly && !property.verified) return false
-  if (filters.instantBook && !property.instantBook) return false
-  return true
+export async function fetchSearchMatchNotifications(
+  _userId?: string,
+): Promise<ApiResult<SearchMatchNotification[]>> {
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<SearchMatchNotification[]>('/search/notifications/')
 }
 
-/** GET /search/notifications?userId= — new listing matches for saved searches */
-export async function fetchSearchMatchNotifications(
-  userId?: string
-): Promise<ApiResult<SearchMatchNotification[]>> {
-  await mockDelay(200)
-  const uid = userId || getDemoUserId()
-  const active = getActiveSavedSearches(uid)
-  const properties = getPublishedProperties()
-  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
-
-  const notifications: SearchMatchNotification[] = active
-    .map(savedSearch => {
-      const newMatches = properties.filter(
-        p =>
-          propertyMatchesFilters(p, savedSearch.filters) &&
-          new Date(p.createdAt).getTime() > weekAgo
-      )
-      return {
-        savedSearch,
-        newMatches,
-        matchCount: newMatches.length,
-      }
-    })
-    .filter(n => n.matchCount > 0)
-
-  return ok(notifications)
+export async function getSavedSearchById(
+  id: string,
+): Promise<SavedSearch | undefined> {
+  const result = await fetchSavedSearches()
+  if (!result.ok) return undefined
+  return result.data.find(s => s.id === id)
 }

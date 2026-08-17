@@ -38,6 +38,7 @@ import {
   fetchOrCreateMessBill,
 } from '@/lib/api/mess'
 import { getDemoTenantId } from '@/lib/api/demoUser'
+import { getStoredUserId } from '@/utils/auth-tokens'
 import { ok } from '@/lib/api/http'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { useAppFormat } from '@/hooks/useAppFormat'
@@ -48,13 +49,25 @@ export default function StudentDashboardPage() {
   const tc = useTranslations('common')
   const { formatDate } = useAppFormat()
   const router = useRouter()
-  const tenantId = getDemoTenantId()
+  const tenantId = getStoredUserId() || getDemoTenantId()
 
   const loadStudents = useCallback(() => fetchMessStudents(), [])
   const { data: students, loading: studentsLoading } = useMockQuery(loadStudents)
-  const student = students?.[0]
+  const student = useMemo(
+    () =>
+      students?.find(s => s.userId && s.userId === tenantId) ??
+      students?.find(s => s.messId) ??
+      students?.[0],
+    [students, tenantId]
+  )
 
-  const loadMess = useCallback(() => fetchMessById('m1'), [])
+  const loadMess = useCallback(
+    () =>
+      student?.messId
+        ? fetchMessById(student.messId)
+        : Promise.resolve(ok(undefined)),
+    [student?.messId]
+  )
   const { data: mess, loading: messLoading } = useMockQuery(loadMess)
 
   const loadNotices = useCallback(

@@ -83,7 +83,7 @@ export function UserVerificationPanel() {
       return
     }
 
-    setVerificationStatus('pending')
+    setVerificationStatus(result.data.status)
     setSubmitSuccess(true)
     setTick(t => t + 1)
     refetch()

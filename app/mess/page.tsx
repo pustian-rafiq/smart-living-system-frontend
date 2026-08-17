@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStoredRole } from '@/hooks/useStoredRole'
 import { useMockQuery } from '@/hooks/useMockQuery'
-import { fetchMessList, mockSeats, mockStudents } from '@/lib/api/mess'
+import { fetchMessList, assignMessStudent } from '@/lib/api/mess'
 import type { Mess } from '@/types/mess'
 import { LayoutDashboard, GraduationCap, Building2 } from 'lucide-react'
 import { MessOnboardingDialog } from '@/components/onboarding'
@@ -38,7 +38,7 @@ export default function MessOverviewPage() {
     setIsAssignDialogOpen(true)
   }
 
-  const handleAssign = (data: {
+  const handleAssign = async (data: {
     name: string
     phone: string
     email?: string
@@ -48,40 +48,25 @@ export default function MessOverviewPage() {
   }) => {
     if (!selectedMess) return
 
-    const seat = mockSeats.find(
-      s =>
-        s.messId === selectedMess.id &&
-        s.seatNumber === data.seatNumber &&
-        s.status === 'available'
-    )
-    if (seat) {
-      seat.status = 'occupied'
-      seat.studentId = `s-${Date.now()}`
+    const result = await assignMessStudent(selectedMess.id, data)
+    if (!result.ok) return
+
+    const listResult = await fetchMessList()
+    if (listResult.ok) {
+      setLocalMesses(listResult.data)
+    } else {
+      setLocalMesses(prev => {
+        const base = prev ?? messes
+        return base.map(m =>
+          m.id === selectedMess.id
+            ? {
+                ...m,
+                availableSeats: Math.max(0, m.availableSeats - 1),
+              }
+            : m
+        )
+      })
     }
-
-    mockStudents.push({
-      id: `s-${Date.now()}`,
-      name: data.name,
-      phone: data.phone,
-      email: data.email || undefined,
-      studentId: data.studentId,
-      university: data.university,
-      seatNumber: data.seatNumber,
-      joinedDate: new Date().toISOString().split('T')[0],
-      monthlyFee: selectedMess.monthlyFee,
-    })
-
-    setLocalMesses(prev => {
-      const base = prev ?? messes
-      return base.map(m =>
-        m.id === selectedMess.id
-          ? {
-              ...m,
-              availableSeats: Math.max(0, m.availableSeats - 1),
-            }
-          : m
-      )
-    })
 
     setAssignMessage(
       t('overview.assignSuccess', {

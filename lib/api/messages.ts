@@ -1,72 +1,96 @@
 import type { Chat, ChatMessage, ChatUser } from '@/types/chat'
-import {
-  mockChats,
-  mockMessages,
-  getChatsByUserId,
-  getMessagesByChatId,
-  getChatById,
-  getChatUser,
-  getUnreadCount,
-} from '@/data/mockChats'
-import { fetchProperties } from './properties'
 import type { Property } from '@/types/property'
-import { getDemoChatUserId } from './demoUser'
-import { mockDelay, ok, type ApiResult } from './http'
+import { fetchProperties } from './properties'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export async function fetchUserChats(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<Chat[]>> {
-  await mockDelay()
-  const id = userId || getDemoChatUserId()
-  return ok(getChatsByUserId(id))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<Chat[]>('/chats/')
 }
 
 export async function fetchChatMessages(
-  chatId: string
+  chatId: string,
 ): Promise<ApiResult<ChatMessage[]>> {
-  await mockDelay(150)
-  return ok(getMessagesByChatId(chatId))
+  return apiRequest<ChatMessage[]>(`/chats/${chatId}/messages/`)
 }
 
 export async function fetchChatById(
-  chatId: string
+  chatId: string,
 ): Promise<ApiResult<Chat | undefined>> {
-  await mockDelay(100)
-  return ok(getChatById(chatId))
+  const result = await apiRequest<Chat>(`/chats/${chatId}/`)
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') return { ok: true, data: undefined }
+    return result
+  }
+  return result
 }
 
 export async function fetchChatUser(
-  userId: string
+  userId: string,
 ): Promise<ApiResult<ChatUser | undefined>> {
-  await mockDelay(50)
-  return ok(getChatUser(userId))
+  const result = await apiRequest<ChatUser>(`/chats/users/${userId}/`)
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') return { ok: true, data: undefined }
+    return result
+  }
+  return result
 }
 
 export async function fetchUnreadMessageCount(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<number>> {
-  await mockDelay(50)
-  return ok(getUnreadCount(userId || getDemoChatUserId()))
+  if (!hasAuthTokens()) return { ok: true, data: 0 }
+  const result = await apiRequest<{ count: number } | number>(
+    '/chats/unread-count/',
+  )
+  if (!result.ok) return result
+  const data = result.data
+  return {
+    ok: true,
+    data: typeof data === 'number' ? data : data.count,
+  }
 }
 
 export async function sendChatMessage(
   chatId: string,
-  message: ChatMessage
+  message: Omit<ChatMessage, 'id' | 'timestamp' | 'status'> & {
+    id?: string
+    timestamp?: string
+    status?: ChatMessage['status']
+  },
 ): Promise<ApiResult<ChatMessage>> {
-  await mockDelay(100)
-  mockMessages.push(message)
-  const chat = getChatById(chatId)
-  if (chat) {
-    chat.lastMessage = message.content
-    chat.lastMessageTime = message.timestamp
-  }
-  return ok(message)
+  return apiRequest<ChatMessage>(`/chats/${chatId}/messages/`, {
+    method: 'POST',
+    body: {
+      content: message.content,
+      type: message.type || 'text',
+      receiverId: message.receiverId,
+      fileName: message.fileName || '',
+      fileSize: message.fileSize,
+      thumbnail: message.thumbnail || '',
+    },
+  })
 }
 
-export async function createChat(chat: Chat): Promise<ApiResult<Chat>> {
-  await mockDelay(150)
-  mockChats.unshift(chat)
-  return ok(chat)
+export async function createChat(
+  chat: Omit<Chat, 'id' | 'createdAt' | 'updatedAt' | 'unreadCount'> & {
+    id?: string
+    initialMessage?: string
+  },
+): Promise<ApiResult<Chat>> {
+  return apiRequest<Chat>('/chats/', {
+    method: 'POST',
+    body: {
+      participant2Id: chat.participant2Id,
+      propertyId: chat.propertyId,
+      propertyName: chat.propertyName || '',
+      initialMessage: chat.initialMessage || chat.lastMessage || '',
+    },
+  })
 }
 
 export async function fetchMessageProperties(): Promise<ApiResult<Property[]>> {

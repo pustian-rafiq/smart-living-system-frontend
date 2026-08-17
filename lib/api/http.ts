@@ -1,11 +1,17 @@
 /**
- * Mock API transport — simulates network latency and typed results.
- * Replace calls with real fetch() + same signatures when backend is ready.
+ * Shared ApiResult helpers.
+ * Real HTTP lives in `lib/api/client.ts`; domain modules return ApiResult<T>.
+ *
+ * mockDelay is a no-op unless NEXT_PUBLIC_USE_MOCK_DELAY=true
+ * (legacy offline mocks — leave unset in normal API mode).
  */
 
-export const MOCK_API_DELAY_MS = 320
+export const MOCK_API_DELAY_MS = Number(
+  process.env.NEXT_PUBLIC_MOCK_API_DELAY_MS || '320',
+)
 
 export async function mockDelay(ms: number = MOCK_API_DELAY_MS): Promise<void> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_DELAY !== 'true') return
   await new Promise(resolve => setTimeout(resolve, ms))
 }
 
@@ -15,6 +21,11 @@ export type ApiErrorCode =
   | 'INVALID'
   | 'INVALID_ACCOUNT'
   | 'GATEWAY_TODO'
+  | 'UNAVAILABLE'
+  | 'UNPUBLISHED'
+  | 'CONFLICT'
+  | 'INVALID_STATE'
+  | 'REASON_REQUIRED'
   | 'UNKNOWN'
 
 export type ApiResult<T> =

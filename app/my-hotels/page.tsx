@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus, MapPin, Star, TrendingUp, Users, Calendar } from 'lucide-react'
 import { RatingDisplay } from '@/components/hotel/RatingDisplay'
-import { fetchOwnerHotels, getBookingsByHotelId } from '@/lib/api/hotels'
+import { fetchOwnerHotels, fetchHotelBookings } from '@/lib/api/hotels'
 import { getDemoOwnerId } from '@/lib/api/demoUser'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { format } from 'date-fns'
@@ -19,6 +19,12 @@ import { HotelOnboardingDialog } from '@/components/onboarding'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import { Hotel as HotelIcon } from 'lucide-react'
 
+type HotelStats = {
+  totalBookings: number
+  thisMonthBookings: number
+  revenue: number
+}
+
 export default function MyHotelsPage() {
   const t = useTranslations('hotels')
   const { formatCurrency } = useAppFormat()
@@ -26,26 +32,55 @@ export default function MyHotelsPage() {
 
   const loadHotels = useCallback(() => fetchOwnerHotels(ownerId), [ownerId])
   const { data: myHotels, loading } = useMockQuery(loadHotels)
+  const [statsByHotel, setStatsByHotel] = useState<Record<string, HotelStats>>(
+    {},
+  )
 
-  const getHotelStats = (hotelId: string) => {
-    const bookings = getBookingsByHotelId(hotelId)
-    const today = new Date()
-    const thisMonth = bookings.filter(b => {
-      const bookingDate = new Date(b.createdAt)
-      return (
-        bookingDate.getMonth() === today.getMonth() &&
-        bookingDate.getFullYear() === today.getFullYear()
-      )
-    })
-
-    return {
-      totalBookings: bookings.length,
-      thisMonthBookings: thisMonth.length,
-      revenue: bookings
-        .filter(b => b.paymentStatus === 'paid')
-        .reduce((sum, b) => sum + b.totalAmount, 0),
+  useEffect(() => {
+    const hotels = myHotels ?? []
+    if (!hotels.length) {
+      setStatsByHotel({})
+      return
     }
-  }
+    let cancelled = false
+    void Promise.all(
+      hotels.map(async hotel => {
+        const result = await fetchHotelBookings(hotel.id)
+        const bookings = result.ok ? result.data : []
+        const today = new Date()
+        const thisMonth = bookings.filter(b => {
+          const bookingDate = new Date(b.createdAt)
+          return (
+            bookingDate.getMonth() === today.getMonth() &&
+            bookingDate.getFullYear() === today.getFullYear()
+          )
+        })
+        return [
+          hotel.id,
+          {
+            totalBookings: bookings.length,
+            thisMonthBookings: thisMonth.length,
+            revenue: bookings
+              .filter(b => b.paymentStatus === 'paid')
+              .reduce((sum, b) => sum + b.totalAmount, 0),
+          } satisfies HotelStats,
+        ] as const
+      }),
+    ).then(entries => {
+      if (!cancelled) setStatsByHotel(Object.fromEntries(entries))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [myHotels])
+
+  const getHotelStats = (hotelId: string): HotelStats =>
+    statsByHotel[hotelId] ?? {
+      totalBookings: 0,
+      thisMonthBookings: 0,
+      revenue: 0,
+    }
+
 
   if (loading) {
     return (

@@ -1,46 +1,43 @@
 import type { ExpenseReport, TaxDocument } from '@/types/report'
-import {
-  getExpenseReportsByUserId,
-  getTaxDocumentsByUserId,
-  generateExpenseReport,
-  generateTaxDocument,
-} from '@/data/mockReports'
-import { getDemoUserId } from './demoUser'
-import { mockDelay, ok, type ApiResult } from './http'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export async function fetchExpenseReports(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<ExpenseReport[]>> {
-  await mockDelay()
-  return ok(getExpenseReportsByUserId(userId || getDemoUserId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<ExpenseReport[]>('/reports/expense/')
 }
 
 export async function fetchTaxDocuments(
-  userId?: string
+  _userId?: string,
 ): Promise<ApiResult<TaxDocument[]>> {
-  await mockDelay()
-  return ok(getTaxDocumentsByUserId(userId || getDemoUserId()))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<TaxDocument[]>('/reports/tax/')
 }
 
 export async function createExpenseReport(
-  userId: string,
+  _userId: string,
   startDate: string,
   endDate: string,
-  format: 'pdf' | 'excel' | 'csv' = 'pdf'
+  format: 'pdf' | 'excel' | 'csv' = 'pdf',
 ): Promise<ApiResult<ExpenseReport>> {
-  await mockDelay(200)
-  return ok(generateExpenseReport(userId, startDate, endDate, format))
+  return apiRequest<ExpenseReport>('/reports/expense/', {
+    method: 'POST',
+    body: { startDate, endDate, format },
+  })
 }
 
 export async function createTaxDocument(
-  userId: string,
+  _userId: string,
   taxYear: number,
   documentType: 'rent_receipt' | 'expense_summary' | 'tax_certificate',
   startDate: string,
-  endDate: string
+  endDate: string,
 ): Promise<ApiResult<TaxDocument>> {
-  await mockDelay(200)
-  return ok(
-    generateTaxDocument(userId, taxYear, documentType, startDate, endDate)
-  )
+  return apiRequest<TaxDocument>('/reports/tax/', {
+    method: 'POST',
+    body: { taxYear, documentType, startDate, endDate },
+  })
 }

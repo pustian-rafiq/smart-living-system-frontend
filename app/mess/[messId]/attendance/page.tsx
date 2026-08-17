@@ -23,7 +23,6 @@ import {
   getAttendanceByMess,
   getAttendanceByDate,
   getAttendanceSummary,
-  markAttendance,
   bulkMarkAttendance,
   generateAttendanceReport,
 } from '@/lib/api/messDomain'
@@ -32,7 +31,7 @@ import { getDemoOwnerId } from '@/lib/api/demoUser'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, Calendar, FileText, Users } from 'lucide-react'
-import type { AttendanceRecord } from '@/types/attendance'
+import type { AttendanceRecord, AttendanceSummary, AttendanceReport } from '@/types/attendance'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { toast } from '@/lib/feedback/toast'
 
@@ -54,8 +53,12 @@ export default function AttendanceManagementPage() {
     format(new Date(), 'yyyy-MM-dd')
   )
   const [selectedStudent, setSelectedStudent] = useState<string>('all')
-  const [attendanceRecords, setAttendanceRecords] = useState(
-    getAttendanceByMess(messId)
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(
+    []
+  )
+  const [todayRecords, setTodayRecords] = useState<AttendanceRecord[]>([])
+  const [studentSummaries, setStudentSummaries] = useState<AttendanceSummary[]>(
+    []
   )
   const [isMarkDialogOpen, setIsMarkDialogOpen] = useState(false)
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
@@ -63,27 +66,39 @@ export default function AttendanceManagementPage() {
     null
   )
 
+  const messStudents = useMemo(
+    () => (allStudents ?? []).filter(s => s.seatNumber),
+    [allStudents]
+  )
+
+  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
+  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
+
+  useEffect(() => {
+    void getAttendanceByMess(messId).then(setAttendanceRecords)
+  }, [messId])
+
+  useEffect(() => {
+    void getAttendanceByDate(messId, selectedDate).then(setTodayRecords)
+  }, [messId, selectedDate])
+
+  useEffect(() => {
+    if (messStudents.length === 0) {
+      setStudentSummaries([])
+      return
+    }
+    void Promise.all(
+      messStudents.map(student =>
+        getAttendanceSummary(student.id, messId, monthStart, monthEnd)
+      )
+    ).then(setStudentSummaries)
+  }, [messStudents, messId, monthStart, monthEnd])
+
   useEffect(() => {
     if (role !== 'owner') {
       router.replace('/dashboard')
     }
   }, [role, router])
-
-  if (role !== 'owner') {
-    return null
-  }
-
-  if (!mess) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-6">
-          <p className="text-center">{t('notFound')}</p>
-        </div>
-      </Layout>
-    )
-  }
-
-  const messStudents = (allStudents ?? []).filter(s => s.seatNumber)
 
   const filteredRecords = useMemo(() => {
     let records = attendanceRecords
@@ -95,26 +110,20 @@ export default function AttendanceManagementPage() {
     return records
   }, [attendanceRecords, selectedStudent])
 
-  const todayRecords = useMemo(
-    () => getAttendanceByDate(messId, selectedDate),
-    [messId, selectedDate]
-  )
-
-  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
-  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
-
-  const studentSummaries = useMemo(() => {
-    return messStudents.map(student =>
-      getAttendanceSummary(student.id, messId, monthStart, monthEnd)
-    )
-  }, [messStudents, messId, monthStart, monthEnd])
-
-  const handleMarkAttendance = (data: any) => {
-    const records = data.studentIds.map((studentId: string) => ({
+  const handleMarkAttendance = async (data: {
+    studentIds: string[]
+    date: string
+    status: AttendanceRecord['status']
+    type: AttendanceRecord['type']
+    checkInTime?: string
+    checkOutTime?: string
+    mealCategory?: AttendanceRecord['mealCategory']
+    notes?: string
+  }) => {
+    const records = data.studentIds.map(studentId => ({
       studentId,
       studentName:
         messStudents.find(s => s.id === studentId)?.name || 'Unknown',
-      messId,
       date: data.date,
       status: data.status,
       type: data.type,
@@ -129,27 +138,46 @@ export default function AttendanceManagementPage() {
       markedBy: ownerId,
     }))
 
-    bulkMarkAttendance(records)
-    setAttendanceRecords(getAttendanceByMess(messId))
+    await bulkMarkAttendance(messId, records)
+    setAttendanceRecords(await getAttendanceByMess(messId))
+    setTodayRecords(await getAttendanceByDate(messId, selectedDate))
   }
 
-  const handleGenerateReport = (data: any) => {
-    const report = generateAttendanceReport(
+  const handleGenerateReport = async (data: {
+    reportType: AttendanceReport['reportType']
+    startDate: string
+    endDate: string
+  }) => {
+    const report = await generateAttendanceReport(
       messId,
-      data.reportType,
       data.startDate,
       data.endDate,
-      ownerId
+      data.reportType
     )
-    toast.success(
-      t('attendance.reportGenerated', { fileName: report.fileName ?? '' })
-    )
-    // In real app, download the report
+    if (report) {
+      toast.success(
+        t('attendance.reportGenerated', { fileName: report.fileName ?? '' })
+      )
+    }
   }
 
   const handleDateClick = (date: string) => {
     setSelectedDate(date)
     setIsMarkDialogOpen(true)
+  }
+
+  if (role !== 'owner') {
+    return null
+  }
+
+  if (!mess) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-6">
+          <p className="text-center">{t('notFound')}</p>
+        </div>
+      </Layout>
+    )
   }
 
   return (

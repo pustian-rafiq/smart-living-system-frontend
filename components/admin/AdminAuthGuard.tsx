@@ -9,6 +9,7 @@ import {
   getStoredRole,
   isLoggedIn,
 } from '@/utils/auth'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 import { canAccessAdminRoute } from '@/lib/admin/permissions'
 import { LoadingState } from '@/components/page'
 
@@ -26,8 +27,10 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     const loggedIn = isLoggedIn()
     const role = getStoredRole()
     const adminRole = getStoredAdminRole()
+    const hasJwt = hasAuthTokens()
 
-    if (!loggedIn || role !== 'admin' || !adminRole) {
+    // Session flags alone are not enough — admin APIs require JWT.
+    if (!loggedIn || role !== 'admin' || !adminRole || !hasJwt) {
       router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`)
       return
     }

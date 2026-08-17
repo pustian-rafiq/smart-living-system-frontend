@@ -75,6 +75,9 @@ export interface PropertyModeration {
   verified: boolean
   city: string
   area: string
+  rent?: number
+  description?: string
+  imageUrl?: string | null
 }
 
 export interface UserManagement {

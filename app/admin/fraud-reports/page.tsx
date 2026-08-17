@@ -3,10 +3,12 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { AdminLayout } from '@/components/admin/AdminLayout'
-import { EmptyState, LoadingState } from '@/components/page'
+import { EmptyState } from '@/components/page'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ServerSearchInput } from '@/components/data/ServerSearchInput'
+import { PaginationBar } from '@/components/data/PaginationBar'
 import {
   Select,
   SelectContent,
@@ -14,14 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Search, ShieldAlert, Check, X } from 'lucide-react'
+import { ShieldAlert, Check, X } from 'lucide-react'
 import { fetchFraudReports, patchFraudReport } from '@/lib/api/admin'
 import type { FraudReport } from '@/types/admin'
 import { format } from 'date-fns'
 import { hasAdminPermission } from '@/lib/admin/permissions'
 import { getStoredAdminRole } from '@/utils/auth'
-import { useMockQuery } from '@/hooks/useMockQuery'
+import { useServerPagedList } from '@/hooks/useServerPagedList'
+import { toast } from '@/lib/feedback/toast'
 
 type FraudStatus = FraudReport['status']
 
@@ -45,44 +47,63 @@ export default function AdminFraudReportsPage() {
   const tc = useTranslations('common')
   const [statusFilter, setStatusFilter] = useState<FraudStatus | 'all'>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
 
   const adminRole = getStoredAdminRole()
   const canManage = hasAdminPermission(adminRole, 'fraud.manage')
   const canDismiss = adminRole === 'super-admin' || adminRole === 'moderator'
-  const load = useCallback(() => fetchFraudReports(), [])
-  const { data: reports, loading, refetch } = useMockQuery(load)
 
-  const filteredReports = useMemo(() => {
-    return (reports ?? []).filter(r => {
-      const matchesStatus = statusFilter === 'all' || r.status === statusFilter
-      const matchesType = typeFilter === 'all' || r.reportType === typeFilter
-      const q = searchTerm.toLowerCase()
-      const matchesSearch =
-        r.userName.toLowerCase().includes(q) ||
-        r.description.toLowerCase().includes(q) ||
-        r.id.toLowerCase().includes(q)
-      return matchesStatus && matchesType && matchesSearch
-    })
-  }, [reports, statusFilter, typeFilter, searchTerm])
+  const filters = useMemo(
+    () => ({
+      status: statusFilter,
+      type: typeFilter,
+    }),
+    [statusFilter, typeFilter],
+  )
+
+  const fetcher = useCallback(
+    (params: {
+      page: number
+      pageSize: number
+      search: string
+      filters: Record<string, string>
+    }) =>
+      fetchFraudReports({
+        page: params.page,
+        pageSize: params.pageSize,
+        search: params.search,
+        status: params.filters.status,
+        type: params.filters.type,
+      }),
+    [],
+  )
+
+  const list = useServerPagedList<FraudReport>({
+    fetcher,
+    filters,
+    pageSize: 20,
+  })
 
   const updateStatus = async (id: string, status: FraudStatus) => {
     if (!canManage) return
-    const currentReport = reports?.find(report => report.id === id)
-    await patchFraudReport(id, {
+    const currentReport = list.items.find(report => report.id === id)
+    const result = await patchFraudReport(id, {
       status,
       investigatedBy:
         status === 'investigating'
           ? 'current-admin'
           : currentReport?.investigatedBy,
     })
-    await refetch()
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
+    list.updateItem(r => r.id === id, result.data)
   }
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl">
-        <div className="mb-6">
+      <div className="max-w-7xl space-y-4">
+        <div>
           <h2 className="mb-2 flex items-center gap-2 text-2xl font-bold">
             <ShieldAlert className="h-6 w-6" />
             {t('title')}
@@ -90,16 +111,14 @@ export default function AdminFraudReportsPage() {
           <p className="text-muted-foreground">{t('managementDesc')}</p>
         </div>
 
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t('searchPlaceholder')}
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <ServerSearchInput
+            className="flex-1"
+            value={list.searchInput}
+            onChange={list.setSearchInput}
+            pending={list.searchPending}
+            placeholder={t('searchPlaceholder')}
+          />
           <Select
             value={statusFilter}
             onValueChange={v => setStatusFilter(v as FraudStatus | 'all')}
@@ -110,7 +129,9 @@ export default function AdminFraudReportsPage() {
             <SelectContent>
               <SelectItem value="all">{tc('allStatus')}</SelectItem>
               <SelectItem value="pending">{tc('status.pending')}</SelectItem>
-              <SelectItem value="investigating">{t('statuses.investigating')}</SelectItem>
+              <SelectItem value="investigating">
+                {t('statuses.investigating')}
+              </SelectItem>
               <SelectItem value="resolved">{tc('status.resolved')}</SelectItem>
               <SelectItem value="dismissed">{t('statuses.dismissed')}</SelectItem>
             </SelectContent>
@@ -122,19 +143,23 @@ export default function AdminFraudReportsPage() {
             <SelectContent>
               <SelectItem value="all">{tp('allTypes')}</SelectItem>
               <SelectItem value="fake_listing">{t('types.fake_listing')}</SelectItem>
-              <SelectItem value="payment_fraud">{t('types.payment_fraud')}</SelectItem>
-              <SelectItem value="suspicious_activity">{t('types.suspicious_activity')}</SelectItem>
+              <SelectItem value="payment_fraud">
+                {t('types.payment_fraud')}
+              </SelectItem>
+              <SelectItem value="suspicious_activity">
+                {t('types.suspicious_activity')}
+              </SelectItem>
               <SelectItem value="other">{t('types.other')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="space-y-4">
-          {loading ? (
-            <LoadingState label={t('title')} />
-          ) : null}
+        {list.error && (
+          <p className="text-sm text-destructive">{list.error}</p>
+        )}
 
-          {!loading && filteredReports.length === 0 ? (
+        <div className="space-y-4">
+          {!list.loading && list.items.length === 0 ? (
             <EmptyState
               icon={ShieldAlert}
               title={t('title')}
@@ -142,7 +167,7 @@ export default function AdminFraudReportsPage() {
             />
           ) : null}
 
-          {filteredReports.map(report => (
+          {list.items.map(report => (
             <Card key={report.id}>
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -209,6 +234,16 @@ export default function AdminFraudReportsPage() {
             </Card>
           ))}
         </div>
+
+        <PaginationBar
+          page={list.page}
+          totalPages={list.totalPages}
+          count={list.count}
+          pageSize={list.pageSize}
+          loading={list.loading}
+          onPageChange={list.setPage}
+          onPageSizeChange={list.setPageSize}
+        />
       </div>
     </AdminLayout>
   )

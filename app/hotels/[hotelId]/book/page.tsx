@@ -26,7 +26,7 @@ import {
   fetchHotelById,
   fetchHotelRooms,
   createHotelBooking,
-  mockBookings,
+  fetchHotelBookings,
 } from '@/lib/api/hotels'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { calculateBookingFees } from '@/lib/hotel/pricing'
@@ -50,6 +50,9 @@ export default function HotelBookingPage() {
   const loadRooms = useCallback(() => fetchHotelRooms(hotelId), [hotelId])
   const { data: rooms } = useMockQuery(loadRooms)
   const availableRooms = (rooms ?? []).filter(r => r.available)
+
+  const loadBookings = useCallback(() => fetchHotelBookings(hotelId), [hotelId])
+  const { data: hotelBookings } = useMockQuery(loadBookings)
 
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [checkIn, setCheckIn] = useState<Date | undefined>()
@@ -217,7 +220,7 @@ export default function HotelBookingPage() {
               </CardHeader>
               <CardContent>
                 <BookingCalendar
-                  bookings={mockBookings}
+                  bookings={hotelBookings ?? []}
                   checkIn={checkIn}
                   checkOut={checkOut}
                   onCheckInSelect={setCheckIn}

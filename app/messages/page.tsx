@@ -36,7 +36,8 @@ import {
   fetchChatUser,
   fetchChatById,
 } from '@/lib/api/messages'
-import { getDemoChatUserId, getDemoOwnerId } from '@/lib/api/demoUser'
+import { getDemoChatUserId } from '@/lib/api/demoUser'
+import { getStoredUserId } from '@/utils/auth-tokens'
 
 function MessagesPageContent() {
   const t = useTranslations('tools.messages')
@@ -55,7 +56,7 @@ function MessagesPageContent() {
   const [properties, setProperties] = useState<Property[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const currentUserId = getDemoChatUserId()
+  const currentUserId = getStoredUserId() || getDemoChatUserId()
 
   const loadChats = useCallback(async () => {
     const result = await fetchUserChats(currentUserId)
@@ -195,7 +196,7 @@ function MessagesPageContent() {
           const newChat: Chat = {
             id: `chat-${Date.now()}`,
             participant1Id: currentUserId,
-            participant2Id: getDemoOwnerId(),
+            participant2Id: property.ownerId,
             participant1Name: 'Current User',
             participant2Name: property.ownerName,
             lastMessage: undefined,

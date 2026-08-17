@@ -11,7 +11,11 @@ const FORBIDDEN_IN_PUBLIC_ENV = [
 ] as const
 
 /** Document allowed public env keys (extend when adding NEXT_PUBLIC_* vars). */
-export const PUBLIC_ENV_KEYS = ['NEXT_PUBLIC_SITE_URL', 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'] as const
+export const PUBLIC_ENV_KEYS = [
+  'NEXT_PUBLIC_SITE_URL',
+  'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY',
+  'NEXT_PUBLIC_API_URL',
+] as const
 
 /**
  * Dev-only guard: warn if a forbidden key is prefixed with NEXT_PUBLIC_.

@@ -1,108 +1,191 @@
 import type { Building, Flat, Renter } from '@/types/building'
 import type { Mess } from '@/types/mess'
-import type { Floor, FloorStats } from '@/types/floor'
-import { mockBuildings, mockFlats, mockRenters } from '@/data/mockBuildings'
-import { mockMess } from '@/data/mockMess'
-import {
-  mockFloors,
-  getFloorsByBuilding,
-  getFloorById,
-  getFloorStats,
-  addFloor,
-  updateFloor,
-  deleteFloor,
-} from '@/data/mockFloors'
-import { getDemoOwnerId } from './demoUser'
-import { mockDelay, ok, err, type ApiResult } from './http'
+import type { Floor, FloorFormData, FloorStats } from '@/types/floor'
+import { apiRequest } from './client'
+import type { ApiResult } from './http'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 
 export async function fetchBuildings(
-  ownerId?: string
+  _ownerId?: string,
 ): Promise<ApiResult<Building[]>> {
-  await mockDelay()
-  const id = ownerId || getDemoOwnerId()
-  return ok(mockBuildings.filter(b => b.ownerId === id))
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<Building[]>('/buildings/')
 }
 
 export async function fetchAllBuildings(): Promise<ApiResult<Building[]>> {
-  await mockDelay()
-  return ok([...mockBuildings])
+  return apiRequest<Building[]>('/buildings/all/')
 }
 
 export async function fetchBuildingById(
-  id: string
+  id: string,
 ): Promise<ApiResult<Building | undefined>> {
-  await mockDelay(100)
-  return ok(mockBuildings.find(b => b.id === id))
+  const result = await apiRequest<Building>(`/buildings/${id}/`)
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') return { ok: true, data: undefined }
+    return result
+  }
+  return result
+}
+
+export async function createBuilding(data: {
+  name: string
+  address: string
+  city: string
+  totalFloors: number
+  totalFlats: number
+}): Promise<ApiResult<Building>> {
+  return apiRequest<Building>('/buildings/', {
+    method: 'POST',
+    body: data,
+  })
 }
 
 export async function fetchFlatsByBuilding(
-  buildingId: string
+  buildingId: string,
 ): Promise<ApiResult<Flat[]>> {
-  await mockDelay()
-  return ok(mockFlats.filter(f => f.buildingId === buildingId))
+  return apiRequest<Flat[]>(`/buildings/${buildingId}/flats/`)
 }
 
 export async function fetchAllFlats(): Promise<ApiResult<Flat[]>> {
-  await mockDelay()
-  return ok([...mockFlats])
+  return apiRequest<Flat[]>('/flats/')
+}
+
+export async function createFlat(data: {
+  buildingId: string
+  flatNumber: string
+  floor: number
+  rent: number
+  status?: Flat['status']
+  area?: number
+  bedrooms?: number
+  bathrooms?: number
+}): Promise<ApiResult<Flat>> {
+  return apiRequest<Flat>('/flats/', {
+    method: 'POST',
+    body: data,
+  })
+}
+
+export async function patchFlat(
+  flatId: string,
+  data: Partial<Flat>,
+): Promise<ApiResult<Flat>> {
+  return apiRequest<Flat>(`/flats/${flatId}/`, {
+    method: 'PATCH',
+    body: data,
+  })
+}
+
+export async function assignRenter(
+  flatId: string,
+  data: {
+    name: string
+    phone: string
+    email?: string
+    nid?: string
+    address?: string
+    joinedDate?: string
+  },
+): Promise<ApiResult<Flat>> {
+  return apiRequest<Flat>(`/flats/${flatId}/assign-renter/`, {
+    method: 'POST',
+    body: data,
+  })
+}
+
+export async function vacateFlat(flatId: string): Promise<ApiResult<Flat>> {
+  return apiRequest<Flat>(`/flats/${flatId}/vacate/`, { method: 'POST' })
 }
 
 export async function fetchRenters(): Promise<ApiResult<Renter[]>> {
-  await mockDelay()
-  return ok([...mockRenters])
+  return apiRequest<Renter[]>('/renters/')
 }
 
 export async function fetchFloorsByBuilding(
-  buildingId: string
+  buildingId: string,
 ): Promise<ApiResult<Floor[]>> {
-  await mockDelay()
-  return ok(getFloorsByBuilding(buildingId))
+  return apiRequest<Floor[]>(`/buildings/${buildingId}/floors/`)
 }
 
 export async function fetchFloorById(
-  floorId: string
+  floorId: string,
 ): Promise<ApiResult<Floor | undefined>> {
-  await mockDelay(100)
-  return ok(getFloorById(floorId))
+  const result = await apiRequest<Floor>(`/floors/${floorId}/`)
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') return { ok: true, data: undefined }
+    return result
+  }
+  return result
 }
 
 export async function fetchFloorStats(
-  floorId: string
+  floorId: string,
 ): Promise<ApiResult<FloorStats | undefined>> {
-  await mockDelay(100)
-  return ok(getFloorStats(floorId))
+  const result = await apiRequest<FloorStats>(`/floors/${floorId}/stats/`)
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') return { ok: true, data: undefined }
+    return result
+  }
+  return result
 }
 
 export async function createFloor(
   buildingId: string,
-  data: Parameters<typeof addFloor>[1]
+  data: FloorFormData,
 ): Promise<ApiResult<Floor>> {
-  await mockDelay(150)
-  return ok(addFloor(buildingId, data))
+  return apiRequest<Floor>(`/buildings/${buildingId}/floors/`, {
+    method: 'POST',
+    body: data,
+  })
 }
 
 export async function patchFloor(
   floorId: string,
-  data: Parameters<typeof updateFloor>[1]
+  data: Partial<FloorFormData>,
 ): Promise<ApiResult<Floor>> {
-  await mockDelay(100)
-  const updated = updateFloor(floorId, data)
-  if (!updated) return err('Floor not found', 'NOT_FOUND')
-  return ok(updated)
+  return apiRequest<Floor>(`/floors/${floorId}/`, {
+    method: 'PATCH',
+    body: data,
+  })
 }
 
-export async function removeFloor(floorId: string): Promise<ApiResult<boolean>> {
-  await mockDelay(100)
-  return ok(deleteFloor(floorId))
+export async function removeFloor(
+  floorId: string,
+): Promise<ApiResult<boolean>> {
+  const result = await apiRequest<null>(`/floors/${floorId}/`, {
+    method: 'DELETE',
+  })
+  if (!result.ok) return result
+  return { ok: true, data: true }
 }
 
 export async function saveFlatsSnapshot(
-  flats: Flat[]
+  flats: Flat[],
 ): Promise<ApiResult<Flat[]>> {
-  await mockDelay(50)
-  mockFlats.length = 0
-  mockFlats.push(...flats)
-  return ok([...mockFlats])
+  // Prefer granular flat CRUD; bulk upsert via sequential PATCH/POST
+  const results: Flat[] = []
+  for (const flat of flats) {
+    const existing = await apiRequest<Flat>(`/flats/${flat.id}/`, {
+      method: 'PATCH',
+      body: flat,
+    })
+    if (existing.ok) {
+      results.push(existing.data)
+    } else {
+      const created = await createFlat({
+        buildingId: flat.buildingId,
+        flatNumber: flat.flatNumber,
+        floor: flat.floor,
+        rent: flat.rent,
+        status: flat.status,
+        area: flat.area,
+        bedrooms: flat.bedrooms,
+        bathrooms: flat.bathrooms,
+      })
+      if (created.ok) results.push(created.data)
+    }
+  }
+  return { ok: true, data: results }
 }
 
 export type OwnerPortfolioSnapshot = {
@@ -111,24 +194,48 @@ export type OwnerPortfolioSnapshot = {
   messList: Mess[]
 }
 
-/** Buildings + flats + mess for bulk dialogs and owner tools */
 export async function fetchOwnerPortfolioSnapshot(
-  ownerId?: string
+  _ownerId?: string,
 ): Promise<ApiResult<OwnerPortfolioSnapshot>> {
-  await mockDelay()
-  const id = ownerId || getDemoOwnerId()
-  return ok({
-    buildings: mockBuildings.filter(b => b.ownerId === id),
-    flats: [...mockFlats],
-    messList: [...mockMess],
-  })
+  return apiRequest<OwnerPortfolioSnapshot>('/portfolio/snapshot/')
 }
 
-export {
-  getFloorsByBuilding,
-  getFloorById,
-  getFloorStats,
-  addFloor,
-  updateFloor,
-  deleteFloor,
+/** Sync helpers kept for legacy floor pages — prefer async API fns. */
+export async function getFloorsByBuilding(buildingId: string): Promise<Floor[]> {
+  const r = await fetchFloorsByBuilding(buildingId)
+  return r.ok ? r.data : []
+}
+
+export async function getFloorById(floorId: string): Promise<Floor | undefined> {
+  const r = await fetchFloorById(floorId)
+  return r.ok ? r.data : undefined
+}
+
+export async function getFloorStats(
+  floorId: string,
+): Promise<FloorStats | undefined> {
+  const r = await fetchFloorStats(floorId)
+  return r.ok ? r.data : undefined
+}
+
+export async function addFloor(
+  buildingId: string,
+  data: FloorFormData,
+): Promise<Floor> {
+  const r = await createFloor(buildingId, data)
+  if (!r.ok) throw new Error(r.error)
+  return r.data
+}
+
+export async function updateFloor(
+  floorId: string,
+  data: Partial<FloorFormData>,
+): Promise<Floor | undefined> {
+  const r = await patchFloor(floorId, data)
+  return r.ok ? r.data : undefined
+}
+
+export async function deleteFloor(floorId: string): Promise<boolean> {
+  const r = await removeFloor(floorId)
+  return r.ok ? r.data : false
 }
