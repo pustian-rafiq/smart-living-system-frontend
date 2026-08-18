@@ -52,6 +52,10 @@ export default function RoleSelection() {
       router.push('/otp-verify')
       return
     }
+    if (sessionStorage.getItem('needsPinSetup') === 'true') {
+      router.replace('/set-pin')
+      return
+    }
 
     setLoginPhone(sessionStorage.getItem('loginPhone'))
     setAvailableRoles(getAvailableRolesFromSession())

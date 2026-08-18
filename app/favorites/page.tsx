@@ -29,7 +29,7 @@ import {
   toggleFavorite,
 } from '@/lib/api/favorites'
 import { fetchPropertiesByIds } from '@/lib/api/properties'
-import { getDemoChatUserId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import type { Favorite } from '@/types/favorites'
 import type { Property } from '@/types/property'
@@ -159,7 +159,7 @@ export default function FavoritesPage() {
   const [showCompareDialog, setShowCompareDialog] = useState(false)
   const [sortBy, setSortBy] = useState<'date' | 'rent' | 'name'>('date')
 
-  const userId = getDemoChatUserId()
+  const userId = getCurrentAccountUserId()
   const loadFavorites = useCallback(() => fetchFavorites(userId), [userId])
   const {
     data: favoritesData,

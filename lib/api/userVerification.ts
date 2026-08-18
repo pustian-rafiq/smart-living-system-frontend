@@ -15,31 +15,20 @@ export async function fetchUserVerificationStatus(): Promise<
 }
 
 export async function submitVerificationRequest(data: {
-  verificationType: 'nid' | 'phone' | 'document'
+  verificationType: 'nid' | 'phone' | 'document' | 'police'
   documentNumber?: string
   documentFileName?: string
   file?: File | null
 }): Promise<ApiResult<UserVerificationRequest>> {
-  if (data.file) {
-    const form = new FormData()
-    form.append('verificationType', data.verificationType)
-    if (data.documentNumber) form.append('documentNumber', data.documentNumber)
-    if (data.documentFileName) {
-      form.append('documentFileName', data.documentFileName)
-    }
-    form.append('file', data.file)
-    return apiRequest<UserVerificationRequest>('/account/verification/', {
-      method: 'POST',
-      formData: form,
-    })
+  const form = new FormData()
+  form.append('verificationType', data.verificationType)
+  if (data.documentNumber) form.append('documentNumber', data.documentNumber)
+  if (data.documentFileName) {
+    form.append('documentFileName', data.documentFileName)
   }
-
+  if (data.file) form.append('file', data.file)
   return apiRequest<UserVerificationRequest>('/account/verification/', {
     method: 'POST',
-    body: {
-      verificationType: data.verificationType,
-      documentNumber: data.documentNumber,
-      documentFileName: data.documentFileName,
-    },
+    formData: form,
   })
 }

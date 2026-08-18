@@ -36,8 +36,8 @@ import {
   fetchChatUser,
   fetchChatById,
 } from '@/lib/api/messages'
-import { getDemoChatUserId } from '@/lib/api/demoUser'
-import { getStoredUserId } from '@/utils/auth-tokens'
+import { getCurrentAccountUserId } from '@/lib/api/account'
+import { uploadMediaFile } from '@/lib/api/media'
 
 function MessagesPageContent() {
   const t = useTranslations('tools.messages')
@@ -56,7 +56,7 @@ function MessagesPageContent() {
   const [properties, setProperties] = useState<Property[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const currentUserId = getStoredUserId() || getDemoChatUserId()
+  const currentUserId = getCurrentAccountUserId()
 
   const loadChats = useCallback(async () => {
     const result = await fetchUserChats(currentUserId)
@@ -171,10 +171,12 @@ function MessagesPageContent() {
     }
   }
 
-  const handleSendFile = (file: File) => {
+  const handleSendFile = async (file: File) => {
     if (!selectedChat) return
-    const fileUrl = URL.createObjectURL(file)
-    handleSendMessage(fileUrl, 'file')
+    const kind = file.type.startsWith('image/') ? 'image' : 'document'
+    const uploaded = await uploadMediaFile(file, kind)
+    if (!uploaded.ok) return
+    handleSendMessage(uploaded.data.url, 'file')
   }
 
   const handleCall = (phone: string) => {

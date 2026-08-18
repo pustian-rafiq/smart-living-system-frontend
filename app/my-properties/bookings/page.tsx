@@ -37,7 +37,6 @@ import {
   fetchBookingsForOwner,
   patchBookingStatus,
 } from '@/lib/api/bookings'
-import { getDemoOwnerId } from '@/lib/api/demoUser'
 import type { Booking, BookingStatus } from '@/types/booking'
 import { Calendar, CheckCircle2, Clock, Plus } from 'lucide-react'
 
@@ -55,7 +54,7 @@ export default function OwnerBookingsPage() {
   const [tick, setTick] = useState(0)
 
   const load = useCallback(
-    () => fetchBookingsForOwner(getDemoOwnerId()),
+    () => fetchBookingsForOwner(),
     [tick]
   )
   const { data: bookings, loading, error, refetch } = useMockQuery(load)

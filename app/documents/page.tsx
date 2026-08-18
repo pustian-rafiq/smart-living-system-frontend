@@ -21,7 +21,8 @@ import {
   createChecklist,
   fetchDocumentBuildings,
 } from '@/lib/api/documents'
-import { getDemoTenantId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
+import { uploadMediaFile } from '@/lib/api/media'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { FileText, Upload, Plus, ListChecks, AlertCircle } from 'lucide-react'
@@ -37,7 +38,7 @@ export default function DocumentsPage() {
   const t = useTranslations('tools.documents')
   const tc = useTranslations('common')
 
-  const userId = getDemoTenantId()
+  const userId = getCurrentAccountUserId()
   const [agreements, setAgreements] = useState<RentalAgreement[]>([])
   const [checklists, setChecklists] = useState<ChecklistType[]>([])
   const [buildings, setBuildings] = useState<Building[]>([])
@@ -150,10 +151,21 @@ export default function DocumentsPage() {
   }
 
   const handleAgreementUpload = async (data: Record<string, unknown>) => {
+    const file = data.file as File | null | undefined
+    let documentUrl = (data.documentUrl as string) || ''
+    if (file) {
+      const uploaded = await uploadMediaFile(file, 'document')
+      if (!uploaded.ok) {
+        toast.error(uploaded.error)
+        return
+      }
+      documentUrl = uploaded.data.url
+    }
     if (editingAgreement) {
       await patchAgreement(editingAgreement.id, {
         ...editingAgreement,
         ...data,
+        documentUrl,
       } as RentalAgreement)
     } else {
       await createAgreement({
@@ -169,7 +181,7 @@ export default function DocumentsPage() {
         endDate: data.endDate as string,
         monthlyRent: data.monthlyRent as number,
         securityDeposit: data.securityDeposit as number,
-        documentUrl: data.documentUrl as string,
+        documentUrl,
         documentName: data.documentName as string,
         documentSize: data.documentSize as number,
         uploadedAt: new Date().toISOString(),

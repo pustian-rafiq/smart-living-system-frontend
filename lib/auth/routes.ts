@@ -17,6 +17,7 @@ const PUBLIC_EXACT = new Set([
   '/hotels',
   '/account/recover',
   '/admin/login',
+  '/set-pin',
 ])
 
 /** Prefixes open without login (browse-only) */
@@ -27,6 +28,7 @@ export const AUTH_FLOW_PATHS = new Set([
   '/login',
   '/otp-verify',
   '/role-selection',
+  '/set-pin',
 ])
 
 export function isPublicPath(pathname: string): boolean {

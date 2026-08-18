@@ -17,7 +17,6 @@ import { FeaturedBadge, isListingFeatured } from '@/components/monetization/Feat
 import { useRouter } from 'next/navigation'
 import type { Property } from '@/types/property'
 import Image from 'next/image'
-import { getDemoRenterId } from '@/lib/api/demoUser'
 import { formatCurrency } from '@/lib/format/locale'
 import { cn } from '@/lib/utils'
 
@@ -200,7 +199,6 @@ export function PropertyCard({
           </Button>
           <FavoriteButton
             property={property}
-            userId={getDemoRenterId()}
             size="icon"
             className="h-10 w-full sm:w-10 sm:shrink-0"
           />

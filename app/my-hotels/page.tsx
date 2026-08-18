@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, MapPin, Star, TrendingUp, Users, Calendar } from 'lucide-react'
 import { RatingDisplay } from '@/components/hotel/RatingDisplay'
 import { fetchOwnerHotels, fetchHotelBookings } from '@/lib/api/hotels'
-import { getDemoOwnerId } from '@/lib/api/demoUser'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { format } from 'date-fns'
 import Link from 'next/link'
@@ -28,9 +27,7 @@ type HotelStats = {
 export default function MyHotelsPage() {
   const t = useTranslations('hotels')
   const { formatCurrency } = useAppFormat()
-  const ownerId = getDemoOwnerId()
-
-  const loadHotels = useCallback(() => fetchOwnerHotels(ownerId), [ownerId])
+  const loadHotels = useCallback(() => fetchOwnerHotels(), [])
   const { data: myHotels, loading } = useMockQuery(loadHotels)
   const [statsByHotel, setStatsByHotel] = useState<Record<string, HotelStats>>(
     {},

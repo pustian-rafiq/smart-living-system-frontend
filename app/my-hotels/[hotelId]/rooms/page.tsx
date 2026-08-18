@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Edit, Trash2, Bed } from 'lucide-react'
 import { RoomCard } from '@/components/hotel/RoomCard'
-import { fetchHotelById, fetchHotelRooms } from '@/lib/api/hotels'
+import { fetchHotelById, fetchHotelRooms, createHotelRoom, updateHotelRoom, deleteHotelRoom } from '@/lib/api/hotels'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import {
   Dialog,
@@ -61,14 +61,16 @@ export default function RoomManagementPage() {
   const hotelId = params.hotelId as string
 
   const loadHotel = useCallback(() => fetchHotelById(hotelId), [hotelId])
-  const { data: hotel } = useMockQuery(loadHotel)
+  const { data: hotel, refetch: refetchHotel } = useMockQuery(loadHotel)
 
   const loadRooms = useCallback(() => fetchHotelRooms(hotelId), [hotelId])
-  const { data: roomsData } = useMockQuery(loadRooms)
+  const { data: roomsData, refetch: refetchRooms } = useMockQuery(loadRooms)
   const rooms = roomsData ?? []
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingRoom, setEditingRoom] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const form = useForm<RoomFormData>({
     resolver: zodResolver(roomSchema),
@@ -84,6 +86,7 @@ export default function RoomManagementPage() {
 
   const handleAddRoom = () => {
     setEditingRoom(null)
+    setFormError(null)
     form.reset()
     setIsDialogOpen(true)
   }
@@ -101,6 +104,7 @@ export default function RoomManagementPage() {
         description: room.description,
       })
       setIsDialogOpen(true)
+      setFormError(null)
     }
   }
 
@@ -111,18 +115,40 @@ export default function RoomManagementPage() {
       variant: 'destructive',
     })
     if (!ok) return
+    const result = await deleteHotelRoom(hotelId, roomId)
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
     toast.success(t('rooms.deleted'))
+    await refetchRooms()
+    await refetchHotel()
   }
 
-  const handleSubmit = (data: RoomFormData) => {
-    if (editingRoom) {
-      // TODO: Update room
-      toast.success(t('rooms.updated'))
-    } else {
-      toast.success(t('rooms.added'))
+  const handleSubmit = async (data: RoomFormData) => {
+    setSaving(true)
+    setFormError(null)
+    const payload = {
+      roomNumber: data.roomNumber,
+      type: data.type,
+      floor: data.floor,
+      capacity: data.capacity,
+      basePrice: data.basePrice,
+      description: data.description || '',
     }
+    const result = editingRoom
+      ? await updateHotelRoom(hotelId, editingRoom, payload)
+      : await createHotelRoom(hotelId, payload)
+    setSaving(false)
+    if (!result.ok) {
+      setFormError(result.error)
+      return
+    }
+    toast.success(editingRoom ? t('rooms.updated') : t('rooms.added'))
     setIsDialogOpen(false)
     form.reset()
+    await refetchRooms()
+    await refetchHotel()
   }
 
   if (!hotel) {
@@ -376,13 +402,21 @@ export default function RoomManagementPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
+                    disabled={saving}
                   >
                     {tc('cancel')}
                   </Button>
-                  <Button type="submit">
-                    {editingRoom ? t('rooms.updateRoom') : t('rooms.addRoom')}
+                  <Button type="submit" disabled={saving}>
+                    {saving
+                      ? `${tc('save')}…`
+                      : editingRoom
+                        ? t('rooms.updateRoom')
+                        : t('rooms.addRoom')}
                   </Button>
                 </div>
+                {formError && (
+                  <p className="text-sm text-destructive">{formError}</p>
+                )}
               </form>
             </Form>
           </DialogContent>

@@ -25,7 +25,7 @@ import {
   isLoggedIn,
 } from '@/utils/auth'
 import type { UserRole } from '@/types'
-import { getDemoUserId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 
 export function AppHeader() {
   const t = useTranslations('layout')
@@ -56,7 +56,7 @@ export function AppHeader() {
     return () => window.removeEventListener('profile-updated', syncUser)
   }, [])
 
-  const userId = getDemoUserId(role)
+  const userId = getCurrentAccountUserId()
 
   const themeButton = (
     <Button

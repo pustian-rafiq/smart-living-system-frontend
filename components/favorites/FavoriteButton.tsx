@@ -8,7 +8,6 @@ import type { Property } from '@/types/property'
 
 interface FavoriteButtonProps {
   property: Property
-  userId: string
   onToggle?: (isFavorite: boolean) => void
   variant?: 'default' | 'outline' | 'ghost'
   size?: 'default' | 'sm' | 'icon' | 'lg'
@@ -17,7 +16,6 @@ interface FavoriteButtonProps {
 
 export function FavoriteButton({
   property,
-  userId,
   onToggle,
   variant = 'outline',
   size = 'icon',
@@ -27,15 +25,15 @@ export function FavoriteButton({
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    checkIsFavorite(property.id, userId).then(result => {
+    checkIsFavorite(property.id).then(result => {
       if (result.ok) setIsFavorite(result.data)
     })
-  }, [userId, property.id])
+  }, [property.id])
 
   const handleToggle = async () => {
     if (loading) return
     setLoading(true)
-    const result = await toggleFavorite(property.id, userId, property)
+    const result = await toggleFavorite(property.id)
     setLoading(false)
     if (result.ok) {
       setIsFavorite(result.data.added)

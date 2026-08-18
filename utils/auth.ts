@@ -8,6 +8,7 @@ import {
   syncDemoIdentityForRole,
 } from '@/lib/auth/demo-identity'
 import { clearAuthTokens, setAuthTokens } from '@/utils/auth-tokens'
+import { getDefaultPathForRole } from '@/lib/auth'
 
 export const getStoredRole = (): UserRole | null => {
   if (typeof window === 'undefined') return null
@@ -31,7 +32,22 @@ export const getLoginPhone = (): string | null => {
 }
 
 export const hasCompleteSession = (): boolean => {
-  return isLoggedIn() && isOtpVerified() && getStoredRole() !== null
+  return (
+    isLoggedIn() &&
+    isOtpVerified() &&
+    getStoredRole() !== null &&
+    !needsPinSetup()
+  )
+}
+
+export const needsPinSetup = (): boolean => {
+  if (typeof window === 'undefined') return false
+  return sessionStorage.getItem('needsPinSetup') === 'true'
+}
+
+export const isPinResetFlow = (): boolean => {
+  if (typeof window === 'undefined') return false
+  return sessionStorage.getItem('pinReset') === 'true'
 }
 
 export const setUserSession = (params: {
@@ -65,10 +81,17 @@ export function applyAuthSession(
   const phoneDigits = session.user.phoneDigits
   sessionStorage.setItem('loginPhone', phoneDigits)
   sessionStorage.setItem('otpVerified', 'true')
+  sessionStorage.setItem(
+    'needsPinSetup',
+    session.needsPinSetup ? 'true' : 'false',
+  )
+  sessionStorage.setItem('hasPin', session.hasPin ? 'true' : 'false')
 
-  const complete =
+    const complete =
     options?.complete ??
-    (session.user.roleSelected && !session.needsRoleSelection)
+    (Boolean(session.user.roleSelected) &&
+      !session.needsRoleSelection &&
+      !Boolean(session.needsPinSetup))
 
   if (complete) {
     sessionStorage.setItem('isLoggedIn', 'true')
@@ -106,6 +129,15 @@ export function applyAuthSession(
   notifyAuthSessionChanged()
 }
 
+export function nextPathAfterAuth(session: AuthSession): string {
+  if (session.needsPinSetup || isPinResetFlow()) return '/set-pin'
+  if (session.needsRoleSelection || !session.user.roleSelected) {
+    return '/role-selection'
+  }
+  if (session.user.role === 'admin') return '/admin'
+  return getDefaultPathForRole(session.user.role)
+}
+
 export function getAvailableRolesFromSession(): UserRole[] {
   if (typeof window === 'undefined') return ['renter', 'owner']
   try {
@@ -139,7 +171,6 @@ export const setVerificationStatus = (
 
 export const logout = (): void => {
   if (typeof window === 'undefined') return
-  const refresh = sessionStorage.getItem('refreshToken')
   clearAuthTokens()
   sessionStorage.removeItem('isLoggedIn')
   sessionStorage.removeItem('userRole')
@@ -153,17 +184,12 @@ export const logout = (): void => {
   sessionStorage.removeItem('availableRoles')
   sessionStorage.removeItem('pendingAdminRole')
   sessionStorage.removeItem('devOtp')
+  sessionStorage.removeItem('needsPinSetup')
+  sessionStorage.removeItem('hasPin')
+  sessionStorage.removeItem('pinReset')
   clearDemoIdentity()
   notifyAuthSessionChanged()
-  if (refresh) {
-    void import('@/lib/api/client').then(({ apiRequest }) =>
-      apiRequest('/auth/logout/', {
-        method: 'POST',
-        auth: false,
-        body: { refresh },
-      }),
-    )
-  }
+  void import('@/lib/api/auth').then(({ logoutApi }) => logoutApi())
 }
 
 export const getStoredAdminRole = (): AdminRole | null => {

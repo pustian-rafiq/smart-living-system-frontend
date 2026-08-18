@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -19,6 +20,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -50,7 +52,7 @@ interface EditProfileDialogProps {
     email?: string
     role: UserRole
   }
-  onSave: (data: ProfileFormData) => void
+  onSave: (data: ProfileFormData & { photoFile?: File }) => void
 }
 
 export function EditProfileDialog({
@@ -68,9 +70,10 @@ export function EditProfileDialog({
       role: initialData.role,
     },
   })
+  const [photoFile, setPhotoFile] = useState<File | undefined>()
 
   const onSubmit = (data: ProfileFormData) => {
-    onSave(data)
+    onSave({ ...data, photoFile })
     onOpenChange(false)
   }
 
@@ -129,6 +132,15 @@ export function EditProfileDialog({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2">
+              <Label>Profile photo</Label>
+              <Input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={event => setPhotoFile(event.target.files?.[0])}
+              />
+            </div>
 
             <FormField
               control={form.control}

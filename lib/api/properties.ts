@@ -77,6 +77,23 @@ export async function updateListing(
   })
 }
 
+export { uploadMediaFile, uploadMediaFiles } from './media'
+export type { MediaKind } from './media'
+
+export async function uploadListingMedia(
+  propertyId: string,
+  file: File,
+  kind: 'image' | 'video',
+): Promise<ApiResult<Property>> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('kind', kind)
+  return apiRequest<Property>(`/properties/${propertyId}/media/`, {
+    method: 'POST',
+    formData: form,
+  })
+}
+
 export async function fetchPropertiesByIds(
   ids: string[],
 ): Promise<ApiResult<Property[]>> {

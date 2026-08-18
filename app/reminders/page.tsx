@@ -22,7 +22,7 @@ import {
   fetchReminders,
   fetchReminderHistory,
 } from '@/lib/api/reminders'
-import { getDemoTenantId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import {
@@ -41,7 +41,7 @@ export default function RemindersPage() {
   const t = useTranslations('tools.reminders')
   const tc = useTranslations('common')
 
-  const userId = getDemoTenantId()
+  const userId = getCurrentAccountUserId()
   const [settings, setSettings] = useState<ReminderSettings | null>(null)
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [history, setHistory] = useState<ReminderHistory | null>(null)

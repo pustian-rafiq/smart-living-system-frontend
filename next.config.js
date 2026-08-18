@@ -5,6 +5,8 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 
 const nextConfig = {
   reactStrictMode: true,
+  // Keep trailing slashes on /api/v1/* so Django POST (login, refresh) is not 500.
+  skipTrailingSlashRedirect: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -19,7 +21,29 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.digitaloceanspaces.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.sgp1.digitaloceanspaces.com',
+        pathname: '/**',
+      },
     ],
+  },
+  async rewrites() {
+    const api = (process.env.API_PROXY_TARGET || 'http://127.0.0.1:8000').replace(
+      /\/$/,
+      '',
+    )
+    return [
+      {
+        source: '/api/v1/:path*',
+        destination: `${api}/api/v1/:path*/`,
+      },
+    ]
   },
   async headers() {
     return [

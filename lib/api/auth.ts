@@ -2,11 +2,7 @@ import { apiRequest } from './client'
 import type { ApiResult } from './http'
 import type { UserRole } from '@/types'
 import type { AdminRole } from '@/types/admin'
-import {
-  setAuthTokens,
-  clearAuthTokens,
-  getRefreshToken,
-} from '@/utils/auth-tokens'
+import { setAuthTokens, clearAuthTokens } from '@/utils/auth-tokens'
 
 export type AuthUser = {
   id: string
@@ -17,6 +13,7 @@ export type AuthUser = {
   role: UserRole
   roleSelected: boolean
   isPhoneVerified: boolean
+  hasPin: boolean
   profilePhotoUrl: string | null
   locale: string
   adminRole: AdminRole | null
@@ -26,9 +23,11 @@ export type AuthUser = {
 
 export type AuthSession = {
   access: string
-  refresh: string
+  refresh?: string
   user: AuthUser
   needsRoleSelection: boolean
+  needsPinSetup: boolean
+  hasPin: boolean
   availableRoles: UserRole[]
   adminRole: AdminRole | null
 }
@@ -41,11 +40,33 @@ export type OtpRequestResult = {
   devOtp?: string
 }
 
-function persistTokens(session: Pick<AuthSession, 'access' | 'refresh' | 'user'>) {
+export type LoginStartResult = {
+  next: 'pin' | 'otp'
+  phone: string
+  hasPin: boolean
+  trustedDevice: boolean
+  expiresIn?: number
+  purpose?: string
+  devOtp?: string
+}
+
+function persistTokens(
+  session: Pick<AuthSession, 'access' | 'refresh' | 'user'>,
+) {
   setAuthTokens({
     access: session.access,
     refresh: session.refresh,
     userId: session.user.id,
+  })
+}
+
+export async function startLogin(params: {
+  phone: string
+}): Promise<ApiResult<LoginStartResult>> {
+  return apiRequest<LoginStartResult>('/auth/login/start/', {
+    method: 'POST',
+    auth: false,
+    body: { phone: params.phone },
   })
 }
 
@@ -83,6 +104,55 @@ export async function verifyOtp(params: {
   return result
 }
 
+export async function loginWithPin(params: {
+  phone: string
+  pin: string
+}): Promise<ApiResult<AuthSession>> {
+  const result = await apiRequest<AuthSession>('/auth/pin/login/', {
+    method: 'POST',
+    auth: false,
+    body: {
+      phone: params.phone,
+      pin: params.pin,
+    },
+  })
+  if (result.ok) {
+    persistTokens(result.data)
+  }
+  return result
+}
+
+export async function setPin(params: {
+  pin: string
+  confirmPin: string
+  currentPin?: string
+}): Promise<ApiResult<AuthSession>> {
+  const result = await apiRequest<AuthSession>('/auth/pin/set/', {
+    method: 'POST',
+    body: {
+      pin: params.pin,
+      confirmPin: params.confirmPin,
+      currentPin: params.currentPin || undefined,
+    },
+  })
+  if (result.ok) {
+    persistTokens(result.data)
+  }
+  return result
+}
+
+export async function refreshSession(): Promise<ApiResult<AuthSession>> {
+  const result = await apiRequest<AuthSession>('/auth/token/refresh/', {
+    method: 'POST',
+    auth: false,
+    body: {},
+  })
+  if (result.ok) {
+    persistTokens(result.data)
+  }
+  return result
+}
+
 export async function selectRole(
   role: UserRole,
 ): Promise<ApiResult<AuthSession>> {
@@ -100,14 +170,29 @@ export async function fetchCurrentUser(): Promise<ApiResult<AuthUser>> {
   return apiRequest<AuthUser>('/accounts/me/')
 }
 
-export async function logoutApi(): Promise<ApiResult<{ logged_out: boolean }>> {
-  const refresh = getRefreshToken()
-  const result = refresh
-    ? await apiRequest<{ logged_out: boolean }>('/auth/logout/', {
-        method: 'POST',
-        body: { refresh },
-      })
-    : { ok: true as const, data: { logged_out: true } }
+export async function updateCurrentUser(input: {
+  name?: string
+  email?: string
+  locale?: string
+  profilePhoto?: File
+}): Promise<ApiResult<AuthUser>> {
+  const form = new FormData()
+  if (input.name !== undefined) form.append('name', input.name)
+  if (input.email !== undefined) form.append('email', input.email)
+  if (input.locale !== undefined) form.append('locale', input.locale)
+  if (input.profilePhoto) form.append('profilePhoto', input.profilePhoto)
+  return apiRequest<AuthUser>('/accounts/me/', {
+    method: 'PATCH',
+    formData: form,
+  })
+}
+
+export async function logoutApi(): Promise<ApiResult<{ loggedOut: boolean }>> {
+  const result = await apiRequest<{ loggedOut: boolean }>('/auth/logout/', {
+    method: 'POST',
+    auth: false,
+    body: {},
+  })
   clearAuthTokens()
   return result
 }

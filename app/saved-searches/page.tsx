@@ -23,7 +23,7 @@ import {
   patchSavedSearch,
   deleteSavedSearch,
 } from '@/lib/api/search'
-import { getDemoChatUserId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import type { SavedSearch } from '@/types/savedSearch'
 import { Search, Bell, BellOff, Plus } from 'lucide-react'
@@ -41,7 +41,7 @@ export default function SavedSearchesPage() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editName, setEditName] = useState('')
 
-  const userId = getDemoChatUserId()
+  const userId = getCurrentAccountUserId()
   const load = useCallback(() => fetchSavedSearches(userId), [userId])
   const { data: allSearches, loading, refetch } = useMockQuery(load)
 

@@ -12,7 +12,7 @@ import {
   getAttendanceSummary,
 } from '@/lib/api/messDomain'
 import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
-import { getDemoTenantId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { ok } from '@/lib/api/http'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
@@ -25,7 +25,7 @@ export default function StudentAttendancePage() {
   const t = useTranslations('mess')
   const router = useRouter()
   const role = getStoredRole()
-  const tenantId = getDemoTenantId()
+  const tenantId = getCurrentAccountUserId()
 
   const loadStudents = useCallback(() => fetchMessStudents(), [])
   const { data: students } = useMockQuery(loadStudents)

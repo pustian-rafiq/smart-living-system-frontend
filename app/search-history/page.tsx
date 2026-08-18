@@ -13,7 +13,7 @@ import {
   clearUserSearchHistory,
   deleteSearchHistoryEntry,
 } from '@/lib/api/search'
-import { getDemoChatUserId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import type { SearchHistory } from '@/types/favorites'
 import { Search, Clock, Trash2 } from 'lucide-react'
@@ -34,7 +34,7 @@ export default function SearchHistoryPage() {
   const tc = useTranslations('common')
   const [showClearDialog, setShowClearDialog] = useState(false)
 
-  const userId = getDemoChatUserId()
+  const userId = getCurrentAccountUserId()
   const load = useCallback(() => fetchSearchHistory(userId), [userId])
   const { data: history, loading, refetch } = useMockQuery(load)
 

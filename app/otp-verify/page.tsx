@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
 import { requestOtp, verifyOtp } from '@/lib/api/auth'
-import { applyAuthSession } from '@/utils/auth'
+import { applyAuthSession, nextPathAfterAuth } from '@/utils/auth'
 
 export default function OTPVerify() {
   const router = useRouter()
@@ -98,17 +98,7 @@ export default function OTPVerify() {
     }
 
     applyAuthSession(result.data)
-
-    if (result.data.needsRoleSelection || !result.data.user.roleSelected) {
-      router.push('/role-selection')
-      return
-    }
-
-    if (result.data.user.role === 'admin') {
-      router.push('/admin')
-      return
-    }
-    router.push('/dashboard')
+    router.push(nextPathAfterAuth(result.data))
   }
 
   const handleResend = async () => {

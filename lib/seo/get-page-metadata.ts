@@ -28,6 +28,7 @@ const defaultPaths: Partial<Record<SeoPageKey, string>> = {
   contact: '/contact',
   login: '/login',
   otpVerify: '/otp-verify',
+  setPin: '/set-pin',
   roleSelection: '/role-selection',
   accountRecover: '/account/recover',
   accountChangePhone: '/account/change-phone',
@@ -36,6 +37,7 @@ const defaultPaths: Partial<Record<SeoPageKey, string>> = {
 const noIndexPages: SeoPageKey[] = [
   'login',
   'otpVerify',
+  'setPin',
   'roleSelection',
   'accountRecover',
   'accountChangePhone',

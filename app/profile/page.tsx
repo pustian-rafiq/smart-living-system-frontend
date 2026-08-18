@@ -41,14 +41,15 @@ import { useTranslations } from 'next-intl'
 import { LanguageSwitcher, useLocaleLabel } from '@/components/i18n'
 import { useStoredRole } from '@/hooks/useStoredRole'
 import { UserVerificationPanel } from '@/components/auth/UserVerificationPanel'
-import { getVerificationStatus, logout } from '@/utils/auth'
+import { getVerificationStatus, logout, syncUserDisplay } from '@/utils/auth'
 import {
   fetchRenterProfile,
   saveRenterProfile,
   fetchRenterHistory,
 } from '@/lib/api/profile'
-import { getDemoUserId, getDemoChatUserId } from '@/lib/api/demoUser'
-import { getStoredUserId } from '@/utils/auth-tokens'
+import { getCurrentAccountUserId } from '@/lib/api/account'
+import { fetchCurrentUser, updateCurrentUser } from '@/lib/api/auth'
+import { uploadMediaFile } from '@/lib/api/media'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import type { RenterProfile } from '@/types/renterProfile'
 import { RenterHistoryDialog } from '@/components/renter/RenterHistoryDialog'
@@ -77,16 +78,13 @@ export default function ProfilePage() {
   const localeLabel = useLocaleLabel()
   const tp = useTranslations('profile')
   const { role, ready } = useStoredRole()
-  const profileUserId =
-    role === 'owner' || role === 'admin'
-      ? getDemoUserId(role)
-      : getDemoChatUserId()
+  const profileUserId = getCurrentAccountUserId()
   const loadProfile = useCallback(
     () => fetchRenterProfile(profileUserId),
     [profileUserId]
   )
   const { data: profileData, refetch: refetchProfile } = useMockQuery(loadProfile)
-  const renterHistoryUserId = getStoredUserId() || getDemoUserId('renter')
+  const renterHistoryUserId = profileUserId
   const loadHistory = useCallback(
     () => fetchRenterHistory(renterHistoryUserId),
     [renterHistoryUserId]
@@ -94,9 +92,9 @@ export default function ProfilePage() {
   const { data: renterHistory } = useMockQuery(loadHistory)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [profile, setProfile] = useState<ProfileData>({
-    name: 'Rahim Uddin',
-    phone: '+8801712345678',
-    email: 'rahim@example.com',
+    name: '',
+    phone: '',
+    email: '',
     role: 'renter',
     verified: getVerificationStatus() === 'verified',
   })
@@ -126,26 +124,22 @@ export default function ProfilePage() {
   // Load profile from sessionStorage only after mount (hydration-safe)
   useEffect(() => {
     if (!ready) return
-    const storedPhone = sessionStorage.getItem('loginPhone')
-
     if (profileData) {
       setUserProfile(profileData)
     }
     setVerificationStatusState(getVerificationStatus())
-    setProfile(prev => ({
-      ...prev,
-      role,
-      phone: storedPhone || prev.phone,
-      verified: getVerificationStatus() === 'verified',
-      name:
-        role === 'owner'
-          ? 'Property Owner'
-          : storedPhone
-            ? 'User ' + storedPhone.slice(-4)
-            : prev.name,
-      email:
-        role === 'owner' ? 'owner@smartliving.bd' : prev.email || 'rahim@example.com',
-    }))
+    void fetchCurrentUser().then(result => {
+      if (!result.ok) return
+      const user = result.data
+      syncUserDisplay(user)
+      setProfile({
+        name: user.name || '',
+        phone: user.phoneDigits || user.phone,
+        email: user.email || '',
+        role: user.role,
+        verified: getVerificationStatus() === 'verified',
+      })
+    })
   }, [ready, role, profileData])
 
   const persistProfile = async (updated: RenterProfile) => {
@@ -154,30 +148,49 @@ export default function ProfilePage() {
     refetchProfile()
   }
 
-  const handleSave = (data: { name: string; phone: string; email?: string }) => {
-    setProfile({
-      ...profile,
-      ...data,
+  const handleSave = async (data: {
+    name: string
+    phone: string
+    email?: string
+    photoFile?: File
+  }) => {
+    const result = await updateCurrentUser({
+      name: data.name,
+      email: data.email || '',
+      profilePhoto: data.photoFile,
     })
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('userName', data.name)
-      window.dispatchEvent(new Event('profile-updated'))
+    if (!result.ok) {
+      toast.error(result.error)
+      return
     }
+    syncUserDisplay(result.data)
+    setProfile({
+      name: result.data.name || data.name,
+      phone: result.data.phoneDigits || data.phone,
+      email: result.data.email || data.email,
+      role: result.data.role,
+      verified: getVerificationStatus() === 'verified',
+    })
     toast.success('Profile updated successfully!')
   }
 
   // Document handlers
-  const handleDocumentUpload = (data: {
+  const handleDocumentUpload = async (data: {
     type: Document['type']
     documentNumber: string
     file: File
     expiryDate?: Date
   }) => {
+    const uploaded = await uploadMediaFile(data.file, 'document')
+    if (!uploaded.ok) {
+      toast.error(uploaded.error)
+      return
+    }
     const newDocument: Document = {
       id: `doc-${Date.now()}`,
       type: data.type,
       documentNumber: data.documentNumber,
-      fileUrl: URL.createObjectURL(data.file),
+      fileUrl: uploaded.data.url,
       fileName: data.file.name,
       fileSize: data.file.size,
       uploadedAt: new Date().toISOString(),
@@ -215,7 +228,16 @@ export default function ProfilePage() {
   }
 
   // Family member handlers
-  const handleFamilyMemberAdd = (data: any) => {
+  const handleFamilyMemberAdd = async (data: any) => {
+    let photoUrl = editingFamilyMember?.photoUrl
+    if (data.photoFile) {
+      const uploaded = await uploadMediaFile(data.photoFile, 'profile')
+      if (!uploaded.ok) {
+        toast.error(uploaded.error)
+        return
+      }
+      photoUrl = uploaded.data.url
+    }
     const newMember: FamilyMember = {
       id: editingFamilyMember?.id || `fam-${Date.now()}`,
       name: data.name,
@@ -224,9 +246,7 @@ export default function ProfilePage() {
       gender: data.gender,
       phone: data.phone,
       nid: data.nid,
-      photoUrl: data.photoFile
-        ? URL.createObjectURL(data.photoFile)
-        : editingFamilyMember?.photoUrl,
+      photoUrl,
       isEmergencyContact: data.isEmergencyContact,
       createdAt: editingFamilyMember?.createdAt || new Date().toISOString(),
     }

@@ -80,6 +80,11 @@
       "description": "Enter the one-time password sent to your phone to continue.",
       "keywords": ""
     },
+    "setPin": {
+      "title": "Create PIN",
+      "description": "Set a 4 to 6 digit PIN to sign in without waiting for SMS.",
+      "keywords": ""
+    },
     "roleSelection": {
       "title": "Choose Your Role",
       "description": "Select whether you are a renter, property owner, or student to personalize your experience.",

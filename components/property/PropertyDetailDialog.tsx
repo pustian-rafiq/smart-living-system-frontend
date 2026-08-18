@@ -37,7 +37,6 @@ import { InstantBookBadge } from '@/components/shared/InstantBookBadge'
 import { useRouter } from 'next/navigation'
 import type { Property } from '@/types/property'
 import type { BookingFormData } from '@/types/booking'
-import { getDemoRenterId } from '@/lib/api/demoUser'
 
 interface PropertyDetailDialogProps {
   property: Property | null
@@ -301,7 +300,6 @@ export function PropertyDetailDialog({
             </Button>
             <FavoriteButton
               property={property}
-              userId={getDemoRenterId()}
               variant="outline"
               size="default"
             />

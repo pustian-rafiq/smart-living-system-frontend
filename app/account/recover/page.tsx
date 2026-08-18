@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { recoverAccount, requestRecoverOtp } from '@/lib/api/account'
-import { applyAuthSession } from '@/utils/auth'
+import { applyAuthSession, nextPathAfterAuth } from '@/utils/auth'
 import { KeyRound, ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 
@@ -42,16 +42,9 @@ export default function AccountRecoverPage() {
       setError(result.error)
       return
     }
-    applyAuthSession(result.data, {
-      complete: result.data.user.roleSelected,
-    })
+    applyAuthSession(result.data)
     setDone(true)
-    const next =
-      !result.data.user.roleSelected || result.data.needsRoleSelection
-        ? '/role-selection'
-        : result.data.user.role === 'admin'
-          ? '/admin'
-          : '/dashboard'
+    const next = nextPathAfterAuth(result.data)
     setTimeout(() => router.push(next), 1200)
   }
 

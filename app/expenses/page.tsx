@@ -30,7 +30,7 @@ import {
   fetchBudgets,
   fetchExpenseCategories,
 } from '@/lib/api/expenses'
-import { getDemoTenantId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { TrendingUp, PieChart, DollarSign } from 'lucide-react'
@@ -56,7 +56,7 @@ export default function ExpensesPage() {
   )
   const [isLoading, setIsLoading] = useState(true)
 
-  const userId = getDemoTenantId()
+  const userId = getCurrentAccountUserId()
 
   const loadBaseData = useCallback(async () => {
     const [analyticsRes, yearlyRes, budgetsRes, categoriesRes] =

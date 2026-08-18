@@ -18,12 +18,11 @@ import { Shield, ArrowLeft } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import {
   DEMO_ADMIN_PHONES,
-  getAdminRoleForPhone,
   ADMIN_ROLE_LABELS,
 } from '@/lib/admin/permissions'
 import { applyAuthSession, isAdminSession, hasCompleteSession } from '@/utils/auth'
 import { hasAuthTokens } from '@/utils/auth-tokens'
-import { requestOtp, selectRole, verifyOtp } from '@/lib/api/auth'
+import { loginWithPin, requestOtp, selectRole, startLogin, verifyOtp } from '@/lib/api/auth'
 import type { AuthSession } from '@/lib/api/auth'
 import type { ApiResult } from '@/lib/api/http'
 
@@ -65,7 +64,7 @@ async function establishAdminSession(
     }
   }
 
-  applyAuthSession(session, { complete: true })
+  applyAuthSession(session, { complete: !session.needsPinSetup })
   return { ok: true, data: session }
 }
 
@@ -78,7 +77,8 @@ function AdminLoginForm() {
 
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')
-  const [step, setStep] = useState<'phone' | 'otp'>('phone')
+  const [pin, setPin] = useState('')
+  const [step, setStep] = useState<'phone' | 'otp' | 'pin'>('phone')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [devHint, setDevHint] = useState<string | null>(null)
@@ -105,14 +105,8 @@ function AdminLoginForm() {
       setError(t('invalidPhone'))
       return
     }
-    const adminRole = getAdminRoleForPhone(normalized)
-    if (!adminRole) {
-      setError(t('notRegistered'))
-      return
-    }
-
     setLoading(true)
-    const result = await requestOtp({ phone: toE164(normalized), purpose: 'login' })
+    const result = await startLogin({ phone: toE164(normalized) })
     setLoading(false)
 
     if (!result.ok) {
@@ -121,6 +115,11 @@ function AdminLoginForm() {
     }
 
     setPhone(normalized)
+    if (result.data.next === 'pin') {
+      setStep('pin')
+      setPin('')
+      return
+    }
     if (result.data.devOtp) {
       setDevHint(result.data.devOtp)
       setOtp(result.data.devOtp)
@@ -145,7 +144,43 @@ function AdminLoginForm() {
       return
     }
 
-    router.replace(next)
+    router.replace(result.data.needsPinSetup ? '/set-pin' : next)
+  }
+
+  const handlePinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (pin.length < 4) {
+      setError(t('invalidOtp'))
+      return
+    }
+    setLoading(true)
+    const loggedIn = await loginWithPin({ phone: toE164(phone), pin })
+    setLoading(false)
+    if (!loggedIn.ok) {
+      setError(loggedIn.error)
+      setPin('')
+      return
+    }
+    let session = loggedIn.data
+    if (session.needsRoleSelection || session.user.role !== 'admin') {
+      if (!session.availableRoles.includes('admin') && !session.adminRole) {
+        setError('This phone is not registered as a platform admin.')
+        return
+      }
+      const selected = await selectRole('admin')
+      if (!selected.ok) {
+        setError(selected.error)
+        return
+      }
+      session = selected.data
+    }
+    if (session.user.role !== 'admin' || !session.adminRole) {
+      setError('Admin access is not available for this account.')
+      return
+    }
+    applyAuthSession(session, { complete: !session.needsPinSetup })
+    router.replace(session.needsPinSetup ? '/set-pin' : next)
   }
 
   const quickLogin = async (demoPhone: string) => {
@@ -169,7 +204,7 @@ function AdminLoginForm() {
       return
     }
 
-    router.replace(next)
+    router.replace(result.data.needsPinSetup ? '/set-pin' : next)
   }
 
   const displayPhone = phone
@@ -190,15 +225,21 @@ function AdminLoginForm() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              {step === 'phone' ? t('enterPhone') : t('verifyOtp')}
+              {step === 'phone'
+                ? t('enterPhone')
+                : step === 'pin'
+                  ? t('enterPhone')
+                  : t('verifyOtp')}
             </CardTitle>
             <CardDescription>
               {step === 'phone'
                 ? t('phoneDesc')
-                : t('otpDesc', {
-                    phone: displayPhone,
-                    otp: devHint || '******',
-                  })}
+                : step === 'pin'
+                  ? displayPhone
+                  : t('otpDesc', {
+                      phone: displayPhone,
+                      otp: devHint || '******',
+                    })}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -220,6 +261,45 @@ function AdminLoginForm() {
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? t('signingIn') : t('sendOtp')}
+                </Button>
+              </form>
+            ) : step === 'pin' ? (
+              <form onSubmit={handlePinSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-pin">PIN</Label>
+                  <Input
+                    id="admin-pin"
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={pin}
+                    onChange={e =>
+                      setPin(e.target.value.replace(/\D/g, '').slice(0, 6))
+                    }
+                    required
+                  />
+                </div>
+                {error && (
+                  <p className="text-sm text-destructive">{error}</p>
+                )}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loading || pin.length < 4}
+                >
+                  {loading ? t('signingIn') : t('signInAdmin')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => {
+                    setStep('phone')
+                    setPin('')
+                    setError('')
+                  }}
+                >
+                  {t('changeNumber')}
                 </Button>
               </form>
             ) : (

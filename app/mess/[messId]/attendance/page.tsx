@@ -27,7 +27,7 @@ import {
   generateAttendanceReport,
 } from '@/lib/api/messDomain'
 import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
-import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, Calendar, FileText, Users } from 'lucide-react'
@@ -42,7 +42,7 @@ export default function AttendanceManagementPage() {
   const router = useRouter()
   const role = getStoredRole()
   const messId = params.messId as string
-  const ownerId = getDemoOwnerId()
+  const ownerId = getCurrentAccountUserId()
 
   const loadMess = useCallback(() => fetchMessById(messId), [messId])
   const { data: mess } = useMockQuery(loadMess)

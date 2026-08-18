@@ -1,6 +1,6 @@
 /**
  * HTTP client for Smart Living API.
- * Parses ApiResult envelope; attaches JWT; refreshes on 401.
+ * Parses ApiResult envelope; attaches JWT; refreshes on 401 via httpOnly cookie.
  */
 
 import {
@@ -19,8 +19,22 @@ const DEFAULT_API_BASE = 'http://127.0.0.1:8000/api/v1'
 
 export function getApiBaseUrl(): string {
   const raw = process.env.NEXT_PUBLIC_API_URL?.trim()
-  if (!raw) return DEFAULT_API_BASE
-  return raw.replace(/\/$/, '')
+  if (typeof window !== 'undefined') {
+    if (!raw || raw.startsWith('/')) {
+      return (raw || '/api/v1').replace(/\/$/, '')
+    }
+    try {
+      const apiOrigin = new URL(raw, window.location.href).origin
+      if (apiOrigin === window.location.origin) {
+        return raw.replace(/\/$/, '')
+      }
+    } catch {
+      /* use same-origin proxy */
+    }
+    return '/api/v1'
+  }
+  if (raw) return raw.replace(/\/$/, '')
+  return DEFAULT_API_BASE
 }
 
 type RequestOptions = {
@@ -76,7 +90,6 @@ async function parseEnvelope<T>(response: Response): Promise<ApiResult<T>> {
     )
   }
 
-  // Non-envelope success (shouldn't happen with EnvelopeRenderer)
   if (response.ok) {
     return { ok: true, data: json as T }
   }
@@ -84,26 +97,42 @@ async function parseEnvelope<T>(response: Response): Promise<ApiResult<T>> {
   return err(`HTTP ${response.status}`, mapStatusToCode(response.status))
 }
 
+function withTrailingSlash(url: string): string {
+  const hashIndex = url.indexOf('#')
+  const hash = hashIndex >= 0 ? url.slice(hashIndex) : ''
+  const withoutHash = hashIndex >= 0 ? url.slice(0, hashIndex) : url
+  const qIndex = withoutHash.indexOf('?')
+  const path = qIndex >= 0 ? withoutHash.slice(0, qIndex) : withoutHash
+  const query = qIndex >= 0 ? withoutHash.slice(qIndex) : ''
+  if (path.endsWith('/')) return `${path}${query}${hash}`
+  return `${path}/${query}${hash}`
+}
+
 async function refreshAccessToken(): Promise<boolean> {
   const refresh = getRefreshToken()
-  if (!refresh) return false
-
   try {
-    const response = await fetch(`${getApiBaseUrl()}/auth/token/refresh/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ refresh }),
-    })
-    const result = await parseEnvelope<{ access: string; refresh?: string }>(
-      response,
+    const response = await fetch(
+      withTrailingSlash(`${getApiBaseUrl()}/auth/token/refresh/`),
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(refresh ? { refresh } : {}),
+      },
     )
+    const result = await parseEnvelope<{
+      access: string
+      refresh?: string
+      user?: { id: string }
+    }>(response)
     if (!result.ok) {
       clearAuthTokens()
       return false
     }
     setAuthTokens({
       access: result.data.access,
-      refresh: result.data.refresh || refresh,
+      refresh: result.data.refresh,
+      userId: result.data.user?.id,
     })
     return true
   } catch {
@@ -141,15 +170,18 @@ export async function apiRequest<T>(
     }
   }
 
-  const url = path.startsWith('http')
-    ? path
-    : `${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`
+  const url = withTrailingSlash(
+    path.startsWith('http')
+      ? path
+      : `${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`,
+  )
 
   let response: Response
   try {
     response = await fetch(url, {
       method,
       headers,
+      credentials: 'include',
       body: formData
         ? formData
         : body !== undefined

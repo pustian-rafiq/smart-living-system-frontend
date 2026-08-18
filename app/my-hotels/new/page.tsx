@@ -31,6 +31,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { registerHotel } from '@/lib/api/hotels'
+import { uploadMediaFile } from '@/lib/api/media'
+import { toast } from '@/lib/feedback/toast'
 import { CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -80,6 +82,9 @@ export default function RegisterHotelPage() {
   const [amenities, setAmenities] = useState<string[]>(['WiFi', 'AC'])
   const [createdId, setCreatedId] = useState<string | null>(null)
 
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [licenseFile, setLicenseFile] = useState<File | null>(null)
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
     defaultValues: {
@@ -126,16 +131,34 @@ export default function RegisterHotelPage() {
     if (ok) setStep(s => Math.min(s + 1, STEPS.length - 1))
   }
 
-  const onSubmit = form.handleSubmit(values => {
-    void registerHotel({
+  const onSubmit = form.handleSubmit(async values => {
+    let imageUrl = values.imageUrl || undefined
+    if (coverFile) {
+      const uploaded = await uploadMediaFile(coverFile, 'hotel')
+      if (!uploaded.ok) {
+        toast.error(uploaded.error)
+        return
+      }
+      imageUrl = uploaded.data.url
+    }
+    let licenseDocumentName = values.licenseDocumentName || undefined
+    if (licenseFile) {
+      const uploaded = await uploadMediaFile(licenseFile, 'document')
+      if (!uploaded.ok) {
+        toast.error(uploaded.error)
+        return
+      }
+      licenseDocumentName = uploaded.data.url
+    }
+    const result = await registerHotel({
       ...values,
       amenities,
-      imageUrl: values.imageUrl || undefined,
+      imageUrl,
       licenseNumber: values.licenseNumber || undefined,
-      licenseDocumentName: values.licenseDocumentName || 'license.pdf',
-    }).then(result => {
-      if (result.ok) setCreatedId(result.data.id)
+      licenseDocumentName: licenseDocumentName || 'license.pdf',
     })
+    if (result.ok) setCreatedId(result.data.id)
+    else toast.error(result.error)
   })
 
   if (createdId) {
@@ -418,7 +441,7 @@ export default function RegisterHotelPage() {
                           <FormLabel>{t('register.fields.coverImageUrl')}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="https://…"
+                              placeholder="https://… (or upload a file below)"
                               {...field}
                             />
                           </FormControl>
@@ -426,6 +449,26 @@ export default function RegisterHotelPage() {
                         </FormItem>
                       )}
                     />
+                    <div className="space-y-2">
+                      <Label>Cover photo file</Label>
+                      <Input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={event =>
+                          setCoverFile(event.target.files?.[0] ?? null)
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>License document</Label>
+                      <Input
+                        type="file"
+                        accept="application/pdf,image/jpeg,image/png"
+                        onChange={event =>
+                          setLicenseFile(event.target.files?.[0] ?? null)
+                        }
+                      />
+                    </div>
                   </>
                 )}
 

@@ -46,6 +46,7 @@ import {
 } from 'lucide-react'
 import {
   fetchBillsBoard,
+  fetchBillsForTenant,
   scheduleBillPayment,
   generateBill,
   bulkGenerateBills,
@@ -54,7 +55,7 @@ import {
   saveMeterReadings,
   getPreviousMeterReading,
 } from '@/lib/api/bills'
-import { getDemoTenantId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import type { Building, Flat, Renter } from '@/types/building'
 import type { Mess } from '@/types/mess'
 import type {
@@ -107,9 +108,15 @@ export default function BillsPage() {
   const [isCashDialogOpen, setIsCashDialogOpen] = useState(false)
 
   const { ready, isOwner } = useStoredRole()
-  const tenantId = getDemoTenantId()
+  const tenantId = getCurrentAccountUserId()
 
   const loadBoard = useCallback(async () => {
+    if (!isOwner) {
+      const result = await fetchBillsForTenant()
+      if (result.ok) setBills(result.data)
+      setBoardReady(true)
+      return
+    }
     const result = await fetchBillsBoard()
     if (result.ok) {
       setBills(result.data.bills)
@@ -122,7 +129,7 @@ export default function BillsPage() {
       setMessList(result.data.messList)
     }
     setBoardReady(true)
-  }, [])
+  }, [isOwner])
 
   useEffect(() => {
     loadBoard()

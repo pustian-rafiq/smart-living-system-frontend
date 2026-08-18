@@ -12,10 +12,10 @@ import { useMockQuery } from '@/hooks/useMockQuery'
 import {
   fetchOwnerSubscription,
   fetchFlatLimitStatus,
+  fetchSubscriptionPlans,
   upgradeOwnerPlan,
 } from '@/lib/api/subscriptions'
-import { getSubscriptionPlans } from '@/lib/monetization/plans'
-import type { PlanTier } from '@/types/subscription'
+import type { PlanTier, SubscriptionPlan } from '@/types/subscription'
 import { Calendar, Sparkles, Crown } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -26,11 +26,12 @@ export function OwnerSubscriptionPanel() {
 
   const loadSub = useCallback(() => fetchOwnerSubscription(), [tick])
   const loadLimit = useCallback(() => fetchFlatLimitStatus(), [tick])
+  const loadPlans = useCallback(() => fetchSubscriptionPlans(), [tick])
 
   const { data: subscription } = useMockQuery(loadSub)
   const { data: limitStatus } = useMockQuery(loadLimit)
-
-  const plans = getSubscriptionPlans()
+  const { data: plansData } = useMockQuery(loadPlans)
+  const plans: SubscriptionPlan[] = plansData ?? []
 
   const handleUpgrade = async (tier: PlanTier) => {
     if (tier === 'free' || tier === subscription?.planTier) return
@@ -42,7 +43,7 @@ export function OwnerSubscriptionPanel() {
       setUpgradeMsg(result.error)
       return
     }
-    setUpgradeMsg(`Upgraded to ${tier} plan successfully (demo).`)
+    setUpgradeMsg(`Upgraded to ${tier} plan.`)
     setTick(t => t + 1)
   }
 
@@ -107,10 +108,13 @@ export function OwnerSubscriptionPanel() {
 
       <Card className="border-dashed bg-muted/30">
         <CardContent className="p-4 text-sm text-muted-foreground">
-          <p className="font-medium text-foreground">How billing works (demo)</p>
+          <p className="font-medium text-foreground">How billing works</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
-            <li>Free: up to 3 flats — perfect to try the platform</li>
-            <li>Basic & Premium: billed monthly via bKash or card (TODO)</li>
+            <li>Free: up to 3 flats — try the platform</li>
+            <li>
+              Basic and Premium apply immediately to your owner account (sandbox
+              billing until live bKash credentials are set)
+            </li>
             <li>Featured boosts are one-time add-ons per listing</li>
             <li>Platform commission on bookings is separate — see Payments</li>
           </ul>

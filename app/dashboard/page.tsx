@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User, Phone } from 'lucide-react'
 import { getStoredRole, isAdminSession } from '@/utils/auth'
 import { fetchRenters } from '@/lib/api/buildings'
-import { getDemoUserId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { RenterDashboard } from '@/components/dashboard/RenterDashboard'
 import { OwnerDashboard } from '@/components/dashboard/OwnerDashboard'
@@ -82,7 +82,7 @@ export default function DashboardPage() {
   const [area, setArea] = useState('Mirpur')
   const [search, setSearch] = useState('')
 
-  const currentUserId = getDemoUserId(role)
+  const currentUserId = getCurrentAccountUserId()
   const loadRenters = useCallback(() => fetchRenters(), [])
   const { data: renters } = useMockQuery(loadRenters)
   const currentRenter = renters?.find(r => r.id === currentUserId)

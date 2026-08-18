@@ -28,14 +28,9 @@ import {
   Eye,
   CheckCircle2,
 } from 'lucide-react'
-import {
-  fetchAllNotices,
-  fetchMessList,
-  createNotice,
-  removeNotice,
-  acknowledgeMessNotice,
-} from '@/lib/api/mess'
-import { getDemoOwnerId } from '@/lib/api/demoUser'
+import { fetchAllNotices, fetchMessList, createNotice, removeNotice, acknowledgeMessNotice } from '@/lib/api/mess'
+import { getCurrentAccountUserId } from '@/lib/api/account'
+import { uploadMediaFile, uploadMediaFiles } from '@/lib/api/media'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
@@ -50,7 +45,7 @@ export default function NoticesPage() {
   const t = useTranslations('tools.notices')
   const tc = useTranslations('common')
   const role = getStoredRole()
-  const currentUserId = getDemoOwnerId()
+  const currentUserId = getCurrentAccountUserId()
 
   const loadNotices = useCallback(() => fetchAllNotices(), [])
   const { data: initialNotices, refetch: refetchNotices } = useMockQuery(loadNotices)
@@ -131,32 +126,60 @@ export default function NoticesPage() {
     return new Date(notice.expiryDate) < new Date()
   })
 
-  const handleCreateNotice = (data: any) => {
-    // In a real app, upload files to server and get URLs
-    const newNotice: Notice = {
-      id: `notice-${Date.now()}`,
+  const handleCreateNotice = async (data: {
+    title: string
+    content: string
+    priority: Notice['priority']
+    category: Notice['category']
+    expiryDate?: Date
+    pdfFile?: File
+    imageFiles?: File[]
+  }) => {
+    const messId = selectedMess !== 'all' ? selectedMess : messes[0]?.id ?? ''
+    if (!messId) {
+      toast.error(t('noPermission'))
+      return
+    }
+
+    let pdfUrl: string | undefined
+    if (data.pdfFile) {
+      const uploaded = await uploadMediaFile(data.pdfFile, 'document')
+      if (!uploaded.ok) {
+        toast.error(uploaded.error)
+        return
+      }
+      pdfUrl = uploaded.data.url
+    }
+
+    let imageUrls: string[] | undefined
+    if (data.imageFiles?.length) {
+      const uploaded = await uploadMediaFiles(data.imageFiles, 'image')
+      if (!uploaded.ok) {
+        toast.error(uploaded.error)
+        return
+      }
+      imageUrls = uploaded.data
+    }
+
+    const result = await createNotice({
       title: data.title,
       content: data.content,
       date: new Date().toISOString(),
       priority: data.priority,
-      messId: selectedMess !== 'all' ? selectedMess : messes[0]?.id ?? '',
+      messId,
       category: data.category,
       expiryDate: data.expiryDate ? data.expiryDate.toISOString() : undefined,
-      pdfUrl: data.pdfFile ? URL.createObjectURL(data.pdfFile) : undefined,
-      imageUrls: data.imageFiles?.map((file: File) =>
-        URL.createObjectURL(file)
-      ),
+      pdfUrl,
+      imageUrls,
       createdBy: currentUserId,
-      createdAt: new Date().toISOString(),
-      acknowledgments: [],
-    }
-
-    void createNotice(newNotice).then(result => {
-      if (result.ok) {
-        setNotices(prev => [...prev, result.data])
-        void refetchNotices()
-      }
     })
+    if (result.ok) {
+      setNotices(prev => [...prev, result.data])
+      void refetchNotices()
+      toast.success('Notice published')
+    } else {
+      toast.error(result.error)
+    }
     setIsCreateDialogOpen(false)
   }
 

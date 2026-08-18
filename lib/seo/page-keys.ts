@@ -14,6 +14,7 @@ export const seoPageKeys = [
   'contact',
   'login',
   'otpVerify',
+  'setPin',
   'roleSelection',
   'accountRecover',
   'accountChangePhone',

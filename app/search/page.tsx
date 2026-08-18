@@ -46,7 +46,7 @@ import {
   createSavedSearch,
   fetchSavedSearches,
 } from '@/lib/api/search'
-import { getDemoChatUserId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import {
   calculateDistance,
@@ -112,7 +112,7 @@ export default function SearchPage() {
   const [compareList, setCompareList] = useState<Property[]>([])
   const [bookingError, setBookingError] = useState<string | null>(null)
 
-  const chatUserId = getDemoChatUserId()
+  const chatUserId = getCurrentAccountUserId()
   const loadProperties = useCallback(() => fetchProperties(), [])
   const loadMeta = useCallback(() => fetchPropertyMeta(), [])
   const loadSavedSearches = useCallback(

@@ -19,7 +19,8 @@ import type { Complaint, ComplaintStatus } from '@/types/complaint'
 import { getStoredRole } from '@/utils/auth'
 import { toast } from '@/lib/feedback/toast'
 import { createComplaint, fetchComplaints } from '@/lib/api/complaints'
-import { getDemoTenantId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
+import { uploadMediaFile } from '@/lib/api/media'
 
 export default function ComplaintsPage() {
   const t = useTranslations('tools.complaints')
@@ -35,7 +36,7 @@ export default function ComplaintsPage() {
 
   const loadComplaints = useCallback(async () => {
     const result = await fetchComplaints(
-      isOwner ? { ownerView: true } : { userId: getDemoTenantId() }
+      isOwner ? { ownerView: true } : undefined
     )
     if (result.ok) setComplaints(result.data)
   }, [isOwner])
@@ -48,7 +49,8 @@ export default function ComplaintsPage() {
     let filtered = [...complaints]
 
     if (!isOwner) {
-      filtered = filtered.filter(c => c.userId === getDemoTenantId())
+      const mine = getCurrentAccountUserId()
+      if (mine) filtered = filtered.filter(c => c.userId === mine)
     }
 
     if (statusFilter !== 'all') {
@@ -65,13 +67,22 @@ export default function ComplaintsPage() {
     description: string
     image?: File
   }) => {
-    const userId = getDemoTenantId()
+    const userId = getCurrentAccountUserId()
+    let imageUrl: string | undefined
+    if (data.image) {
+      const uploaded = await uploadMediaFile(data.image, 'image')
+      if (!uploaded.ok) {
+        toast.error(uploaded.error)
+        return
+      }
+      imageUrl = uploaded.data.url
+    }
     const result = await createComplaint({
       userId,
       userName: 'Current User',
       title: data.title,
       description: data.description,
-      imageUrl: data.image ? URL.createObjectURL(data.image) : undefined,
+      imageUrl,
     })
     if (result.ok) {
       setComplaints(prev => [result.data, ...prev])

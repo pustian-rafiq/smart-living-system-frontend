@@ -30,7 +30,7 @@ import {
 } from '@/lib/api/hotels'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { calculateBookingFees } from '@/lib/hotel/pricing'
-import { getDemoRenterId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import type { Booking, Room } from '@/types/hotel'
 import { CheckCircle2, Hotel as HotelIcon } from 'lucide-react'
@@ -105,7 +105,7 @@ export default function HotelBookingPage() {
       id: `hb-${Date.now()}`,
       hotelId: hotel.id,
       roomId: selectedRoom.id,
-      userId: getDemoRenterId(),
+      userId: getCurrentAccountUserId(),
       guestName: guestData.guestName,
       guestPhone: guestData.guestPhone,
       guestEmail: guestData.guestEmail || undefined,

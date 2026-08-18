@@ -9,8 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Bell, CheckCheck } from 'lucide-react'
 import type { Notification } from '@/types/complaint'
-import { fetchNotifications } from '@/lib/api/complaints'
-import { getDemoTenantId } from '@/lib/api/demoUser'
+import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '@/lib/api/complaints'
 
 export default function NotificationsPage() {
   const t = useTranslations('tools.notifications')
@@ -18,14 +17,12 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
 
   useEffect(() => {
-    fetchNotifications(getDemoTenantId()).then(result => {
+    fetchNotifications().then(result => {
       if (result.ok) setNotifications(result.data)
     })
   }, [])
 
-  const userNotifications = useMemo(() => {
-    return notifications.filter(n => n.userId === getDemoTenantId())
-  }, [notifications])
+  const userNotifications = notifications
 
   const sortedNotifications = useMemo(() => {
     return [...userNotifications].sort((a, b) => {
@@ -40,14 +37,18 @@ export default function NotificationsPage() {
     return userNotifications.filter(n => !n.read).length
   }, [userNotifications])
 
-  const handleToggleRead = (id: string) => {
-    setNotifications(
-      notifications.map(n => (n.id === id ? { ...n, read: !n.read } : n))
+  const handleToggleRead = async (id: string) => {
+    const result = await markNotificationRead(id)
+    if (!result.ok) return
+    setNotifications(prev =>
+      prev.map(n => (n.id === id ? { ...n, read: true } : n)),
     )
   }
 
-  const handleMarkAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })))
+  const handleMarkAllRead = async () => {
+    const result = await markAllNotificationsRead()
+    if (!result.ok) return
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
   }
 
   return (

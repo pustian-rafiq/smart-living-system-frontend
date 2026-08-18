@@ -37,7 +37,6 @@ import {
   fetchReviewSummary,
 } from '@/lib/api/reviews'
 import { createBooking } from '@/lib/api/bookings'
-import { getDemoRenterId } from '@/lib/api/demoUser'
 import type { Booking, BookingFormData } from '@/types/booking'
 import {
   ArrowLeft,
@@ -161,7 +160,6 @@ export function ListingDetailClient({ id }: { id: string }) {
             <div className="flex flex-wrap gap-2">
               <FavoriteButton
                 property={property}
-                userId={getDemoRenterId()}
                 variant="outline"
               />
               <Button

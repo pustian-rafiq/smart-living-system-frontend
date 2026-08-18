@@ -25,10 +25,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, CheckCircle2 } from 'lucide-react'
 import type { Property, PropertyListingInput } from '@/types/property'
 import { cn } from '@/lib/utils'
+import { uploadMediaFile } from '@/lib/api/properties'
+
+const NEARBY_OPTIONS = [
+  'Bus Stop',
+  'Metro Station',
+  'Hospital',
+  'University',
+  'Market',
+  'Shopping Mall',
+  'School',
+]
 
 const FACILITY_OPTIONS = [
   'WiFi',
@@ -63,8 +75,9 @@ const schema = z.object({
     .enum(['furnished', 'unfurnished', 'semi-furnished'])
     .optional()
     .nullable(),
-  imageUrl: z.string().url('Enter a valid image URL'),
+  imageUrl: z.union([z.string().url(), z.literal('')]).optional(),
   facilities: z.array(z.string()),
+  nearbyFacilities: z.array(z.string()),
   publishNow: z.boolean(),
 })
 
@@ -86,6 +99,8 @@ export function PublishListingWizard({
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [videoFile, setVideoFile] = useState<File | null>(null)
 
   const form = useForm<FormValues>({
     // Zod v4 + RHF resolver typings are loose project-wide
@@ -109,6 +124,7 @@ export function PublishListingWizard({
       furnishing: initial?.furnishing || null,
       imageUrl: initial?.images?.[0] || '',
       facilities: initial?.facilities || ['WiFi', 'Security'],
+      nearbyFacilities: initial?.nearbyFacilities || [],
       publishNow: initial?.published ?? true,
     },
   })
@@ -116,10 +132,20 @@ export function PublishListingWizard({
   const propertyType = form.watch('type')
   const facilities = form.watch('facilities')
 
+  const nearbyFacilities = form.watch('nearbyFacilities')
+
   const toggleFacility = (f: string) => {
     const current = form.getValues('facilities')
     form.setValue(
       'facilities',
+      current.includes(f) ? current.filter(x => x !== f) : [...current, f]
+    )
+  }
+
+  const toggleNearby = (f: string) => {
+    const current = form.getValues('nearbyFacilities')
+    form.setValue(
+      'nearbyFacilities',
       current.includes(f) ? current.filter(x => x !== f) : [...current, f]
     )
   }
@@ -131,7 +157,14 @@ export function PublishListingWizard({
     if (step === 1) {
       return form.trigger(['description', 'depositMonths'])
     }
-    return form.trigger(['imageUrl'])
+    const url = form.getValues('imageUrl')
+    if (imageFile || (url && url.length > 8) || (initial?.images?.length ?? 0) > 0) {
+      return true
+    }
+    form.setError('imageUrl', {
+      message: 'Upload a cover photo or paste an image URL',
+    })
+    return false
   }
 
   const next = async () => {
@@ -143,6 +176,23 @@ export function PublishListingWizard({
     setSubmitting(true)
     setError(null)
     try {
+      let images = values.imageUrl ? [values.imageUrl] : [...(initial?.images || [])]
+      let videos = [...(initial?.videos || [])]
+
+      if (imageFile) {
+        const uploaded = await uploadMediaFile(imageFile, 'image')
+        if (!uploaded.ok) throw new Error(uploaded.error)
+        images = [uploaded.data.url, ...images.filter(url => url !== uploaded.data.url)]
+      }
+      if (videoFile) {
+        const uploaded = await uploadMediaFile(videoFile, 'video')
+        if (!uploaded.ok) throw new Error(uploaded.error)
+        videos = [...videos.filter(url => url !== uploaded.data.url), uploaded.data.url]
+      }
+      if (!images.length) {
+        throw new Error('Add a cover photo (upload a file or paste a URL)')
+      }
+
       const input: PropertyListingInput = {
         name: values.name,
         type: values.type,
@@ -161,7 +211,9 @@ export function PublishListingWizard({
         parking: values.parking,
         security: values.security,
         furnishing: values.furnishing || null,
-        images: [values.imageUrl],
+        images,
+        videos,
+        nearbyFacilities: values.nearbyFacilities,
         facilities: values.facilities,
         published: values.publishNow,
         listingStatus: values.publishNow ? 'published' : 'draft',
@@ -435,7 +487,7 @@ export function PublishListingWizard({
                   </div>
 
                   <div>
-                    <FormLabel className="mb-2 block">Facilities</FormLabel>
+                    <Label className="mb-2 block">Facilities</Label>
                     <div className="flex flex-wrap gap-2">
                       {FACILITY_OPTIONS.map(f => (
                         <Badge
@@ -445,6 +497,26 @@ export function PublishListingWizard({
                           }
                           className="cursor-pointer"
                           onClick={() => toggleFacility(f)}
+                        >
+                          {f}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="mb-2 block">
+                      Nearby (bus, metro, hospital…)
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {NEARBY_OPTIONS.map(f => (
+                        <Badge
+                          key={f}
+                          variant={
+                            nearbyFacilities?.includes(f) ? 'default' : 'outline'
+                          }
+                          className="cursor-pointer"
+                          onClick={() => toggleNearby(f)}
                         >
                           {f}
                         </Badge>
@@ -482,21 +554,48 @@ export function PublishListingWizard({
                     name="imageUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cover photo URL</FormLabel>
+                        <FormLabel>Cover photo</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="https://…"
-                            {...field}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={e =>
+                              setImageFile(e.target.files?.[0] ?? null)
+                            }
                           />
                         </FormControl>
                         <FormDescription>
-                          Use a clear photo of the room or building. Multiple
-                          uploads will connect to cloud storage later.
+                          {imageFile
+                            ? imageFile.name
+                            : 'Upload a JPEG/PNG (max 5 MB), or paste a URL below.'}
                         </FormDescription>
+                        <FormControl>
+                          <Input
+                            placeholder="https://… (optional if you uploaded a file)"
+                            {...field}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                  <div className="space-y-2">
+                    <Label>Video walkthrough (optional)</Label>
+                    <Input
+                      type="file"
+                      accept="video/mp4,video/webm"
+                      onChange={e =>
+                        setVideoFile(e.target.files?.[0] ?? null)
+                      }
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      {videoFile
+                        ? videoFile.name
+                        : initial?.videos?.length
+                          ? `${initial.videos.length} video(s) already saved. Upload another MP4/WebM (max 50 MB).`
+                          : 'MP4 or WebM, max 50 MB. Shown on the listing page.'}
+                    </p>
+                  </div>
                   <FormField
                     control={form.control}
                     name="publishNow"

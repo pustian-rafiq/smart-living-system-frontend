@@ -1,4 +1,4 @@
-/** JWT token storage (sessionStorage — matches existing auth session). */
+/** JWT access in sessionStorage. Refresh lives in an httpOnly cookie. */
 
 const ACCESS_KEY = 'accessToken'
 const REFRESH_KEY = 'refreshToken'
@@ -21,12 +21,16 @@ export function getStoredUserId(): string | null {
 
 export function setAuthTokens(params: {
   access: string
-  refresh: string
+  refresh?: string
   userId?: string
 }): void {
   if (typeof window === 'undefined') return
   sessionStorage.setItem(ACCESS_KEY, params.access)
-  sessionStorage.setItem(REFRESH_KEY, params.refresh)
+  if (params.refresh) {
+    sessionStorage.setItem(REFRESH_KEY, params.refresh)
+  } else {
+    sessionStorage.removeItem(REFRESH_KEY)
+  }
   if (params.userId) {
     sessionStorage.setItem(USER_ID_KEY, params.userId)
   }
@@ -40,5 +44,5 @@ export function clearAuthTokens(): void {
 }
 
 export function hasAuthTokens(): boolean {
-  return Boolean(getAccessToken() && getRefreshToken())
+  return Boolean(getAccessToken())
 }

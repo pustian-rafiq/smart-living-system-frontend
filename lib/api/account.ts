@@ -1,7 +1,5 @@
 import { apiRequest } from './client'
 import { getStoredUserId } from '@/utils/auth-tokens'
-import { getDemoOwnerId, getDemoRenterId } from './demoUser'
-import { getStoredRole } from '@/utils/auth'
 import type { ApiResult } from './http'
 import type { AuthSession } from './auth'
 import { setAuthTokens } from '@/utils/auth-tokens'
@@ -26,7 +24,7 @@ export async function requestPhoneChange(params: {
     phoneDigits: string
     user: AuthSession['user']
     access: string
-    refresh: string
+    refresh?: string
   }>
 > {
   const result = await apiRequest<{
@@ -34,7 +32,7 @@ export async function requestPhoneChange(params: {
     phoneDigits: string
     user: AuthSession['user']
     access: string
-    refresh: string
+    refresh?: string
   }>('/account/phone-change/confirm/', {
     method: 'POST',
     body: { newPhone: params.newPhone, otp: params.otp },
@@ -86,12 +84,7 @@ export async function recoverAccount(params: {
   return result
 }
 
-/** Prefer real user id from JWT session; fall back to demo ids for mock modules. */
+/** JWT session user id. Empty when logged out — never a demo placeholder. */
 export function getCurrentAccountUserId(): string {
-  const stored = getStoredUserId()
-  if (stored) return stored
-  const role = getStoredRole()
-  if (role === 'owner') return getDemoOwnerId()
-  if (role === 'admin') return 'admin1'
-  return getDemoRenterId()
+  return getStoredUserId() || ''
 }

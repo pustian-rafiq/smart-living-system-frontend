@@ -70,6 +70,49 @@ export async function fetchHotelRooms(
   return apiRequest<Room[]>(`/hotels/${hotelId}/rooms/`, { auth: false })
 }
 
+export type RoomWriteInput = {
+  roomNumber: string
+  type: Room['type']
+  floor: number
+  capacity: number
+  basePrice: number
+  description?: string
+  amenities?: string[]
+  images?: string[]
+  available?: boolean
+}
+
+export async function createHotelRoom(
+  hotelId: string,
+  input: RoomWriteInput,
+): Promise<ApiResult<Room>> {
+  return apiRequest<Room>(`/hotels/${hotelId}/rooms/`, {
+    method: 'POST',
+    body: input,
+  })
+}
+
+export async function updateHotelRoom(
+  hotelId: string,
+  roomId: string,
+  input: Partial<RoomWriteInput>,
+): Promise<ApiResult<Room>> {
+  return apiRequest<Room>(`/hotels/${hotelId}/rooms/${roomId}/`, {
+    method: 'PATCH',
+    body: input,
+  })
+}
+
+export async function deleteHotelRoom(
+  hotelId: string,
+  roomId: string,
+): Promise<ApiResult<{ deleted: boolean }>> {
+  return apiRequest<{ deleted: boolean }>(
+    `/hotels/${hotelId}/rooms/${roomId}/`,
+    { method: 'DELETE' },
+  )
+}
+
 export async function fetchHotelBookings(
   hotelId: string,
 ): Promise<ApiResult<Booking[]>> {

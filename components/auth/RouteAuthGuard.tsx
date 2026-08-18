@@ -18,16 +18,15 @@ import {
   isAdminSession,
   isLoggedIn,
   isOtpVerified,
+  isPinResetFlow,
+  needsPinSetup,
 } from '@/utils/auth'
+import { hasAuthTokens } from '@/utils/auth-tokens'
 import { LoadingState } from '@/components/page'
 import { AccessDenied } from './AccessDenied'
 
 type GuardState = 'loading' | 'ready' | 'denied'
 
-/**
- * Client-side route gate for demo auth (sessionStorage).
- * Production: pair with middleware + httpOnly cookies + server authorization.
- */
 export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -37,11 +36,17 @@ export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const next = searchParams.get('next') || pathname
     const role = getStoredRole()
+    const pinNeeded = needsPinSetup()
+    const pinReset = isPinResetFlow()
+    const authed = isOtpVerified() && hasAuthTokens()
 
     const finish = (nextState: GuardState) => setState(nextState)
 
-    // Admin area (except login)
     if (isAdminPath(pathname) && !isAdminPublicPath(pathname)) {
+      if (pinNeeded && authed) {
+        router.replace('/set-pin')
+        return
+      }
       if (!isAdminSession()) {
         router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`)
         return
@@ -50,7 +55,6 @@ export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // Auth flow pages
     if (isAuthFlowPath(pathname)) {
       if (pathname === '/login' && hasCompleteSession()) {
         router.replace(getDefaultPathForRole(role ?? 'renter'))
@@ -64,9 +68,27 @@ export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
         router.replace(getDefaultPathForRole(role ?? 'renter'))
         return
       }
-      if (pathname === '/role-selection') {
-        if (!isOtpVerified()) {
+      if (pathname === '/set-pin') {
+        if (!authed) {
           router.replace('/login')
+          return
+        }
+        if (!pinNeeded && !pinReset && hasCompleteSession()) {
+          router.replace(getDefaultPathForRole(role ?? 'renter'))
+          return
+        }
+        if (!pinNeeded && !pinReset) {
+          router.replace('/role-selection')
+          return
+        }
+      }
+      if (pathname === '/role-selection') {
+        if (!authed) {
+          router.replace('/login')
+          return
+        }
+        if (pinNeeded || pinReset) {
+          router.replace('/set-pin')
           return
         }
         if (isLoggedIn() && hasCompleteSession()) {
@@ -78,22 +100,31 @@ export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // Account recover is public; change-phone needs login
     if (pathname === '/account/change-phone' && !isLoggedIn()) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`)
       return
     }
 
-    // Hotel booking requires login
     if (/^\/hotels\/[^/]+\/book/.test(pathname) && !isLoggedIn()) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`)
       return
     }
 
-    // Protected app routes
     if (isProtectedPath(pathname) && !isPublicPath(pathname)) {
       if (!isLoggedIn() || !isOtpVerified()) {
+        if (authed && pinNeeded) {
+          router.replace('/set-pin')
+          return
+        }
+        if (authed && !hasCompleteSession()) {
+          router.replace('/role-selection')
+          return
+        }
         router.replace(`/login?next=${encodeURIComponent(next)}`)
+        return
+      }
+      if (pinNeeded && pathname !== '/set-pin') {
+        router.replace('/set-pin')
         return
       }
       if (!hasCompleteSession() && pathname !== '/role-selection') {

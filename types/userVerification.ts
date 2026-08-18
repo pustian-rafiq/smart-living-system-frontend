@@ -4,7 +4,11 @@ export type UserVerificationStatus =
   | 'verified'
   | 'rejected'
 
-export type UserVerificationType = 'nid' | 'phone' | 'document'
+export type UserVerificationType =
+  | 'nid'
+  | 'phone'
+  | 'document'
+  | 'police'
 
 export interface UserVerificationRequest {
   id: string
@@ -12,6 +16,7 @@ export interface UserVerificationRequest {
   verificationType: UserVerificationType
   documentNumber?: string
   documentFileName?: string
+  fileUrl?: string
   status: UserVerificationStatus
   submittedAt?: string
   reviewedAt?: string

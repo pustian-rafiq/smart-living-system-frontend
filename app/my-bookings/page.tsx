@@ -31,11 +31,7 @@ import { Label } from '@/components/ui/label'
 import { BookingCard } from '@/components/booking/BookingCard'
 import { BookingDetailDialog } from '@/components/booking/BookingDetailDialog'
 import { useMockQuery } from '@/hooks/useMockQuery'
-import {
-  fetchBookingsForRenter,
-  patchBookingStatus,
-} from '@/lib/api/bookings'
-import { getDemoRenterId } from '@/lib/api/demoUser'
+import { fetchBookingsForRenter, patchBookingStatus } from '@/lib/api/bookings'
 import type { Booking, BookingStatus } from '@/types/booking'
 import { Calendar, Search } from 'lucide-react'
 
@@ -53,7 +49,7 @@ export default function MyBookingsPage() {
   const [tick, setTick] = useState(0)
 
   const load = useCallback(() => {
-    return fetchBookingsForRenter(getDemoRenterId())
+    return fetchBookingsForRenter()
   }, [tick])
 
   const { data: bookings, loading, error, refetch } = useMockQuery(load)

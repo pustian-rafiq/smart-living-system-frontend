@@ -14,7 +14,7 @@ import {
   createExpenseReport,
   createTaxDocument,
 } from '@/lib/api/reports'
-import { getDemoTenantId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { FileText, Plus, Receipt } from 'lucide-react'
@@ -27,7 +27,7 @@ export default function ReportsPage() {
   const t = useTranslations('tools.reports')
   const tc = useTranslations('common')
 
-  const userId = getDemoTenantId()
+  const userId = getCurrentAccountUserId()
   const [expenseReports, setExpenseReports] = useState<ExpenseReport[]>([])
   const [taxDocuments, setTaxDocuments] = useState<TaxDocument[]>([])
   const [isGeneratorDialogOpen, setIsGeneratorDialogOpen] = useState(false)

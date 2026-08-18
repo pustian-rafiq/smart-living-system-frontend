@@ -28,7 +28,7 @@ import {
   updateViolation,
 } from '@/lib/api/messDomain'
 import { fetchMessById } from '@/lib/api/mess'
-import { getDemoTenantId, getDemoOwnerId } from '@/lib/api/demoUser'
+import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react'
@@ -56,8 +56,8 @@ export default function RulesManagementPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [severityFilter, setSeverityFilter] = useState<string>('all')
 
-  const currentStudentId = getDemoTenantId()
-  const ownerId = getDemoOwnerId()
+  const currentStudentId = getCurrentAccountUserId()
+  const ownerId = getCurrentAccountUserId()
 
   useEffect(() => {
     void getRulesByMess(messId).then(setRules)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Sparkles, CheckCircle2 } from 'lucide-react'
 import { FEATURED_BOOST_OPTIONS } from '@/lib/monetization/boostOptions'
-import { purchaseFeaturedBoost } from '@/lib/api/subscriptions'
+import {
+  fetchFeaturedBoostOptions,
+  purchaseFeaturedBoost,
+} from '@/lib/api/subscriptions'
+import type { FeaturedBoostOption } from '@/types/subscription'
 import type { Property } from '@/types/property'
 
 interface BoostListingDialogProps {
@@ -29,13 +33,30 @@ export function BoostListingDialog({
   onOpenChange,
   onSuccess,
 }: BoostListingDialogProps) {
+  const [options, setOptions] = useState<FeaturedBoostOption[]>(
+    FEATURED_BOOST_OPTIONS,
+  )
   const [boostId, setBoostId] = useState(FEATURED_BOOST_OPTIONS[0].id)
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [featuredUntil, setFeaturedUntil] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const selected = FEATURED_BOOST_OPTIONS.find(b => b.id === boostId)
+  useEffect(() => {
+    if (!open) return
+    fetchFeaturedBoostOptions().then(result => {
+      if (result.ok && result.data.length) {
+        setOptions(result.data)
+        setBoostId(current =>
+          result.data.some(opt => opt.id === current)
+            ? current
+            : result.data[0].id,
+        )
+      }
+    })
+  }, [open])
+
+  const selected = options.find(b => b.id === boostId)
 
   const handlePurchase = async () => {
     if (!listing) return
@@ -93,7 +114,7 @@ export function BoostListingDialog({
         ) : (
           <div className="space-y-4">
             <RadioGroup value={boostId} onValueChange={setBoostId}>
-              {FEATURED_BOOST_OPTIONS.map(opt => (
+              {options.map(opt => (
                 <div
                   key={opt.id}
                   className="flex items-start space-x-3 rounded-lg border p-3 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
@@ -121,10 +142,12 @@ export function BoostListingDialog({
             >
               {loading
                 ? 'Processing…'
-                : `Pay ৳${selected?.price.toLocaleString()} (demo)`}
+                : `Pay ৳${selected?.price.toLocaleString()} (sandbox)`}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              Demo: no real payment. TODO: wire bKash / card for boosts.
+              Charges the selected boost to your owner account. Live bKash /
+              Nagad checkout uses your gateway credentials when they are
+              configured.
             </p>
           </div>
         )}

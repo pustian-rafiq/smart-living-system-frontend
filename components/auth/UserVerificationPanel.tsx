@@ -48,11 +48,11 @@ const statusConfig: Record<
 
 export function UserVerificationPanel() {
   const [tick, setTick] = useState(0)
-  const [verificationType, setVerificationType] = useState<'nid' | 'document'>(
-    'nid'
-  )
+  const [verificationType, setVerificationType] = useState<
+    'nid' | 'document' | 'police'
+  >('nid')
   const [documentNumber, setDocumentNumber] = useState('')
-  const [fileName, setFileName] = useState<string | null>(null)
+  const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -71,10 +71,17 @@ export function UserVerificationPanel() {
     setSubmitError(null)
     setSubmitSuccess(false)
 
+    if (!file) {
+      setSubmitError('Upload a clear photo or PDF of the document.')
+      setSubmitting(false)
+      return
+    }
+
     const result = await submitVerificationRequest({
       verificationType,
       documentNumber: documentNumber.trim() || undefined,
-      documentFileName: fileName || undefined,
+      documentFileName: file.name,
+      file,
     })
 
     setSubmitting(false)
@@ -152,7 +159,9 @@ export function UserVerificationPanel() {
               <Label>Document type</Label>
               <Select
                 value={verificationType}
-                onValueChange={v => setVerificationType(v as 'nid' | 'document')}
+                onValueChange={v =>
+                  setVerificationType(v as 'nid' | 'document' | 'police')
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -160,18 +169,29 @@ export function UserVerificationPanel() {
                 <SelectContent>
                   <SelectItem value="nid">National ID (NID)</SelectItem>
                   <SelectItem value="document">Passport / other ID</SelectItem>
+                  <SelectItem value="police">
+                    Police verification letter
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="doc-number">
-                {verificationType === 'nid' ? 'NID number' : 'Document number'}
+                {verificationType === 'nid'
+                  ? 'NID number'
+                  : verificationType === 'police'
+                    ? 'Police letter / GD number'
+                    : 'Document number'}
               </Label>
               <Input
                 id="doc-number"
                 placeholder={
-                  verificationType === 'nid' ? '1234567890123' : 'Document ID'
+                  verificationType === 'nid'
+                    ? '1234567890123'
+                    : verificationType === 'police'
+                      ? 'Letter / GD reference'
+                      : 'Document ID'
                 }
                 value={documentNumber}
                 onChange={e => setDocumentNumber(e.target.value)}
@@ -184,15 +204,15 @@ export function UserVerificationPanel() {
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed p-4 hover:bg-muted/50">
                 <Upload className="mb-2 h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  {fileName || 'Upload clear photo (demo: filename only)'}
+                  {file
+                    ? file.name
+                    : 'JPEG, PNG, or PDF — max 5 MB'}
                 </span>
                 <input
                   type="file"
-                  accept="image/*,.pdf"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
                   className="hidden"
-                  onChange={e =>
-                    setFileName(e.target.files?.[0]?.name ?? null)
-                  }
+                  onChange={e => setFile(e.target.files?.[0] ?? null)}
                 />
               </label>
             </div>
@@ -206,7 +226,7 @@ export function UserVerificationPanel() {
               </p>
             )}
 
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" disabled={submitting || !file}>
               {submitting ? 'Submitting…' : 'Submit for verification'}
             </Button>
           </form>
