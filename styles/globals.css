@@ -56,6 +56,11 @@
 
   body {
     @apply bg-background text-foreground transition-colors duration-200;
+    font-family: var(--font-sans), 'Segoe UI', sans-serif;
+  }
+
+  .font-display {
+    font-family: var(--font-display), Georgia, serif;
   }
 
   :focus-visible {
@@ -76,5 +81,28 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .bg-grid-faint {
+    background-image:
+      linear-gradient(to right, rgba(15, 118, 110, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15, 118, 110, 0.08) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(circle at center, black 25%, transparent 90%);
+  }
+
+  @keyframes riseUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-rise-up {
+    animation: riseUp 650ms ease-out both;
   }
 }

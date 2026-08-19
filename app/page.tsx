@@ -2,6 +2,7 @@
 
 import { Layout } from '@/components/layout/Layout'
 import { HeroSection } from '@/components/home/HeroSection'
+import { FeaturedListingsSection } from '@/components/home/FeaturedListingsSection'
 import { FeaturesSection } from '@/components/home/FeaturesSection'
 import { HowItWorksSection } from '@/components/home/HowItWorksSection'
 import { TargetUsersSection } from '@/components/home/TargetUsersSection'
@@ -15,6 +16,9 @@ export default function Home() {
       <div className="overflow-hidden">
         {/* Hero Section */}
         <HeroSection />
+
+        {/* Featured Listings */}
+        <FeaturedListingsSection />
 
         {/* Features Section */}
         <FeaturesSection />
