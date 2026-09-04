@@ -113,7 +113,9 @@
     "totalValue": "Total value",
     "repairCost": "Repair cost",
     "moreItems": "+{count} more items",
-    "downloading": "Downloading {name}…"
+    "downloading": "Downloading {name}…",
+    "prcaTitle": "PRCA 1991 compliant templates",
+    "prcaDesc": "Use a legally aligned template when creating a new agreement."
   },
   "reminders": {
     "title": "Reminders",

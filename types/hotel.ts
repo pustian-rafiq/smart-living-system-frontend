@@ -138,6 +138,10 @@ export interface Hotel {
   totalReviews: number
   totalRooms: number
   availableRooms: number
+  featuredUntil?: string | null
+  lastConfirmedAt?: string | null
+  confirmedHoursAgo?: number | null
+  stale?: boolean
   cancellationPolicy?: CancellationPolicy
   pricingRules?: HotelPricingRules
   advancePaymentPercent?: number // default 30

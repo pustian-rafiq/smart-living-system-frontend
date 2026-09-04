@@ -16,6 +16,7 @@ import { AlertTriangle, Phone, Shield } from 'lucide-react'
 
 export default function SafetyPage() {
   const t = useTranslations('legal')
+  const ts = useTranslations('living.safety')
   const { safetyTips, LEGAL_LAST_UPDATED } = useLegalContent()
 
   const safetyCards = [
@@ -67,6 +68,13 @@ export default function SafetyPage() {
             </Card>
           ))}
         </div>
+
+        <Card className="mb-8">
+          <CardContent className="p-5">
+            <p className="font-semibold">{ts('howTitle')}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{ts('howBody')}</p>
+          </CardContent>
+        </Card>
 
         <SafetyTipsList tips={safetyTips} />
 

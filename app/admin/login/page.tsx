@@ -195,7 +195,16 @@ function AdminLoginForm() {
       return
     }
 
-    const code = requested.data.devOtp || '123456'
+    const code = requested.data.devOtp
+    if (!code) {
+      setLoading(false)
+      setPhone(e164.replace('+', ''))
+      setStep('otp')
+      setDevHint('')
+      setError('SMS sent — enter the OTP from your phone.')
+      return
+    }
+
     const result = await establishAdminSession(e164, code)
     setLoading(false)
 

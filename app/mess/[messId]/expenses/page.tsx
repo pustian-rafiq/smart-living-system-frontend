@@ -26,7 +26,8 @@ import {
   updateExpense,
   deleteExpense,
 } from '@/lib/api/messDomain'
-import { fetchMessById } from '@/lib/api/mess'
+import { fetchMessById, fetchMessExpenseSplit } from '@/lib/api/mess'
+import type { MessExpenseSplit } from '@/lib/api/mess'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, DollarSign, FileText, TrendingUp } from 'lucide-react'
@@ -57,6 +58,8 @@ export default function ExpensesManagementPage() {
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
   const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
 
+  const [split, setSplit] = useState<MessExpenseSplit | null>(null)
+
   useEffect(() => {
     void getExpensesByMess(messId).then(setExpenses)
   }, [messId])
@@ -68,6 +71,12 @@ export default function ExpensesManagementPage() {
       new Date().getFullYear()
     ).then(setMonthlySummary)
   }, [messId])
+
+  useEffect(() => {
+    void fetchMessExpenseSplit(messId).then(r => {
+      if (r.ok) setSplit(r.data)
+    })
+  }, [messId, expenses])
 
   useEffect(() => {
     if (role !== 'owner') {
@@ -270,6 +279,39 @@ export default function ExpensesManagementPage() {
                   }
                 />
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {split && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>{t('expenses.autoSplitTitle')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {t('expenses.autoSplitDesc', {
+                  count: split.activeStudents,
+                  total: split.splitTotal.toLocaleString(),
+                  share: split.perPerson.toLocaleString(),
+                })}
+              </p>
+              <ul className="space-y-2">
+                {split.shares.map(share => (
+                  <li
+                    key={`${share.studentId}-${share.name}`}
+                    className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+                  >
+                    <span>
+                      {share.name}
+                      {share.seatNumber ? ` · ${share.seatNumber}` : ''}
+                    </span>
+                    <span className="font-semibold">
+                      ৳{share.share.toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
         )}

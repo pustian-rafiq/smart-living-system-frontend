@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MapPin, Star, Verified } from 'lucide-react'
 import { FeaturedBadge } from '@/components/monetization/FeaturedBadge'
+import { FreshnessBadge } from '@/components/discover/FreshnessBadge'
 import { RatingDisplay } from './RatingDisplay'
 import type { Hotel } from '@/types/hotel'
 import Image from 'next/image'
@@ -26,7 +27,7 @@ export function HotelCard({ hotel, onViewDetails }: HotelCardProps) {
   }
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg">
+    <Card className="group overflow-hidden border-border/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       {/* Image */}
       <div className="relative h-48 w-full overflow-hidden bg-muted sm:h-56">
         {!imageError && hotel.images[0] ? (
@@ -51,6 +52,11 @@ export function HotelCard({ hotel, onViewDetails }: HotelCardProps) {
             </Badge>
           )}
           {hotel.featured && <FeaturedBadge />}
+          <FreshnessBadge
+            lastConfirmedAt={hotel.lastConfirmedAt}
+            confirmedHoursAgo={hotel.confirmedHoursAgo}
+            stale={hotel.stale}
+          />
         </div>
         {hotel.starRating && (
           <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-background/90 px-2 py-1 backdrop-blur">

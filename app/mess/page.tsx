@@ -24,7 +24,10 @@ import { MessOnboardingDialog } from '@/components/onboarding'
 export default function MessOverviewPage() {
   const t = useTranslations('mess')
   const { ready, isOwner, isRenter } = useStoredRole()
-  const loadMesses = useCallback(() => fetchMessList(), [])
+  const loadMesses = useCallback(
+    () => fetchMessList(isOwner ? { mine: true } : undefined),
+    [isOwner],
+  )
   const { data: messList, loading } = useMockQuery(loadMesses)
   const messes = messList ?? []
   const [selectedMess, setSelectedMess] = useState<Mess | null>(null)
@@ -108,12 +111,17 @@ export default function MessOverviewPage() {
               <p className="text-sm text-muted-foreground">
                 {t('overview.renterCardDesc')}
               </p>
-              <Button asChild className="w-full sm:w-auto">
-                <Link href="/mess/student-dashboard">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  {t('overview.openStudentDashboard')}
-                </Link>
-              </Button>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button asChild className="w-full sm:w-auto">
+                  <Link href="/mess/student-dashboard">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    {t('overview.openStudentDashboard')}
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link href="/messes">{t('overview.browsePublic')}</Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </PageContainer>

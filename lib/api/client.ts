@@ -108,37 +108,53 @@ function withTrailingSlash(url: string): string {
   return `${path}/${query}${hash}`
 }
 
+/** One in-flight refresh — prevents rotate/blacklist races (400 then 200 pairs). */
+let refreshInFlight: Promise<boolean> | null = null
+
 async function refreshAccessToken(): Promise<boolean> {
-  const refresh = getRefreshToken()
-  try {
-    const response = await fetch(
-      withTrailingSlash(`${getApiBaseUrl()}/auth/token/refresh/`),
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(refresh ? { refresh } : {}),
-      },
-    )
-    const result = await parseEnvelope<{
-      access: string
-      refresh?: string
-      user?: { id: string }
-    }>(response)
-    if (!result.ok) {
+  if (refreshInFlight) {
+    return refreshInFlight
+  }
+
+  refreshInFlight = (async () => {
+    const refresh = getRefreshToken()
+    try {
+      const response = await fetch(
+        withTrailingSlash(`${getApiBaseUrl()}/auth/token/refresh/`),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(refresh ? { refresh } : {}),
+        },
+      )
+      const result = await parseEnvelope<{
+        access: string
+        refresh?: string
+        user?: { id: string }
+      }>(response)
+      if (!result.ok) {
+        clearAuthTokens()
+        return false
+      }
+      setAuthTokens({
+        access: result.data.access,
+        refresh: result.data.refresh,
+        userId: result.data.user?.id,
+      })
+      return true
+    } catch {
       clearAuthTokens()
       return false
+    } finally {
+      refreshInFlight = null
     }
-    setAuthTokens({
-      access: result.data.access,
-      refresh: result.data.refresh,
-      userId: result.data.user?.id,
-    })
-    return true
-  } catch {
-    clearAuthTokens()
-    return false
-  }
+  })()
+
+  return refreshInFlight
 }
 
 export async function apiRequest<T>(

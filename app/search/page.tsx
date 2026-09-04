@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -20,8 +21,15 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { PropertyCard } from '@/components/property/PropertyCard'
+import { HotelCard } from '@/components/hotel/HotelCard'
+import { MessPublicCard } from '@/components/mess/MessPublicCard'
+import {
+  DiscoverCategoryTabs,
+  type DiscoverCategory,
+} from '@/components/search/DiscoverCategoryTabs'
+import { AISearchBar } from '@/components/search/AISearchBar'
 import { PropertyDetailDialog } from '@/components/property/PropertyDetailDialog'
-import { PropertyMap } from '@/components/map/PropertyMap'
+import dynamic from 'next/dynamic'
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation'
 import { CompareBar } from '@/components/property/CompareBar'
 import { SaveSearchDialog } from '@/components/search/SaveSearchDialog'
@@ -38,9 +46,13 @@ import {
   BookmarkCheck,
 } from 'lucide-react'
 import {
+  fetchAIMatch,
   fetchProperties,
   fetchPropertyMeta,
+  type AIParsedQuery,
 } from '@/lib/api/properties'
+import { fetchHotels } from '@/lib/api/hotels'
+import { fetchMessList } from '@/lib/api/mess'
 import {
   recordSearchHistory,
   createSavedSearch,
@@ -64,7 +76,22 @@ import type {
   SearchFilters,
 } from '@/types/property'
 import type { BookingFormData, Booking } from '@/types/booking'
+import type { Hotel } from '@/types/hotel'
+import type { Mess } from '@/types/mess'
 import { useTranslations } from 'next-intl'
+
+const PropertyMap = dynamic(
+  () =>
+    import('@/components/map/PropertyMap').then(mod => mod.PropertyMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-[320px] items-center justify-center rounded-md border bg-muted/20 text-sm text-muted-foreground">
+        Loading map…
+      </div>
+    ),
+  },
+)
 
 const searchSchema = z.object({
   propertyType: z.enum(['all', 'mess', 'apartment', 'hostel', 'hotel']),
@@ -111,6 +138,10 @@ export default function SearchPage() {
   const [locationLoading, setLocationLoading] = useState(false)
   const [compareList, setCompareList] = useState<Property[]>([])
   const [bookingError, setBookingError] = useState<string | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiParsed, setAiParsed] = useState<AIParsedQuery | null>(null)
+  const [aiResults, setAiResults] = useState<Property[] | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
 
   const chatUserId = getCurrentAccountUserId()
   const loadProperties = useCallback(() => fetchProperties(), [])
@@ -123,6 +154,10 @@ export default function SearchPage() {
   const { data: propertyMeta } = useMockQuery(loadMeta)
   const { data: savedSearches, refetch: refetchSavedSearches } =
     useMockQuery(loadSavedSearches)
+  const loadHotels = useCallback(() => fetchHotels(), [])
+  const loadMesses = useCallback(() => fetchMessList(), [])
+  const { data: hotels } = useMockQuery(loadHotels)
+  const { data: messes } = useMockQuery(loadMesses)
 
   const publishedProperties = properties ?? []
   const cities = propertyMeta?.cities ?? []
@@ -160,6 +195,25 @@ export default function SearchPage() {
 
   const { watch, setValue, handleSubmit, reset } = form
   const formValues = watch()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const category = params.get('category')
+    const cityFromUrl = params.get('city')
+    if (
+      category === 'all' ||
+      category === 'mess' ||
+      category === 'apartment' ||
+      category === 'hostel' ||
+      category === 'hotel'
+    ) {
+      setValue('propertyType', category)
+    }
+    if (cityFromUrl) {
+      setSelectedCity(cityFromUrl)
+      setValue('city', cityFromUrl)
+    }
+  }, [setValue])
 
   // Handle get current location
   const handleGetCurrentLocation = async () => {
@@ -329,6 +383,89 @@ export default function SearchPage() {
     return filtered
   }, [formValues, searchByLocation, userLocation, searchRadius, publishedProperties])
 
+  const displayProperties = useMemo(() => {
+    if (aiResults) return aiResults
+    if (formValues.propertyType === 'hotel') return []
+    if (formValues.propertyType === 'all') {
+      return filteredProperties.filter(p => p.type !== 'hotel')
+    }
+    return filteredProperties
+  }, [aiResults, filteredProperties, formValues.propertyType])
+
+  const filteredHotels = useMemo(() => {
+    if (formValues.propertyType !== 'all' && formValues.propertyType !== 'hotel') {
+      return [] as Hotel[]
+    }
+    let list = [...(hotels ?? [])]
+    if (formValues.city) list = list.filter(h => h.city === formValues.city)
+    if (formValues.area) list = list.filter(h => h.area === formValues.area)
+    if (formValues.verifiedOnly) list = list.filter(h => h.verified)
+    return list
+  }, [
+    hotels,
+    formValues.propertyType,
+    formValues.city,
+    formValues.area,
+    formValues.verifiedOnly,
+  ])
+
+  const filteredMesses = useMemo(() => {
+    if (formValues.propertyType !== 'all' && formValues.propertyType !== 'mess') {
+      return [] as Mess[]
+    }
+    let list = [...(messes ?? [])]
+    if (formValues.city) {
+      list = list.filter(m => m.city === formValues.city)
+    }
+    if (formValues.availableOnly) {
+      list = list.filter(m => m.availableSeats > 0)
+    }
+    if (formValues.gender) {
+      list = list.filter(
+        m => m.gender === formValues.gender || m.gender === 'mixed',
+      )
+    }
+    list = list.filter(
+      m =>
+        m.monthlyFee >= formValues.rentRange[0] &&
+        m.monthlyFee <= formValues.rentRange[1],
+    )
+    return list
+  }, [
+    messes,
+    formValues.propertyType,
+    formValues.city,
+    formValues.availableOnly,
+    formValues.gender,
+    formValues.rentRange,
+  ])
+
+  const usingAiMatch = aiResults != null
+  const totalResults = usingAiMatch
+    ? displayProperties.length
+    : displayProperties.length + filteredHotels.length + filteredMesses.length
+
+  const handleAISearch = useCallback(async (query: string) => {
+    setAiLoading(true)
+    setAiError(null)
+    const result = await fetchAIMatch(query)
+    setAiLoading(false)
+    if (!result.ok) {
+      setAiError(result.error)
+      setAiResults(null)
+      setAiParsed(null)
+      return
+    }
+    setAiParsed(result.data.parsedQuery)
+    setAiResults(result.data.results)
+  }, [])
+
+  const handleClearAISearch = useCallback(() => {
+    setAiParsed(null)
+    setAiResults(null)
+    setAiError(null)
+  }, [])
+
   // Save search to history when filters change (after filtering is done)
   useEffect(() => {
     // Only save if there are meaningful filters and we have results
@@ -404,6 +541,7 @@ export default function SearchPage() {
   }
 
   const handleReset = () => {
+    handleClearAISearch()
     setSelectedCity('all')
     setUserLocation(null)
     setSearchByLocation(false)
@@ -490,7 +628,7 @@ export default function SearchPage() {
                 {t('page.title')}
               </h1>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                {t('page.results', { count: filteredProperties.length })}
+                {t('page.results', { count: totalResults })}
                 {searchByLocation && userLocation && (
                   <span className="ml-2 inline-flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5" />
@@ -502,25 +640,31 @@ export default function SearchPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {/* View Mode Toggle */}
-              <div className="hidden sm:flex rounded-lg border bg-background p-1 shadow-sm">
+              <Button variant="outline" size="sm" asChild className="hidden sm:flex">
+                <Link href="/areas/compare">{t('page.compareAreas')}</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild className="hidden md:flex">
+                <Link href="/roommates">{t('page.roommates')}</Link>
+              </Button>
+              {/* View Mode Toggle — visible on all breakpoints so map can be tested on mobile */}
+              <div className="flex rounded-lg border bg-background p-1 shadow-sm">
                 <Button
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className="h-8 px-3"
+                  className="h-8 px-2 sm:px-3"
                 >
-                  <List className="mr-1.5 h-4 w-4" />
-                  {t('page.viewMode.list')}
+                  <List className="h-4 w-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">{t('page.viewMode.list')}</span>
                 </Button>
                 <Button
                   variant={viewMode === 'map' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('map')}
-                  className="h-8 px-3"
+                  className="h-8 px-2 sm:px-3"
                 >
-                  <Map className="mr-1.5 h-4 w-4" />
-                  {t('page.viewMode.map')}
+                  <Map className="h-4 w-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">{t('page.viewMode.map')}</span>
                 </Button>
               </div>
               <Button
@@ -546,6 +690,45 @@ export default function SearchPage() {
                 )}
               </Button>
             </div>
+          </div>
+          <div className="mt-4 space-y-3">
+            <AISearchBar
+              onSearch={handleAISearch}
+              loading={aiLoading}
+              parsedQuery={aiParsed}
+            />
+            {aiError && (
+              <p className="text-sm text-destructive">{aiError}</p>
+            )}
+            {usingAiMatch && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAISearch}
+                className="h-8 px-2 text-muted-foreground"
+              >
+                <X className="mr-1.5 h-3.5 w-3.5" />
+                Clear AI match
+              </Button>
+            )}
+            <DiscoverCategoryTabs
+              value={(formValues.propertyType || 'all') as DiscoverCategory}
+              onChange={next => {
+                setValue('propertyType', next)
+                const params = new URLSearchParams(window.location.search)
+                params.set('category', next)
+                const qs = params.toString()
+                window.history.replaceState(null, '', qs ? `/search?${qs}` : '/search')
+              }}
+              labels={{
+                all: t('page.propertyTypes.all'),
+                mess: t('page.propertyTypes.mess'),
+                apartment: t('page.propertyTypes.apartment'),
+                hostel: t('page.propertyTypes.hostel'),
+                hotel: t('page.propertyTypes.hotel'),
+              }}
+            />
           </div>
         </div>
 
@@ -1100,7 +1283,7 @@ export default function SearchPage() {
 
           {/* Results */}
           <div className="flex-1">
-            {filteredProperties.length === 0 ? (
+            {totalResults === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16 px-4">
                   <div className="rounded-full bg-muted p-4 mb-4">
@@ -1123,7 +1306,15 @@ export default function SearchPage() {
               </Card>
             ) : viewMode === 'list' ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProperties.map(property => {
+                {!usingAiMatch &&
+                  filteredHotels.map(hotel => (
+                    <HotelCard key={`hotel-${hotel.id}`} hotel={hotel} />
+                  ))}
+                {!usingAiMatch &&
+                  filteredMesses.map(mess => (
+                    <MessPublicCard key={`mess-${mess.id}`} mess={mess} />
+                  ))}
+                {displayProperties.map(property => {
                   // Calculate distance if location search is enabled
                   let distance: string | undefined
                   if (
@@ -1170,7 +1361,7 @@ export default function SearchPage() {
               <Card>
                 <CardContent className="p-0">
                   <PropertyMap
-                    properties={filteredProperties}
+                    properties={usingAiMatch ? displayProperties : filteredProperties}
                     onPropertyClick={handleViewDetails}
                     center={userLocation || undefined}
                     height="calc(100vh - 300px)"

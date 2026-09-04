@@ -23,7 +23,30 @@ export interface RentalAgreement {
     noticePeriod: number // days
     renewalTerms?: string
     specialConditions?: string[]
+    templateKey?: string
+    templateName?: string
+    templateNameBn?: string
+    maxDepositMonths?: number
+    provisions?: {
+      key: string
+      section: string
+      title: string
+      description: string
+    }[]
+    warnings?: string[]
+    landlordName?: string
+    tenantName?: string
+    propertyAddress?: string
+    prcaCompliant?: boolean
+    generatedAt?: string
   }
+  tenantSignature?: string
+  ownerSignature?: string
+  tenantSignedAt?: string | null
+  ownerSignedAt?: string | null
+  tenantSignedName?: string
+  ownerSignedName?: string
+  signatureStatus?: 'unsigned' | 'partially_signed' | 'fully_signed' | 'tenant_signed' | 'owner_signed'
 }
 
 export interface AgreementRenewal {

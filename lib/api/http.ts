@@ -18,6 +18,7 @@ export async function mockDelay(ms: number = MOCK_API_DELAY_MS): Promise<void> {
 export type ApiErrorCode =
   | 'NOT_FOUND'
   | 'FORBIDDEN'
+  | 'CIMS_REQUIRED'
   | 'INVALID'
   | 'INVALID_ACCOUNT'
   | 'GATEWAY_TODO'

@@ -6,6 +6,9 @@ import type {
   UserManagement,
   AnalyticsData,
   SystemSettings,
+  HeartbeatStats,
+  HeartbeatPingRow,
+  PushAdminStats,
   FraudReport,
   ActivityLog,
   UserStatus,
@@ -184,6 +187,29 @@ export async function saveSystemSettings(
     method: 'PUT',
     body: settings,
   })
+}
+
+export async function fetchHeartbeatOverview(): Promise<
+  ApiResult<{ stats: HeartbeatStats; config: HeartbeatStats['config'] }>
+> {
+  return apiRequest('/admin/heartbeat/')
+}
+
+export async function runHeartbeatJob(options?: {
+  sendSms?: boolean
+}): Promise<ApiResult<Record<string, unknown>>> {
+  return apiRequest('/admin/heartbeat/', {
+    method: 'POST',
+    body: { sendSms: options?.sendSms },
+  })
+}
+
+export async function fetchHeartbeatPings(): Promise<ApiResult<HeartbeatPingRow[]>> {
+  return apiRequest('/admin/heartbeat/pings/')
+}
+
+export async function fetchPushAdminStats(): Promise<ApiResult<PushAdminStats>> {
+  return apiRequest('/admin/push/')
 }
 
 export async function fetchFraudReports(

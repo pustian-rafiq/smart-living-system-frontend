@@ -46,14 +46,16 @@ export default function OTPVerify() {
     if (!phone || hasAutoRead) return
     const devOtp =
       typeof window !== 'undefined' ? sessionStorage.getItem('devOtp') : null
-    if (!devOtp || devOtp.length !== 6) {
+    // Only autofill when backend explicitly sent a console/dev OTP (no live SMS)
+    if (!devOtp || !/^\d{6}$/.test(devOtp)) {
+      sessionStorage.removeItem('devOtp')
       setHasAutoRead(true)
       return
     }
     const autoTimer = setTimeout(() => {
       setOtp(devOtp.split(''))
       setHasAutoRead(true)
-    }, 800)
+    }, 400)
     return () => clearTimeout(autoTimer)
   }, [phone, hasAutoRead])
 

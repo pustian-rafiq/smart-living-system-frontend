@@ -52,10 +52,10 @@ export function HeroSection() {
             <Button
               size="lg"
               className="group w-full sm:w-auto"
-              onClick={() => router.push(loggedIn ? '/search' : '/login')}
+              onClick={() => router.push('/search')}
             >
               <Search className="mr-2 h-5 w-5" />
-              {loggedIn ? t('hero.browseProperties') : t('hero.getStarted')}
+              {t('hero.browseProperties')}
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
             <Button

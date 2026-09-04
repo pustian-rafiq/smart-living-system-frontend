@@ -88,3 +88,25 @@ export async function recoverAccount(params: {
 export function getCurrentAccountUserId(): string {
   return getStoredUserId() || ''
 }
+
+export interface CIMSStatus {
+  cimsRegistered: boolean
+  cimsRegistrationNumber: string
+  cimsPoliceStation: string
+  cimsRegisteredAt: string | null
+  cimsReminderDismissed: boolean
+  required: boolean
+}
+
+export async function fetchCIMSStatus(): Promise<ApiResult<CIMSStatus>> {
+  return apiRequest<CIMSStatus>('/account/cims/')
+}
+
+export async function updateCIMSStatus(
+  data: Partial<CIMSStatus>,
+): Promise<ApiResult<CIMSStatus>> {
+  return apiRequest<CIMSStatus>('/account/cims/', {
+    method: 'PATCH',
+    body: data,
+  })
+}

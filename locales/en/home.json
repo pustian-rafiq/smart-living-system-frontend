@@ -128,6 +128,38 @@
       "description": "Advanced fraud detection and dispute management system."
     }
   },
+  "live": {
+    "eyebrow": "Live from owners",
+    "title": "Places you can book today",
+    "description": "Mess seats, hotel rooms, and apartments update from the database. Refresh or come back to this page to see the latest vacancies.",
+    "viewAll": "Search everything",
+    "searchPlaceholder": "City or area, e.g. Dhanmondi",
+    "searchCta": "Search",
+    "freshHint": "Listings, hotels, and messes are loaded live. A browser refresh always pulls the newest published data.",
+    "featuredTitle": "Featured & verified",
+    "messTitle": "Mess & hostels with open seats",
+    "hotelsTitle": "Hotels & guest houses",
+    "apartmentsTitle": "Apartments",
+    "newTitle": "Newly listed",
+    "browseMess": "Browse all messes",
+    "browseHotels": "Browse all hotels",
+    "categories": {
+      "all": "All living",
+      "apartment": "Apartments",
+      "mess": "Mess / hostel",
+      "hotel": "Hotels"
+    },
+    "emptyFeaturedTitle": "No featured listings yet",
+    "emptyFeaturedDesc": "Owners can boost a listing to appear here.",
+    "emptyMessTitle": "No open mess seats right now",
+    "emptyMessDesc": "Check again after refresh, or browse all messes.",
+    "emptyHotelsTitle": "No hotels listed yet",
+    "emptyHotelsDesc": "Hotel owners can register a property to appear here.",
+    "emptyApartmentsTitle": "No apartments listed yet",
+    "emptyApartmentsDesc": "Published apartment listings will show here.",
+    "emptyNewTitle": "No new listings yet",
+    "emptyNewDesc": "Newly published places will appear in this row."
+  },
   "cta": {
     "title": "Ready to Get Started?",
     "subtitle": "Join thousands of users who are already using Smart Living System to find and manage properties in Bangladesh.",

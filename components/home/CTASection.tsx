@@ -39,7 +39,7 @@ export function CTASection() {
             <Button
               size="lg"
               className="group w-full sm:w-auto"
-              onClick={() => router.push(loggedIn ? '/search' : '/login')}
+              onClick={() => router.push('/search')}
             >
               <Search className="mr-2 h-5 w-5" />
               {loggedIn ? t('cta.browseProperties') : t('cta.findAccommodation')}

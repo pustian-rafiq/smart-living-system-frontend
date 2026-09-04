@@ -17,6 +17,7 @@ import {
   fetchActiveAgreement,
   createAgreement,
   patchAgreement,
+  signAgreement,
   fetchChecklists,
   createChecklist,
   fetchDocumentBuildings,
@@ -72,7 +73,7 @@ export default function DocumentsPage() {
   }, [userId])
 
   useEffect(() => {
-    if (role !== 'renter') return
+    if (role !== 'renter' && role !== 'owner' && role !== 'admin') return
     let mounted = true
     setIsLoading(true)
     loadDocuments().finally(() => {
@@ -122,18 +123,18 @@ export default function DocumentsPage() {
   }, [agreements])
 
   useEffect(() => {
-    if (role !== 'renter') {
+    if (role !== 'renter' && role !== 'owner' && role !== 'admin') {
       router.replace('/dashboard')
     }
   }, [role, router])
 
-  if (role !== 'renter') {
+  if (role !== 'renter' && role !== 'owner' && role !== 'admin') {
     return null
   }
 
   if (isLoading) {
     return (
-      <Layout userRole="renter">
+      <Layout userRole={role === 'owner' ? 'owner' : 'renter'}>
         <div className="container mx-auto max-w-7xl px-4 py-6">
           <LoadingState label={tc('loading')} variant="skeleton" />
         </div>
@@ -144,6 +145,21 @@ export default function DocumentsPage() {
   const handleAgreementView = (agreement: RentalAgreement) => {
     setSelectedAgreement(agreement)
     setIsAgreementViewOpen(true)
+  }
+
+  const handleSignAgreement = async (
+    agreementId: string,
+    payload: { role: 'tenant' | 'owner'; signature: string; signedName: string },
+  ) => {
+    const result = await signAgreement(agreementId, payload)
+    if (!result.ok) {
+      toast.error(result.error)
+      return null
+    }
+    toast.success('Signature saved')
+    await loadDocuments()
+    setSelectedAgreement(result.data)
+    return result.data
   }
 
   const handleAgreementDownload = (agreement: RentalAgreement) => {
@@ -161,11 +177,37 @@ export default function DocumentsPage() {
       }
       documentUrl = uploaded.data.url
     }
+    const prca = data.prcaTerms as
+      | import('@/lib/api/documents').PRCATerms
+      | undefined
+    const terms: RentalAgreement['terms'] = {
+      duration: (prca?.duration ?? data.duration) as number,
+      noticePeriod: (prca?.noticePeriod ?? data.noticePeriod) as number,
+      renewalTerms: (prca?.renewalTerms ?? data.renewalTerms) as string,
+      specialConditions: (prca?.specialConditions ??
+        data.specialConditions) as string[] | undefined,
+      ...(prca
+        ? {
+            templateKey: prca.templateKey,
+            templateName: prca.templateName,
+            templateNameBn: prca.templateNameBn,
+            maxDepositMonths: prca.maxDepositMonths,
+            provisions: prca.provisions,
+            warnings: prca.warnings,
+            landlordName: prca.landlordName,
+            tenantName: prca.tenantName,
+            propertyAddress: prca.propertyAddress,
+            prcaCompliant: prca.prcaCompliant,
+            generatedAt: prca.generatedAt,
+          }
+        : {}),
+    }
     if (editingAgreement) {
       await patchAgreement(editingAgreement.id, {
         ...editingAgreement,
         ...data,
         documentUrl,
+        terms,
       } as RentalAgreement)
     } else {
       await createAgreement({
@@ -189,12 +231,7 @@ export default function DocumentsPage() {
         expiryDate: data.expiryDate as string,
         renewalReminderDays: data.renewalReminderDays as number[],
         status: 'active',
-        terms: {
-          duration: data.duration as number,
-          noticePeriod: data.noticePeriod as number,
-          renewalTerms: data.renewalTerms as string,
-          specialConditions: data.specialConditions as string[] | undefined,
-        },
+        terms,
       } as RentalAgreement)
     }
     setEditingAgreement(null)
@@ -237,7 +274,7 @@ export default function DocumentsPage() {
   }
 
   return (
-    <Layout userRole="renter">
+    <Layout userRole={role === 'owner' ? 'owner' : 'renter'}>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-2">{t('title')}</h1>
@@ -445,6 +482,8 @@ export default function DocumentsPage() {
           open={isAgreementViewOpen}
           onOpenChange={setIsAgreementViewOpen}
           onDownload={handleAgreementDownload}
+          onSign={handleSignAgreement}
+          onSigned={setSelectedAgreement}
         />
         <AgreementUploadDialog
           agreement={editingAgreement}

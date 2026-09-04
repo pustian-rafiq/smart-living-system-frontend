@@ -9,6 +9,8 @@ import { MobileNavProvider } from './MobileNavContext'
 import { OfflineBanner } from '@/components/feedback'
 import { SkipToContent } from '@/components/a11y'
 import { InstallPrompt } from '@/components/pwa'
+import { PushRegistrar } from '@/components/pwa/PushRegistrar'
+import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar'
 import { getStoredRole, isLoggedIn } from '@/utils/auth'
 import { UserRole } from '@/types'
 
@@ -53,6 +55,8 @@ export const Layout = ({ children, userRole }: LayoutProps) => {
             <BottomNavigation userRole={currentRole} />
           </div>
         )}
+        {isUserLoggedIn && <PushRegistrar />}
+        <ServiceWorkerRegistrar />
         <InstallPrompt />
       </div>
     </MobileNavProvider>

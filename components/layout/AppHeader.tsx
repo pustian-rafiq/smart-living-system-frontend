@@ -165,6 +165,27 @@ export function AppHeader() {
             ) : (
               <>
                 <Button variant="ghost" size="sm" asChild>
+                  <Link href="/search">{t('navSearch')}</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/messes">{t('navMess')}</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/areas">{t('navAreas')}</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/university">{t('navUniversities')}</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/hotels">{t('navHotels')}</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/search?category=apartment">{t('navApartments')}</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/roommates">{t('navRoommates')}</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
                   <Link href="/login">{t('login')}</Link>
                 </Button>
                 <LanguageSwitcher variant="ghost" size="sm" />
@@ -205,6 +226,12 @@ export function AppHeader() {
               </>
             ) : (
               <>
+                <Button variant="ghost" size="sm" asChild className="shrink-0">
+                  <Link href="/messes">{t('navMess')}</Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild className="shrink-0">
+                  <Link href="/areas">{t('navAreas')}</Link>
+                </Button>
                 <Button variant="ghost" size="sm" asChild className="shrink-0">
                   <Link href="/login">{t('login')}</Link>
                 </Button>

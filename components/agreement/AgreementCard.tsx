@@ -55,21 +55,26 @@ export function AgreementCard({
               </p>
             )}
           </div>
-          <Badge
-            variant="outline"
-            className={
-              agreement.status === 'active'
-                ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
-                : agreement.status === 'expired'
-                  ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
-                  : agreement.status === 'renewed'
-                    ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400'
-                    : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400'
-            }
-          >
-            {agreement.status.charAt(0).toUpperCase() +
-              agreement.status.slice(1)}
-          </Badge>
+          <div className="flex flex-col items-end gap-1">
+            <Badge
+              variant="outline"
+              className={
+                agreement.status === 'active'
+                  ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400'
+                  : agreement.status === 'expired'
+                    ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400'
+                    : agreement.status === 'renewed'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400'
+                      : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400'
+              }
+            >
+              {agreement.status.charAt(0).toUpperCase() +
+                agreement.status.slice(1)}
+            </Badge>
+            {agreement.terms?.prcaCompliant && (
+              <Badge className="bg-emerald-500 text-white">PRCA</Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

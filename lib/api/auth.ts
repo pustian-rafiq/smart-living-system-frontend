@@ -16,6 +16,8 @@ export type AuthUser = {
   hasPin: boolean
   profilePhotoUrl: string | null
   locale: string
+  heartbeatSmsOptIn?: boolean
+  pushOptIn?: boolean
   adminRole: AdminRole | null
   createdAt: string
   updatedAt: string
@@ -36,7 +38,8 @@ export type OtpRequestResult = {
   phone: string
   expiresIn: number
   purpose: string
-  /** Present only when API DEBUG=true */
+  smsDelivered?: boolean
+  /** Present only when SMS fell back to console (local testing) */
   devOtp?: string
 }
 
@@ -47,6 +50,7 @@ export type LoginStartResult = {
   trustedDevice: boolean
   expiresIn?: number
   purpose?: string
+  smsDelivered?: boolean
   devOtp?: string
 }
 
@@ -175,11 +179,19 @@ export async function updateCurrentUser(input: {
   email?: string
   locale?: string
   profilePhoto?: File
+  heartbeatSmsOptIn?: boolean
+  pushOptIn?: boolean
 }): Promise<ApiResult<AuthUser>> {
   const form = new FormData()
   if (input.name !== undefined) form.append('name', input.name)
   if (input.email !== undefined) form.append('email', input.email)
   if (input.locale !== undefined) form.append('locale', input.locale)
+  if (input.heartbeatSmsOptIn !== undefined) {
+    form.append('heartbeatSmsOptIn', String(input.heartbeatSmsOptIn))
+  }
+  if (input.pushOptIn !== undefined) {
+    form.append('pushOptIn', String(input.pushOptIn))
+  }
   if (input.profilePhoto) form.append('profilePhoto', input.profilePhoto)
   return apiRequest<AuthUser>('/accounts/me/', {
     method: 'PATCH',

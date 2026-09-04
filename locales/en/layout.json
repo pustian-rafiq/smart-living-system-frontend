@@ -1,6 +1,13 @@
 {
   "brand": "Smart Living",
   "login": "Login",
+  "navSearch": "Search",
+  "navMess": "Mess",
+  "navHotels": "Hotels",
+  "navApartments": "Apartments",
+  "navRoommates": "Roommates",
+  "navAreas": "Areas",
+  "navUniversities": "Universities",
   "toggleTheme": "Toggle theme",
   "messages": "Messages",
   "favorites": "Favorites",

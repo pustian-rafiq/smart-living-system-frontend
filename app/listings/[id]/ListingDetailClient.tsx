@@ -19,12 +19,21 @@ import { VideoPlayer } from '@/components/property/VideoPlayer'
 import { VerificationBadge } from '@/components/property/VerificationBadge'
 import { ReviewsSection } from '@/components/property/ReviewsSection'
 import { PropertyRecommendations } from '@/components/property/PropertyRecommendations'
+import { LivingCostCard } from '@/components/property/LivingCostCard'
+import { VerificationScoreCard } from '@/components/property/VerificationScoreCard'
+import {
+  LivingConditionCard,
+  SafetyScoreCard,
+} from '@/components/property/ScoreCards'
+import { VirtualTourViewer } from '@/components/property/VirtualTourViewer'
+import { NearbyPOISection } from '@/components/map/NearbyPOISection'
 import { BookingForm } from '@/components/booking/BookingForm'
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation'
 import { FavoriteButton } from '@/components/favorites/FavoriteButton'
 import { RatingDisplay } from '@/components/hotel/RatingDisplay'
 import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
 import { InstantBookBadge } from '@/components/shared/InstantBookBadge'
+import { CIMSRegistrationDialog } from '@/components/compliance/CIMSRegistrationDialog'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import {
@@ -37,7 +46,9 @@ import {
   fetchReviewSummary,
 } from '@/lib/api/reviews'
 import { createBooking } from '@/lib/api/bookings'
+import { reportDiscoverItem } from '@/lib/api/discover'
 import type { Booking, BookingFormData } from '@/types/booking'
+import type { ReviewFormData } from '@/types/review'
 import {
   ArrowLeft,
   Home,
@@ -52,12 +63,14 @@ import {
 
 export function ListingDetailClient({ id }: { id: string }) {
   const t = useTranslations('property.detail')
+  const ts = useTranslations('living.seats')
   const { formatCurrency } = useAppFormat()
   const router = useRouter()
   const [showBooking, setShowBooking] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [lastBooking, setLastBooking] = useState<Booking | null>(null)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [showCims, setShowCims] = useState(false)
   const [reviewTick, setReviewTick] = useState(0)
 
   const loadProperty = useCallback(() => fetchPropertyById(id), [id])
@@ -86,6 +99,12 @@ export function ListingDetailClient({ id }: { id: string }) {
     setBookingError(null)
     const result = await createBooking(property, data)
     if (!result.ok) {
+      if (result.code === 'CIMS_REQUIRED' || result.code === 'FORBIDDEN') {
+        setShowBooking(false)
+        setShowCims(true)
+        setBookingError(result.error)
+        return
+      }
       setBookingError(result.error)
       throw new Error(result.error)
     }
@@ -94,11 +113,7 @@ export function ListingDetailClient({ id }: { id: string }) {
     setShowConfirmation(true)
   }
 
-  const handleReview = async (data: {
-    rating: number
-    comment: string
-    stayDurationMonths?: number
-  }) => {
+  const handleReview = async (data: ReviewFormData) => {
     const result = await createPropertyReview(id, data)
     if (!result.ok) throw new Error(result.error)
     setReviewTick(tick => tick + 1)
@@ -196,6 +211,7 @@ export function ListingDetailClient({ id }: { id: string }) {
             verified={property.verified}
             verificationStatus={property.verificationStatus}
             verifiedAt={property.verifiedAt}
+            verificationScore={property.verificationScore}
           />
           {property.rating != null && property.reviewCount ? (
             <span className="inline-flex items-center gap-1 text-sm">
@@ -212,6 +228,9 @@ export function ListingDetailClient({ id }: { id: string }) {
             <Tabs defaultValue="photos">
               <TabsList>
                 <TabsTrigger value="photos">{t('photos')}</TabsTrigger>
+                {property.tourImages && property.tourImages.length > 0 && (
+                  <TabsTrigger value="tour">360°</TabsTrigger>
+                )}
                 {property.videos && property.videos.length > 0 && (
                   <TabsTrigger value="video">
                     <Video className="mr-1 h-4 w-4" />
@@ -228,6 +247,11 @@ export function ListingDetailClient({ id }: { id: string }) {
                   propertyName={property.name}
                 />
               </TabsContent>
+              {property.tourImages && property.tourImages.length > 0 && (
+                <TabsContent value="tour" className="mt-4">
+                  <VirtualTourViewer images={property.tourImages} />
+                </TabsContent>
+              )}
               {property.videos && property.videos.length > 0 && (
                 <TabsContent value="video" className="mt-4 space-y-4">
                   {property.videos.map((url, i) => (
@@ -289,6 +313,11 @@ export function ListingDetailClient({ id }: { id: string }) {
               </section>
             )}
 
+            <NearbyPOISection
+              lat={property.latitude}
+              lng={property.longitude}
+            />
+
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
               <div className="flex gap-3">
                 <Shield className="h-5 w-5 shrink-0 text-primary" />
@@ -319,6 +348,12 @@ export function ListingDetailClient({ id }: { id: string }) {
                         amount: formatCurrency(property.mealCost),
                       })}`
                     : ''}
+                </p>
+              )}
+              {property.openSeats != null &&
+                (property.type === 'mess' || property.type === 'hostel') && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {ts('open', { count: property.openSeats })}
                 </p>
               )}
               <p className="mt-2 text-sm text-muted-foreground">
@@ -355,7 +390,33 @@ export function ListingDetailClient({ id }: { id: string }) {
                 <Phone className="mr-2 h-4 w-4" />
                 {t('callOwner', { name: property.ownerName })}
               </Button>
+              <Button
+                variant="ghost"
+                className="mt-1 w-full text-muted-foreground"
+                onClick={async () => {
+                  await reportDiscoverItem('listing', property.id)
+                  refetch()
+                }}
+              >
+                This is already rented
+              </Button>
             </div>
+
+            {property.livingCost && (
+              <LivingCostCard cost={property.livingCost} />
+            )}
+
+            {property.livingConditionScore && (
+              <LivingConditionCard score={property.livingConditionScore} />
+            )}
+
+            {property.safetyScore && (
+              <SafetyScoreCard score={property.safetyScore} />
+            )}
+
+            {property.verificationScore && (
+              <VerificationScoreCard score={property.verificationScore} />
+            )}
 
             <div className="rounded-xl border p-4">
               <p className="text-sm text-muted-foreground">{t('listedBy')}</p>
@@ -391,6 +452,15 @@ export function ListingDetailClient({ id }: { id: string }) {
         onViewBookings={() => {
           setShowConfirmation(false)
           router.push('/my-bookings')
+        }}
+      />
+      <CIMSRegistrationDialog
+        open={showCims}
+        onOpenChange={setShowCims}
+        onComplete={() => {
+          setShowCims(false)
+          setBookingError(null)
+          setShowBooking(true)
         }}
       />
     </Layout>

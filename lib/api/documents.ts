@@ -133,6 +133,20 @@ export async function patchAgreement(
   return result
 }
 
+export async function signAgreement(
+  id: string,
+  payload: {
+    role: 'tenant' | 'owner'
+    signature: string
+    signedName: string
+  },
+): Promise<ApiResult<RentalAgreement>> {
+  return apiRequest<RentalAgreement>(`/agreements/${id}/sign/`, {
+    method: 'POST',
+    body: payload,
+  })
+}
+
 export async function createAgreementRenewal(
   renewal: Omit<AgreementRenewal, 'id'> & { id?: string },
 ): Promise<ApiResult<AgreementRenewal>> {
@@ -200,6 +214,80 @@ export async function fetchAgreementFormData(): Promise<
   if (!buildings.ok) return buildings
   if (!flats.ok) return flats
   return { ok: true, data: { buildings: buildings.data, flats: flats.data } }
+}
+
+export interface PRCAProvision {
+  key: string
+  section: string
+  title: string
+  description: string
+}
+
+export interface PRCATemplate {
+  key: string
+  name: string
+  nameBn: string
+  type: string
+  defaultDurationMonths: number
+  defaultNoticeDays: number
+  maxDepositMonths: number
+  provisions: PRCAProvision[]
+}
+
+export interface PRCATerms {
+  templateKey: string
+  templateName: string
+  templateNameBn: string
+  duration: number
+  noticePeriod: number
+  maxDepositMonths: number
+  provisions: PRCAProvision[]
+  renewalTerms: string
+  specialConditions: string[]
+  warnings: string[]
+  landlordName: string
+  tenantName: string
+  propertyAddress: string
+  prcaCompliant: boolean
+  generatedAt: string
+  stampDuty?: {
+    durationMonths: number
+    annualRent: number
+    requiresRegistration: boolean
+    indicativeStampDutyRate: number
+    indicativeStampDutyAmount: number
+    notes: string[]
+  }
+  rentIncreaseRules?: {
+    currentRent: number
+    allowedOnlyWhen: string[]
+    prohibited: string[]
+    receiptRequired: boolean
+    summary: string
+  }
+  receiptObligation?: string
+}
+
+export async function fetchPRCATemplates(): Promise<ApiResult<PRCATemplate[]>> {
+  return apiRequest<PRCATemplate[]>('/agreements/templates/', { auth: false })
+}
+
+export async function generatePRCATerms(data: {
+  templateKey: string
+  monthlyRent: number
+  securityDeposit: number
+  startDate: string
+  endDate: string
+  noticeDays?: number
+  specialConditions?: string[]
+  landlordName?: string
+  tenantName?: string
+  propertyAddress?: string
+}): Promise<ApiResult<PRCATerms>> {
+  return apiRequest<PRCATerms>('/agreements/generate-terms/', {
+    method: 'POST',
+    body: data,
+  })
 }
 
 export async function fetchChecklistCategories(): Promise<

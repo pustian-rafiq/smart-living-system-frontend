@@ -136,6 +136,7 @@ export default function SavedSearchesPage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 {t('description')}
               </p>
+              <p className="mt-2 text-xs text-muted-foreground">{t('pushNote')}</p>
             </div>
             <Button onClick={() => router.push('/search')}>
               <Plus className="mr-2 h-4 w-4" />

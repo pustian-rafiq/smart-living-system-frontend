@@ -41,6 +41,8 @@ import { useTranslations } from 'next-intl'
 import { LanguageSwitcher, useLocaleLabel } from '@/components/i18n'
 import { useStoredRole } from '@/hooks/useStoredRole'
 import { UserVerificationPanel } from '@/components/auth/UserVerificationPanel'
+import { CIMSBanner } from '@/components/compliance/CIMSBanner'
+import { CIMSRegistrationDialog } from '@/components/compliance/CIMSRegistrationDialog'
 import { getVerificationStatus, logout, syncUserDisplay } from '@/utils/auth'
 import {
   fetchRenterProfile,
@@ -69,6 +71,8 @@ interface ProfileData {
   email?: string
   role: UserRole
   verified: boolean
+  heartbeatSmsOptIn: boolean
+  pushOptIn: boolean
 }
 
 export default function ProfilePage() {
@@ -91,12 +95,15 @@ export default function ProfilePage() {
   )
   const { data: renterHistory } = useMockQuery(loadHistory)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [cimsDialogOpen, setCimsDialogOpen] = useState(false)
   const [profile, setProfile] = useState<ProfileData>({
     name: '',
     phone: '',
     email: '',
     role: 'renter',
     verified: getVerificationStatus() === 'verified',
+    heartbeatSmsOptIn: true,
+    pushOptIn: true,
   })
   const [verificationStatus, setVerificationStatusState] = useState(
     getVerificationStatus()
@@ -138,6 +145,8 @@ export default function ProfilePage() {
         email: user.email || '',
         role: user.role,
         verified: getVerificationStatus() === 'verified',
+        heartbeatSmsOptIn: user.heartbeatSmsOptIn !== false,
+        pushOptIn: user.pushOptIn !== false,
       })
     })
   }, [ready, role, profileData])
@@ -333,6 +342,9 @@ export default function ProfilePage() {
               : 'Manage your profile, documents, family, and preferences'}
           </p>
         </div>
+        <div className="mb-6">
+          <CIMSBanner />
+        </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
             <TabsList
@@ -420,6 +432,61 @@ export default function ProfilePage() {
                         <p className="font-medium capitalize">{profile.role}</p>
                       </div>
                     </div>
+                    <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+                      <div>
+                        <p className="font-medium">Browser push notifications</p>
+                        <p className="text-sm text-muted-foreground">
+                          Alerts on this device (vacancy checks, bills, messages).
+                        </p>
+                      </div>
+                      <Switch
+                        checked={profile.pushOptIn}
+                        onCheckedChange={async checked => {
+                          setProfile(prev => ({ ...prev, pushOptIn: checked }))
+                          await updateCurrentUser({ pushOptIn: checked })
+                        }}
+                      />
+                    </div>
+                    {(profile.role === 'renter' || isOwner) && (
+                      <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+                        <div>
+                          <p className="font-medium">CIMS registration (DMP)</p>
+                          <p className="text-sm text-muted-foreground">
+                            Required for landlords and tenants in Dhaka.
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCimsDialogOpen(true)}
+                        >
+                          Update
+                        </Button>
+                      </div>
+                    )}
+                    {isOwner && (
+                      <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+                        <div>
+                          <p className="font-medium">Vacancy SMS reminders</p>
+                          <p className="text-sm text-muted-foreground">
+                            Weekly SMS if you do not confirm via the app.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={profile.heartbeatSmsOptIn}
+                          onCheckedChange={async checked => {
+                            setProfile(prev => ({
+                              ...prev,
+                              heartbeatSmsOptIn: checked,
+                            }))
+                            await updateCurrentUser({
+                              heartbeatSmsOptIn: checked,
+                            })
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -432,6 +499,7 @@ export default function ProfilePage() {
             </TabsContent>
 
             <TabsContent value="verification" className="space-y-6">
+              <CIMSBanner />
               <UserVerificationPanel />
             </TabsContent>
 
@@ -866,6 +934,11 @@ export default function ProfilePage() {
           </Tabs>
 
         {/* Dialogs — available for all roles */}
+        <CIMSRegistrationDialog
+          open={cimsDialogOpen}
+          onOpenChange={setCimsDialogOpen}
+        />
+
         <EditProfileDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}

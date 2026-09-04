@@ -5,8 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Phone, MapPin, Video, MessageCircle, GitCompareArrows } from 'lucide-react'
+import { Phone, MapPin, Video, MessageCircle, GitCompareArrows, Check } from 'lucide-react'
 import { VerificationBadge } from '@/components/property/VerificationBadge'
 import { FavoriteButton } from '@/components/favorites/FavoriteButton'
 import { RatingDisplay } from '@/components/hotel/RatingDisplay'
@@ -14,6 +13,8 @@ import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
 import { InstantBookBadge } from '@/components/shared/InstantBookBadge'
 import { OverlayBadge } from '@/components/shared/OverlayBadge'
 import { FeaturedBadge, isListingFeatured } from '@/components/monetization/FeaturedBadge'
+import { FreshnessBadge } from '@/components/discover/FreshnessBadge'
+import { AIMatchScoreBadge } from '@/components/search/AIMatchScoreBadge'
 import { useRouter } from 'next/navigation'
 import type { Property } from '@/types/property'
 import Image from 'next/image'
@@ -71,6 +72,17 @@ export function PropertyCard({
             <FeaturedBadge className="pointer-events-auto" />
           )}
           <AvailabilityBadge available={property.available} tone="solid" />
+          <FreshnessBadge
+            lastConfirmedAt={property.lastConfirmedAt}
+            confirmedHoursAgo={property.confirmedHoursAgo}
+            stale={property.stale}
+          />
+          {property.aiMatchScore != null && (
+            <AIMatchScoreBadge
+              score={property.aiMatchScore}
+              className="pointer-events-auto"
+            />
+          )}
           {property.instantBook && property.available && (
             <InstantBookBadge tone="solid" />
           )}
@@ -96,12 +108,16 @@ export function PropertyCard({
               verified={property.verified}
               verificationStatus={property.verificationStatus}
               verifiedAt={property.verifiedAt}
+              verificationScore={property.verificationScore}
             />
           )}
         </div>
         {onCompareToggle && (
           <button
             type="button"
+            role="checkbox"
+            aria-checked={!!compareSelected}
+            aria-label={compareSelected ? 'Remove from compare' : 'Add to compare'}
             className={cn(
               'absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-md border bg-background/95 px-2 py-1 text-xs font-medium shadow-sm backdrop-blur-sm',
               compareSelected && 'border-primary bg-primary/10 text-primary',
@@ -114,8 +130,16 @@ export function PropertyCard({
             }}
             disabled={compareDisabled && !compareSelected}
           >
-            <Checkbox checked={compareSelected} className="pointer-events-none h-3.5 w-3.5" />
-            <GitCompareArrows className="h-3.5 w-3.5" />
+            <span
+              aria-hidden="true"
+              className={cn(
+                'flex h-3.5 w-3.5 items-center justify-center rounded-sm border border-primary',
+                compareSelected && 'bg-primary text-primary-foreground'
+              )}
+            >
+              {compareSelected ? <Check className="h-2.5 w-2.5" strokeWidth={3} /> : null}
+            </span>
+            <GitCompareArrows className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         )}
       </div>
@@ -158,6 +182,11 @@ export function PropertyCard({
               {property.seatType} seat
             </p>
           )}
+          {property.openSeats != null && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {property.openSeats} open
+            </p>
+          )}
         </div>
 
         <div className="mb-3 flex items-start gap-2 text-sm text-muted-foreground">
@@ -182,16 +211,16 @@ export function PropertyCard({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
           <Button
             variant="outline"
-            className="w-full text-sm font-medium sm:flex-1"
+            className="w-full text-sm font-medium sm:min-w-0 sm:flex-1"
             onClick={() => onViewDetails(property)}
           >
             Quick view
           </Button>
           <Button
-            className="w-full text-sm font-medium sm:flex-1"
+            className="w-full text-sm font-medium sm:min-w-0 sm:flex-1"
             onClick={() => onCall(property.ownerPhone)}
           >
             <Phone className="mr-1.5 h-4 w-4 shrink-0" />
@@ -200,14 +229,14 @@ export function PropertyCard({
           <FavoriteButton
             property={property}
             size="icon"
-            className="h-10 w-full sm:w-10 sm:shrink-0"
+            className="h-10 w-full sm:w-10 sm:min-w-[2.5rem] sm:shrink-0"
           />
           <Button
             variant="outline"
             size="icon"
             onClick={handleStartChat}
             title="Start Chat"
-            className="h-10 w-full sm:w-10 sm:shrink-0"
+            className="h-10 w-full sm:w-10 sm:min-w-[2.5rem] sm:shrink-0"
           >
             <MessageCircle className="h-4 w-4" />
           </Button>

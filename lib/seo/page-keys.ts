@@ -1,4 +1,4 @@
-/** Keys mapped to `locales/*/seo.json` → `pages.*` */
+// Keys mapped to locales seo.json pages.*
 export const seoPageKeys = [
   'home',
   'search',
@@ -19,6 +19,10 @@ export const seoPageKeys = [
   'accountRecover',
   'accountChangePhone',
   'listingNotFound',
+  'roommates',
+  'areaCompare',
+  'universities',
+  'areasSeo',
 ] as const
 
 export type SeoPageKey = (typeof seoPageKeys)[number]

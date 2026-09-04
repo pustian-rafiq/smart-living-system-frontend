@@ -27,6 +27,7 @@ import {
 import type { Chat, ChatMessage, ChatUser } from '@/types/chat'
 import type { Property } from '@/types/property'
 import { Plus, Search } from 'lucide-react'
+import { useSSE } from '@/hooks/useSSE'
 import {
   fetchUserChats,
   fetchChatMessages,
@@ -121,6 +122,26 @@ function MessagesPageContent() {
       if (result.ok) setChatMessages(result.data)
     })
   }, [selectedChatId])
+
+  useSSE(
+    selectedChatId ? `/chats/${selectedChatId}/messages/stream/` : null,
+    {
+      onEvent: (event, data) => {
+        if (event !== 'messages' || !data || typeof data !== 'object') return
+        const incoming = (data as { messages?: ChatMessage[] }).messages || []
+        if (!incoming.length) return
+        setChatMessages(prev => {
+          const ids = new Set(prev.map(m => m.id))
+          const merged = [...prev]
+          for (const msg of incoming) {
+            if (!ids.has(msg.id)) merged.push(msg)
+          }
+          return merged
+        })
+      },
+    },
+    Boolean(selectedChatId),
+  )
 
   useEffect(() => {
     if (!selectedChat) {

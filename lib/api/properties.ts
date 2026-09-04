@@ -115,3 +115,31 @@ export async function getAllMockProperties(): Promise<Property[]> {
 export function getPropertyById(_id: string): Property | undefined {
   return undefined
 }
+
+export interface AIParsedQuery {
+  area: string | null
+  city: string | null
+  type: string | null
+  gender: string | null
+  budgetMin: number | null
+  budgetMax: number | null
+  bedrooms: number | null
+  facilities: string[]
+  rawQuery: string
+}
+
+export interface AIMatchResult {
+  parsedQuery: AIParsedQuery
+  results: (Property & { aiMatchScore: number })[]
+  totalCandidates: number
+}
+
+export async function fetchAIMatch(
+  query: string,
+  limit = 12,
+): Promise<ApiResult<AIMatchResult>> {
+  const params = new URLSearchParams({ q: query, limit: String(limit) })
+  return apiRequest<AIMatchResult>(`/properties/ai-match/?${params}`, {
+    auth: false,
+  })
+}

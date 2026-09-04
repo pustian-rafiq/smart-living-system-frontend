@@ -58,6 +58,23 @@ export interface Property {
   /** Paid featured boost — higher visibility in search */
   featured?: boolean
   featuredUntil?: string
+  lastConfirmedAt?: string | null
+  confirmedHoursAgo?: number | null
+  stale?: boolean
+  /** AI-computed match score (0–100), only present in AI match results */
+  aiMatchScore?: number
+  /** Live seats from mess ops when the listing is linked */
+  openSeats?: number | null
+  verificationScore?: import('./living').VerificationScore
+  livingCost?: import('./living').LivingCost
+  livingConditionScore?: import('./living').VerificationScore
+  safetyScore?: import('./living').VerificationScore
+  tourImages?: string[]
+  cctv?: boolean | null
+  streetLighting?: boolean | null
+  addressVerified?: boolean
+  photosVerified?: boolean
+  rentVerified?: boolean
 }
 
 export interface PropertyListingInput {

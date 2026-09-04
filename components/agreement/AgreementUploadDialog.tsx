@@ -34,10 +34,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Upload, FileText, X } from 'lucide-react'
-import { fetchAgreementFormData } from '@/lib/api/documents'
+import {
+  fetchAgreementFormData,
+  generatePRCATerms,
+  type PRCATerms,
+} from '@/lib/api/documents'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import type { RentalAgreement } from '@/types/agreement'
 import { toast } from '@/lib/feedback/toast'
+import { PRCATemplateSelector } from '@/components/agreement/PRCATemplateSelector'
+import { PRCATermsDisplay } from '@/components/agreement/PRCATermsDisplay'
 
 const agreementUploadSchema = z.object({
   propertyId: z.string().min(1, 'Property is required'),
@@ -72,6 +78,8 @@ export function AgreementUploadDialog({
   const [filePreview, setFilePreview] = useState<string | null>(null)
   const [specialCondition, setSpecialCondition] = useState('')
   const [selectedPropertyId, setSelectedPropertyId] = useState('')
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [generatedTerms, setGeneratedTerms] = useState<PRCATerms | null>(null)
 
   const loadFormData = useCallback(() => fetchAgreementFormData(), [])
   const { data: formData } = useMockQuery(loadFormData)
@@ -116,10 +124,14 @@ export function AgreementUploadDialog({
         specialConditions: agreement.terms?.specialConditions || [],
       })
       setFilePreview(agreement.documentUrl)
+      setSelectedTemplate(agreement.terms?.templateKey ?? null)
+      setGeneratedTerms(null)
     } else if (!agreement && open) {
       form.reset()
       setFile(null)
       setFilePreview(null)
+      setSelectedTemplate(null)
+      setGeneratedTerms(null)
     }
   }, [agreement, open, form])
 
@@ -152,12 +164,34 @@ export function AgreementUploadDialog({
       documentName: file?.name || agreement?.documentName || 'agreement.pdf',
       documentSize: file?.size || agreement?.documentSize || 0,
       flatNumber: availableFlats.find(f => f.id === data.flatId)?.flatNumber,
+      duration: generatedTerms?.duration ?? data.duration,
+      noticePeriod: generatedTerms?.noticePeriod ?? data.noticePeriod,
+      renewalTerms: generatedTerms?.renewalTerms ?? data.renewalTerms,
+      prcaTerms: generatedTerms,
     })
     form.reset()
     setFile(null)
     setFilePreview(null)
     setSelectedPropertyId('')
+    setSelectedTemplate(null)
+    setGeneratedTerms(null)
     onOpenChange(false)
+  }
+
+  const TEMPLATE_AGREEMENT_TYPE: Record<
+    string,
+    'rental' | 'lease' | 'sublease'
+  > = {
+    residential_monthly: 'rental',
+    mess_seat: 'rental',
+    sublease: 'sublease',
+    commercial: 'lease',
+  }
+
+  const handleTemplateSelect = (templateKey: string) => {
+    setSelectedTemplate(templateKey)
+    const agreementType = TEMPLATE_AGREEMENT_TYPE[templateKey]
+    if (agreementType) form.setValue('agreementType', agreementType)
   }
 
   const addSpecialCondition = () => {
@@ -308,6 +342,70 @@ export function AgreementUploadDialog({
                     Upload a PDF file of your rental agreement
                   </FormDescription>
                 </FormItem>
+
+                <PRCATemplateSelector
+                  selected={selectedTemplate}
+                  onSelect={handleTemplateSelect}
+                />
+
+                {selectedTemplate && (
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const startDate = form.getValues('startDate')
+                        const endDate = form.getValues('endDate')
+                        if (!startDate || !endDate) {
+                          toast.error(
+                            'Select start and end dates to generate PRCA terms',
+                          )
+                          return
+                        }
+                        const result = await generatePRCATerms({
+                          templateKey: selectedTemplate,
+                          monthlyRent: form.getValues('monthlyRent') || 0,
+                          securityDeposit:
+                            form.getValues('securityDeposit') || 0,
+                          startDate,
+                          endDate,
+                          noticeDays: form.getValues('noticePeriod'),
+                          specialConditions:
+                            form.getValues('specialConditions'),
+                          propertyAddress:
+                            mockBuildings.find(
+                              b => b.id === selectedPropertyId,
+                            )?.address ||
+                            mockBuildings.find(
+                              b => b.id === selectedPropertyId,
+                            )?.name,
+                        })
+                        if (!result.ok || !result.data) {
+                          toast.error(
+                            result.ok
+                              ? 'Could not generate terms'
+                              : result.error,
+                          )
+                          return
+                        }
+                        setGeneratedTerms(result.data)
+                        form.setValue('duration', result.data.duration)
+                        form.setValue('noticePeriod', result.data.noticePeriod)
+                        form.setValue('renewalTerms', result.data.renewalTerms)
+                        form.setValue(
+                          'specialConditions',
+                          result.data.specialConditions,
+                        )
+                      }}
+                    >
+                      Generate PRCA terms
+                    </Button>
+                    {generatedTerms && (
+                      <PRCATermsDisplay terms={generatedTerms} />
+                    )}
+                  </div>
+                )}
 
                 {/* Agreement Type */}
                 <FormField

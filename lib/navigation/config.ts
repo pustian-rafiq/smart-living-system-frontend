@@ -38,7 +38,7 @@ export const primaryNavItems: NavItem[] = [
     labelKey: 'primary.discover',
     icon: Search,
     roles: ['renter'],
-    matchPrefixes: ['/search', '/properties', '/hotels', '/listings', '/favorites'],
+    matchPrefixes: ['/search', '/properties', '/hotels', '/listings', '/favorites', '/messes', '/roommates', '/areas', '/university'],
     children: [
       {
         labelKey: 'children.search',
@@ -51,9 +51,30 @@ export const primaryNavItems: NavItem[] = [
         descriptionKey: 'children.browseListingsDesc',
       },
       {
+        labelKey: 'children.browseMess',
+        href: '/messes',
+        descriptionKey: 'children.browseMessDesc',
+      },
+      {
         labelKey: 'children.hotelsStays',
         href: '/hotels',
         descriptionKey: 'children.hotelsStaysDesc',
+      },
+      {
+        labelKey: 'children.findRoommates',
+        href: '/roommates',
+      },
+      {
+        labelKey: 'children.compareAreas',
+        href: '/areas/compare',
+      },
+      {
+        labelKey: 'children.universities',
+        href: '/university',
+      },
+      {
+        labelKey: 'children.areasSeo',
+        href: '/areas',
       },
     ],
   },
@@ -104,9 +125,11 @@ export const primaryNavItems: NavItem[] = [
     labelKey: 'primary.more',
     icon: MoreHorizontal,
     roles: ['renter'],
-    matchPrefixes: ['/compare', '/complaints', '/documents', '/reminders'],
+    matchPrefixes: ['/compare', '/complaints', '/documents', '/reminders', '/roommates', '/areas'],
     children: [
       { labelKey: 'children.compareListings', href: '/compare' },
+      { labelKey: 'children.compareAreas', href: '/areas/compare' },
+      { labelKey: 'children.findRoommates', href: '/roommates' },
       { labelKey: 'children.complaints', href: '/complaints' },
       { labelKey: 'children.documents', href: '/documents' },
       { labelKey: 'children.reminders', href: '/reminders' },

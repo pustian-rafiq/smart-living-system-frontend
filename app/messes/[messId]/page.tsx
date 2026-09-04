@@ -1,0 +1,330 @@
+'use client'
+
+import { useCallback, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Layout } from '@/components/layout/Layout'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { LoadingState } from '@/components/page'
+import {
+  ensureMessListing,
+  fetchMessById,
+  fetchMessMealCalendar,
+  fetchMessSeats,
+  updateMessLiveStatus,
+} from '@/lib/api/mess'
+import { useMockQuery } from '@/hooks/useMockQuery'
+import { useSSE } from '@/hooks/useSSE'
+import { formatCurrency } from '@/lib/format/locale'
+import { CalendarCheck, MapPin, Phone, Users, UtensilsCrossed } from 'lucide-react'
+import { MessLiveStatusBoard } from '@/components/mess/MessLiveStatusBoard'
+import { MessPublicMealCalendar } from '@/components/mess/MessPublicMealCalendar'
+import { MessUtilitiesBoard } from '@/components/mess/MessUtilitiesBoard'
+import { getStoredRole } from '@/utils/auth'
+import { toast } from '@/lib/feedback/toast'
+import { hasAuthTokens } from '@/utils/auth-tokens'
+
+export default function PublicMessDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+  const t = useTranslations('mess.publicDetail')
+  const tc = useTranslations('common')
+  const messId = String(params.messId || '')
+  const [imageIndex, setImageIndex] = useState(0)
+  const [booking, setBooking] = useState(false)
+  const [liveOverride, setLiveOverride] = useState<{
+    status: Record<string, string>
+    updatedAt?: string | null
+  } | null>(null)
+  const role = getStoredRole()
+  const canEditStatus = role === 'owner' || role === 'admin'
+
+  const loadMess = useCallback(() => fetchMessById(messId), [messId])
+  const loadSeats = useCallback(() => fetchMessSeats(messId), [messId])
+  const loadCalendar = useCallback(
+    () => fetchMessMealCalendar(messId, 7),
+    [messId],
+  )
+  const { data: mess, loading, refetch } = useMockQuery(loadMess)
+  const { data: seats } = useMockQuery(loadSeats)
+  const { data: mealCalendar } = useMockQuery(loadCalendar)
+
+  useSSE(
+    messId ? `/mess/${messId}/live-status/stream/` : null,
+    {
+      onEvent: (event, data) => {
+        if (event === 'live_status' && data && typeof data === 'object') {
+          setLiveOverride(
+            data as { status: Record<string, string>; updatedAt?: string | null },
+          )
+        }
+      },
+    },
+    Boolean(messId),
+  )
+
+  const handleBookSeat = async () => {
+    if (!hasAuthTokens()) {
+      router.push(`/login?next=/messes/${messId}`)
+      return
+    }
+    if (mess?.bookUrl || mess?.listingId) {
+      router.push(mess.bookUrl || `/listings/${mess.listingId}`)
+      return
+    }
+    setBooking(true)
+    const result = await ensureMessListing(messId)
+    setBooking(false)
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
+    router.push(result.data.bookUrl)
+  }
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto max-w-7xl px-4 py-6">
+          <LoadingState label={t('loading')} />
+        </div>
+      </Layout>
+    )
+  }
+
+  if (!mess) {
+    return (
+      <Layout>
+        <div className="container mx-auto max-w-7xl px-4 py-6">
+          <Card>
+            <CardContent className="flex flex-col items-center py-16">
+              <UtensilsCrossed className="mb-3 h-10 w-10 text-muted-foreground" />
+              <p className="text-lg font-semibold">{t('notFound')}</p>
+              <Button className="mt-4" variant="outline" asChild>
+                <Link href="/messes">{t('backToBrowse')}</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    )
+  }
+
+  const images = mess.images?.length ? mess.images : []
+  const openSeats = (seats ?? []).filter(s => s.status === 'available')
+  const liveStatus = liveOverride || mess.liveStatus
+  const utilities = mess.utilities
+
+  return (
+    <Layout>
+      <div className="container mx-auto max-w-7xl px-4 py-6">
+        <Button variant="ghost" className="mb-4" onClick={() => router.back()}>
+          ← {tc('back')}
+        </Button>
+
+        <div className="mb-6">
+          <div className="relative h-64 w-full overflow-hidden rounded-xl bg-muted sm:h-96">
+            {images[imageIndex] ? (
+              <Image
+                src={images[imageIndex]}
+                alt={mess.name}
+                fill
+                className="object-cover"
+                sizes="100vw"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-6xl">
+                🏘️
+              </div>
+            )}
+          </div>
+          {images.length > 1 && (
+            <div className="mt-2 grid grid-cols-4 gap-2">
+              {images.slice(0, 4).map((img, idx) => (
+                <button
+                  key={img}
+                  type="button"
+                  onClick={() => setImageIndex(idx)}
+                  className={`relative h-20 overflow-hidden rounded-lg ${
+                    imageIndex === idx ? 'ring-2 ring-primary' : ''
+                  }`}
+                >
+                  <Image src={img} alt="" fill className="object-cover" sizes="150px" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h1 className="text-2xl font-bold sm:text-3xl">{mess.name}</h1>
+                    <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      {mess.address}, {mess.city}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className="capitalize">{mess.gender}</Badge>
+                    <Badge variant={mess.availableSeats > 0 ? 'default' : 'secondary'}>
+                      {mess.availableSeats > 0
+                        ? t('seatsOpen', { count: mess.availableSeats })
+                        : t('full')}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mess.description ? (
+                  <p className="text-muted-foreground">{mess.description}</p>
+                ) : (
+                  <p className="text-muted-foreground">{t('noDescription')}</p>
+                )}
+                {mess.facilities.length > 0 && (
+                  <div>
+                    <h2 className="mb-2 font-semibold">{t('facilities')}</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {mess.facilities.map(item => (
+                        <Badge key={item} variant="outline">
+                          {item}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {mealCalendar ? <MessPublicMealCalendar calendar={mealCalendar} /> : null}
+            {utilities ? <MessUtilitiesBoard utilities={utilities} /> : null}
+
+            {liveStatus ? (
+              <MessLiveStatusBoard
+                status={liveStatus.status || {}}
+                updatedAt={liveStatus.updatedAt}
+                editable={canEditStatus}
+                onChange={async (key, value) => {
+                  const next = {
+                    ...(liveStatus?.status || {}),
+                    [key]: value,
+                  } as Record<string, 'ok' | 'warn' | 'down'>
+                  const result = await updateMessLiveStatus(messId, next)
+                  if (!result.ok) {
+                    toast.error(result.error)
+                    return
+                  }
+                  setLiveOverride(result.data)
+                  refetch()
+                }}
+              />
+            ) : canEditStatus ? (
+              <MessLiveStatusBoard
+                status={{
+                  water: 'ok',
+                  electricity: 'ok',
+                  wifi: 'ok',
+                  breakfast: 'ok',
+                  lunch: 'ok',
+                  dinner: 'ok',
+                }}
+                editable
+                onChange={async (key, value) => {
+                  const result = await updateMessLiveStatus(messId, {
+                    [key]: value,
+                  } as Record<string, 'ok' | 'warn' | 'down'>)
+                  if (!result.ok) {
+                    toast.error(result.error)
+                    return
+                  }
+                  setLiveOverride(result.data)
+                  refetch()
+                }}
+              />
+            ) : null}
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-5 w-5" />
+                  {t('seatsTitle')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  {t('seatsSummary', {
+                    open: mess.availableSeats,
+                    total: mess.totalSeats,
+                  })}
+                </p>
+                {openSeats.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {openSeats.map(seat => (
+                      <Badge key={seat.id} variant="secondary">
+                        {seat.roomNumber} · {seat.seatNumber}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{t('noOpenSeats')}</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+            <Card className="border-primary/20 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">{t('monthlyFee')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-3xl font-bold text-primary">
+                  {formatCurrency(mess.monthlyFee)}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    /month
+                  </span>
+                </p>
+                {mess.mealSystem?.guestMealPrice != null ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t('guestMeal', {
+                      price: formatCurrency(mess.mealSystem.guestMealPrice),
+                    })}
+                  </p>
+                ) : null}
+                <p className="text-sm text-muted-foreground">
+                  {t('owner')}: {mess.ownerName}
+                </p>
+                <Button
+                  className="w-full"
+                  disabled={booking || mess.availableSeats <= 0}
+                  onClick={handleBookSeat}
+                >
+                  <CalendarCheck className="mr-2 h-4 w-4" />
+                  {booking ? t('preparingBook') : t('bookSeat')}
+                </Button>
+                <Button className="w-full" variant="outline" asChild>
+                  <a href={`tel:${mess.ownerPhone}`}>
+                    <Phone className="mr-2 h-4 w-4" />
+                    {t('callOwner')}
+                  </a>
+                </Button>
+                {!hasAuthTokens() ? (
+                  <p className="text-center text-xs text-muted-foreground">
+                    {t('loginHint')}
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  )
+}

@@ -113,7 +113,9 @@
     "totalValue": "মোট মূল্য",
     "repairCost": "মেরামত খরচ",
     "moreItems": "+{count}টি আরও আইটেম",
-    "downloading": "{name} ডাউনলোড হচ্ছে…"
+    "downloading": "{name} ডাউনলোড হচ্ছে…",
+    "prcaTitle": "PRCA ১৯৯১ অনুযায়ী চুক্তি টেমপ্লেট",
+    "prcaDesc": "নতুন চুক্তি তৈরির সময় আইনসম্মত টেমপ্লেট ব্যবহার করুন।"
   },
   "reminders": {
     "title": "অনুস্মারক",

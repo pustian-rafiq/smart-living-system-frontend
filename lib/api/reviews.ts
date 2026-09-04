@@ -30,6 +30,11 @@ export async function createPropertyReview(
       rating: data.rating,
       comment: data.comment,
       stayDurationMonths: data.stayDurationMonths,
+      cleanliness: data.cleanliness,
+      security: data.security,
+      ownerBehaviour: data.ownerBehaviour,
+      location: data.location,
+      valueForMoney: data.valueForMoney,
     },
   })
 }

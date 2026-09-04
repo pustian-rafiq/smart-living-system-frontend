@@ -14,14 +14,26 @@ const PUBLIC_EXACT = new Set([
   '/search',
   '/properties',
   '/compare',
+  '/roommates',
+  '/areas/compare',
   '/hotels',
+  '/messes',
+  '/university',
+  '/areas',
+  '/offline',
   '/account/recover',
   '/admin/login',
   '/set-pin',
 ])
 
 /** Prefixes open without login (browse-only) */
-const PUBLIC_PREFIXES = ['/listings/']
+const PUBLIC_PREFIXES = [
+  '/listings/',
+  '/areas/',
+  '/messes/',
+  '/university/',
+  '/hotels/',
+]
 
 /** Auth flow — redirect if already fully logged in */
 export const AUTH_FLOW_PATHS = new Set([
@@ -34,8 +46,10 @@ export const AUTH_FLOW_PATHS = new Set([
 export function isPublicPath(pathname: string): boolean {
   if (PUBLIC_EXACT.has(pathname)) return true
   if (PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) return true
-  // Hotel detail pages (not booking checkout)
+  // Hotel detail pages (not booking checkout — that is handled separately)
   if (/^\/hotels\/[^/]+$/.test(pathname)) return true
+  // City/area mess SEO: /dhaka/dhanmondi/mess
+  if (/^\/[^/]+\/[^/]+\/mess$/.test(pathname)) return true
   return false
 }
 

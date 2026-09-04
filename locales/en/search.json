@@ -7,6 +7,8 @@
     "noResultsTitle": "No properties match your filters",
     "noResultsDesc": "Try widening your search area or adjusting filters.",
     "savedSearchesLink": "Saved searches",
+    "compareAreas": "Compare areas",
+    "roommates": "Find roommates",
     "locationError": "Unable to get your location. Please enable location services.",
     "withinRadius": "within {distance}",
     "viewMode": {
@@ -51,6 +53,12 @@
       "selectSeatType": "Select seat type",
       "selectMealPlan": "Select meal plan",
       "selectFurnishing": "Select furnishing"
+    },
+    "ai": {
+      "placeholder": "Describe the home you need in Bangla or English…",
+      "match": "AI Match",
+      "matching": "Matching…",
+      "try": "Try:"
     },
     "actions": {
       "search": "Search",
@@ -115,6 +123,7 @@
     "emptyActiveDesc": "Enable notifications on your saved searches to get updates.",
     "emptyInactiveTitle": "No inactive searches",
     "emptyInactiveDesc": "Paused searches will appear here.",
+    "pushNote": "When new listings match an active search, we send an in-app notification and web push (if enabled in Profile).",
     "createSavedSearch": "Create saved search",
     "deleteConfirmTitle": "Delete saved search?",
     "deleteConfirmDesc": "Are you sure you want to delete this saved search?",

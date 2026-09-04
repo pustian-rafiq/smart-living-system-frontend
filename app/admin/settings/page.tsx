@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/form'
 import { fetchSystemSettings, saveSystemSettings } from '@/lib/api/admin'
 import type { SystemSettings } from '@/types/admin'
+import { HeartbeatSettingsCard } from '@/components/admin/HeartbeatSettingsCard'
+import { PushSettingsCard } from '@/components/admin/PushSettingsCard'
 import { toast } from '@/lib/feedback/toast'
 
 const settingsSchema = z.object({
@@ -288,6 +290,13 @@ export default function AdminSettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          <HeartbeatSettingsCard
+            settings={settings}
+            onSettings={setSettings}
+          />
+
+          <PushSettingsCard settings={settings} onSettings={setSettings} />
 
           <Card>
             <CardHeader>

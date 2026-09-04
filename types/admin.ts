@@ -162,6 +162,79 @@ export interface SystemSettings {
     apiKey?: string
     enabled: boolean
   }
+  heartbeat?: HeartbeatConfig
+  push?: PushConfig
+}
+
+export interface PushConfig {
+  enabled: boolean
+  heartbeatEnabled: boolean
+  preferPushOverSms: boolean
+  smsIfPushFails: boolean
+  titleTemplate: string
+  bodyTemplate: string
+  iconPath: string
+}
+
+export interface PushAdminStats {
+  config: PushConfig
+  configured: boolean
+  envEnabled: boolean
+  liveWouldSend: boolean
+  subscribers: number
+  devices: number
+  optedOutUsers: number
+}
+
+export interface HeartbeatConfig {
+  jobEnabled: boolean
+  smsEnabled: boolean
+  intervalDays: number
+  staleHideDays: number
+  tokenTtlHours: number
+  maxSmsPerOwnerPerWeek: number
+  weekday: number
+  hour: number
+  includeListings: boolean
+  includeHotels: boolean
+  includeMesses: boolean
+  onlyAvailable: boolean
+  publicBaseUrl: string
+  messageTemplate: string
+}
+
+export interface HeartbeatStats {
+  windowDays: number
+  created: number
+  sent: number
+  dryRun: number
+  failed: number
+  confirmed: number
+  markedFull: number
+  pending: number
+  expired: number
+  uniqueOwners: number
+  config: HeartbeatConfig
+  envSmsEnabled: boolean
+  liveSmsWouldSend: boolean
+  weekdayLabel: string
+}
+
+export interface HeartbeatPingRow {
+  id: string
+  token: string
+  ownerPhone: string
+  ownerName: string
+  targetType: string
+  targetName: string
+  city: string
+  status: string
+  dryRun: boolean
+  sentAt: string | null
+  respondedAt: string | null
+  expiresAt: string
+  linkPath: string
+  error: string
 }
 
 export interface FraudReport {

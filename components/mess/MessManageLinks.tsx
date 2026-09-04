@@ -9,6 +9,7 @@ import {
   ScrollText,
   Wallet,
   LayoutDashboard,
+  Calculator,
 } from 'lucide-react'
 import type { Mess } from '@/types/mess'
 import { cn } from '@/lib/utils'
@@ -22,6 +23,11 @@ interface MessManageLinksProps {
 
 const links = (messId: string) =>
   [
+    {
+      href: `/mess/${messId}/hisab`,
+      label: 'মিল হিসাব',
+      icon: Calculator,
+    },
     {
       href: `/mess/${messId}/meals`,
       label: 'Meals',

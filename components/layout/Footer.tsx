@@ -44,6 +44,46 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
+                  href="/search"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  Search all
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/messes"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  Browse mess
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/hotels"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  Browse hotels
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/roommates"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  Find roommates
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/areas/compare"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  Compare areas
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/properties"
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >

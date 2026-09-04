@@ -2,6 +2,8 @@
 
 import { Layout } from '@/components/layout/Layout'
 import { HeroSection } from '@/components/home/HeroSection'
+import { QuickExploreBar } from '@/components/home/QuickExploreBar'
+import { LiveMarketplaceSection } from '@/components/home/LiveMarketplaceSection'
 import { FeaturesSection } from '@/components/home/FeaturesSection'
 import { HowItWorksSection } from '@/components/home/HowItWorksSection'
 import { TargetUsersSection } from '@/components/home/TargetUsersSection'
@@ -15,6 +17,8 @@ export default function Home() {
       <div className="overflow-hidden">
         {/* Hero Section */}
         <HeroSection />
+        <QuickExploreBar />
+        <LiveMarketplaceSection />
 
         {/* Features Section */}
         <FeaturesSection />

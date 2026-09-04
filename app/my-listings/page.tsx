@@ -23,7 +23,8 @@ import { useMockQuery } from '@/hooks/useMockQuery'
 import { fetchOwnerListings, updateListing } from '@/lib/api/properties'
 import { fetchFlatLimitStatus } from '@/lib/api/subscriptions'
 import { useAppFormat } from '@/hooks/useAppFormat'
-import { Building2, Plus, Eye, Pencil, Pause, Play, Sparkles } from 'lucide-react'
+import { confirmDiscoverItem } from '@/lib/api/discover'
+import { Building2, Plus, Eye, Pencil, Pause, Play, Sparkles, CheckCircle } from 'lucide-react'
 import Image from 'next/image'
 import type { Property } from '@/types/property'
 
@@ -54,6 +55,11 @@ export default function MyListingsPage() {
   const openBoost = (listing: Property) => {
     setBoostTarget(listing)
     setBoostOpen(true)
+  }
+
+  const confirmStillAvailable = async (listing: Property) => {
+    await confirmDiscoverItem('listing', listing.id)
+    refetch()
   }
 
   return (
@@ -188,6 +194,14 @@ export default function MyListingsPage() {
                     >
                       <Sparkles className="mr-1 h-3.5 w-3.5" />
                       {featured ? t('extendBoost') : t('boost')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => confirmStillAvailable(listing)}
+                    >
+                      <CheckCircle className="mr-1 h-3.5 w-3.5" />
+                      Still available
                     </Button>
                     <Button
                       size="sm"

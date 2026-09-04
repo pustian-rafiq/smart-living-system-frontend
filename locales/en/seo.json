@@ -35,6 +35,26 @@
       "description": "Compare mess, hostels, and apartments side by side — price, amenities, location, and reviews.",
       "keywords": "compare rentals, property comparison Bangladesh"
     },
+    "roommates": {
+      "title": "Find a Roommate",
+      "description": "Lifestyle matching for mess and shared living in Bangladesh — compatibility scores for sleep, budget, and habits.",
+      "keywords": "roommate matching, mess roommate Bangladesh, shared living"
+    },
+    "areaCompare": {
+      "title": "Compare Areas",
+      "description": "Compare Mohammadpur, Mirpur, and other Dhaka areas by rent, safety, transport, and living cost.",
+      "keywords": "area comparison Dhaka, rent by area Bangladesh"
+    },
+    "universities": {
+      "title": "Mess Near Universities",
+      "description": "Find student mess and hostels near BUET, DU, NSU, BRAC, AIUB, and other campuses in Bangladesh.",
+      "keywords": "mess near university, BUET mess, DU hostel Bangladesh"
+    },
+    "areasSeo": {
+      "title": "Mess by Area",
+      "description": "Browse mess and hostel seats by neighbourhood — Dhanmondi, Mohammadpur, Mirpur, Uttara, and more.",
+      "keywords": "mess Dhanmondi, mess Mohammadpur, hostel Mirpur Dhaka"
+    },
     "terms": {
       "title": "Terms & Conditions",
       "description": "Rules for using Smart Living System in Bangladesh — for renters, owners, and guests.",

@@ -16,6 +16,7 @@ import { useMockQuery } from '@/hooks/useMockQuery'
 import { RenterDashboard } from '@/components/dashboard/RenterDashboard'
 import { OwnerDashboard } from '@/components/dashboard/OwnerDashboard'
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard'
+import { CIMSBanner } from '@/components/compliance/CIMSBanner'
 import type { UserRole } from '@/types'
 
 function Icon({
@@ -217,6 +218,10 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
+          </div>
+
+          <div className="mb-6">
+            <CIMSBanner />
           </div>
 
           {/* Role-based Dashboard */}
