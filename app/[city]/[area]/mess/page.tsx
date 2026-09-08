@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { PropertyCard } from '@/components/property/PropertyCard'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { fetchAreaSeoDetail } from '@/lib/api/areas'
+import { listingPath } from '@/lib/seo/slug'
 import { MapPin } from 'lucide-react'
 
 export default function AreaMessLandingPage() {
@@ -93,7 +94,7 @@ export default function AreaMessLandingPage() {
                 key={property.id}
                 property={property}
                 onViewDetails={p => {
-                  window.location.href = `/listings/${p.id}`
+                  window.location.href = listingPath(p)
                 }}
                 onCall={phone => {
                   window.location.href = `tel:${phone}`

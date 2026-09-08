@@ -30,7 +30,7 @@ export default async function NotFound() {
           </Button>
         </div>
         <p className="mt-6 text-xs text-muted-foreground">
-          Smart Living System · {tc('copyright', { year: new Date().getFullYear() })}
+          {tc('copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </div>

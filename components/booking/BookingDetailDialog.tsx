@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { BookingStatusBadge } from '@/components/booking/BookingStatusBadge'
+import { WhatsAppButton } from '@/components/contact/WhatsAppButton'
 import { Badge } from '@/components/ui/badge'
 import {
   Calendar,
@@ -89,6 +90,9 @@ export function BookingDetailDialog({
   const isOwner = role === 'owner'
   const contactName = isOwner ? booking.renterName : booking.ownerName
   const contactPhone = isOwner ? booking.renterPhone : booking.ownerPhone
+  const contactWhatsapp = isOwner
+    ? booking.renterWhatsapp
+    : booking.ownerWhatsapp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -151,6 +155,12 @@ export function BookingDetailDialog({
                 {contactPhone}
               </a>
             </div>
+            <WhatsAppButton
+              size="sm"
+              className="w-fit"
+              number={contactWhatsapp}
+              showNumber
+            />
           </div>
 
           <div className="rounded-lg border p-3">

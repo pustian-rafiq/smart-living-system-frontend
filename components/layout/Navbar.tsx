@@ -22,6 +22,7 @@ import {
 } from '@/lib/navigation'
 import type { NavItem } from '@/lib/navigation'
 import type { UserRole } from '@/types'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
 
 interface NavbarProps {
   userRole?: UserRole
@@ -91,7 +92,11 @@ function NavDropdownItem({ item, pathname }: { item: NavItem; pathname: string }
 
 function QuickActionsMenu({ role }: { role: UserRole }) {
   const { label } = useNavLabels()
-  const actions = getQuickActionsForRole(role)
+  const { navOptions } = useOwnerFocus()
+  const actions = getQuickActionsForRole(
+    role,
+    role === 'owner' ? navOptions : undefined,
+  )
   if (actions.length === 0) return null
 
   return (
@@ -127,7 +132,11 @@ function QuickActionsMenu({ role }: { role: UserRole }) {
 
 export function Navbar({ userRole = 'renter' }: NavbarProps) {
   const pathname = usePathname()
-  const items = getPrimaryNavForRole(userRole)
+  const { navOptions } = useOwnerFocus()
+  const items = getPrimaryNavForRole(
+    userRole,
+    userRole === 'owner' ? navOptions : undefined,
+  )
 
   return (
     <nav

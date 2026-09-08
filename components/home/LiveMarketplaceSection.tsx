@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/page'
 import { useDiscoverCatalog } from '@/hooks/useDiscoverCatalog'
 import { isListingFeatured } from '@/components/monetization/FeaturedBadge'
 import type { Property } from '@/types/property'
+import { listingPath } from '@/lib/seo/slug'
 
 function newestFirst(properties: Property[]) {
   return [...properties].sort((a, b) => {
@@ -32,7 +33,7 @@ export function LiveMarketplaceSection() {
     useDiscoverCatalog({ featuredLimit: 6 })
 
   const onViewDetails = (property: Property) => {
-    router.push(`/listings/${property.id}`)
+    router.push(listingPath(property))
   }
   const onCall = (phone: string) => {
     window.location.href = `tel:${phone}`

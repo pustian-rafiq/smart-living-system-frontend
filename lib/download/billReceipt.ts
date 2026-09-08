@@ -54,7 +54,7 @@ export function getBillFilename(bill: Bill, ext: string): string {
 /** Plain-text receipt — useful for SMS/email paste or lightweight download. */
 export function buildBillReceiptText(
   bill: Bill,
-  organizationName = 'Smart Living System'
+  organizationName = 'SmartBasa'
 ): string {
   const lines: string[] = [
     organizationName,
@@ -92,7 +92,7 @@ export function buildBillReceiptText(
   lines.push(`TOTAL${' '.repeat(23)}${formatMoney(bill.amount)}`)
   lines.push('')
   lines.push(`Generated: ${new Date().toLocaleString('en-GB')}`)
-  lines.push('Thank you for using Smart Living System.')
+  lines.push('Thank you for using SmartBasa.')
   lines.push('This is a computer-generated receipt.')
 
   return lines.join('\n')
@@ -101,7 +101,7 @@ export function buildBillReceiptText(
 /** Styled HTML receipt for download or print-to-PDF. */
 export function buildBillReceiptHtml(
   bill: Bill,
-  organizationName = 'Smart Living System'
+  organizationName = 'SmartBasa'
 ): string {
   const itemRows = bill.items
     .map(item => {
@@ -299,7 +299,7 @@ function escapeHtml(value: string): string {
 /** Build a PDF receipt blob (opens cleanly in a new browser tab). */
 export function buildBillReceiptPdfBlob(
   bill: Bill,
-  organizationName = 'Smart Living System'
+  organizationName = 'SmartBasa'
 ): Blob {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
@@ -435,7 +435,7 @@ export function buildBillReceiptPdfBlob(
 /** Open the bill PDF in a new browser tab (viewer can save/download from there). */
 export function openBillPdfInNewTab(
   bill: Bill,
-  organizationName = 'Smart Living System'
+  organizationName = 'SmartBasa'
 ): void {
   if (typeof window === 'undefined') return
 
@@ -468,7 +468,7 @@ export function downloadBill(
   const {
     format = 'html',
     mode = 'download',
-    organizationName = 'Smart Living System',
+    organizationName = 'SmartBasa',
   } = options
 
   if (mode === 'print') {

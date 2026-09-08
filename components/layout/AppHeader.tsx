@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { NotificationBadge } from '@/components/chat/NotificationBadge'
 import { SearchNotification } from '@/components/search/SearchNotification'
 import { UserAccountMenu } from '@/components/layout/UserAccountMenu'
+import { BrandIcon, BrandWordmark } from '@/components/layout/BrandLogo'
 import {
   Moon,
   Sun,
@@ -93,13 +94,13 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between gap-2">
-          <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-lg font-bold">SL</span>
-            </div>
-            <span className="hidden truncate text-lg font-bold sm:inline-block">
-              {t('brand')}
-            </span>
+          <Link
+            href="/"
+            className="flex min-w-0 shrink-0 items-center gap-2"
+            aria-label="SmartBasa home"
+          >
+            <BrandIcon className="h-9 w-9" priority />
+            <BrandWordmark className="h-4 md:h-5" />
           </Link>
 
           {/* Desktop actions */}

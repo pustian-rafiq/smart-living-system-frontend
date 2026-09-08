@@ -168,15 +168,21 @@ export default function DocumentsPage() {
 
   const handleAgreementUpload = async (data: Record<string, unknown>) => {
     const file = data.file as File | null | undefined
-    let documentUrl = (data.documentUrl as string) || ''
+    // The dialog previews a picked PDF as a base64 data URL — never persist it.
+    const shownUrl = (data.documentUrl as string) || ''
+    let documentKey = editingAgreement?.documentKey || ''
+    let documentUrl = shownUrl.startsWith('data:') ? '' : shownUrl
     if (file) {
       const uploaded = await uploadMediaFile(file, 'document')
       if (!uploaded.ok) {
         toast.error(uploaded.error)
         return
       }
-      documentUrl = uploaded.data.url
+      documentKey = uploaded.data.key || ''
     }
+    // Stored documents are private: the API signs a fresh URL from the key,
+    // so the URL field only carries externally hosted links.
+    if (documentKey) documentUrl = ''
     const prca = data.prcaTerms as
       | import('@/lib/api/documents').PRCATerms
       | undefined
@@ -206,6 +212,7 @@ export default function DocumentsPage() {
       await patchAgreement(editingAgreement.id, {
         ...editingAgreement,
         ...data,
+        documentKey,
         documentUrl,
         terms,
       } as RentalAgreement)
@@ -223,6 +230,7 @@ export default function DocumentsPage() {
         endDate: data.endDate as string,
         monthlyRent: data.monthlyRent as number,
         securityDeposit: data.securityDeposit as number,
+        documentKey,
         documentUrl,
         documentName: data.documentName as string,
         documentSize: data.documentSize as number,

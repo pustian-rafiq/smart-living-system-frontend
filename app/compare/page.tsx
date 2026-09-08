@@ -20,6 +20,7 @@ import { fetchPropertiesByIds } from '@/lib/api/properties'
 import { Check, Minus, GitCompareArrows } from 'lucide-react'
 import Image from 'next/image'
 import type { Property } from '@/types/property'
+import { listingPath } from '@/lib/seo/slug'
 import type { ReactNode } from 'react'
 
 function CompareContent() {
@@ -199,7 +200,7 @@ function CompareContent() {
                   )}
                 </div>
                 <Link
-                  href={`/listings/${p.id}`}
+                  href={listingPath(p)}
                   className="font-semibold hover:text-primary"
                 >
                   {p.name}
@@ -213,7 +214,7 @@ function CompareContent() {
                 <Button
                   size="sm"
                   className="mt-3"
-                  onClick={() => router.push(`/listings/${p.id}`)}
+                  onClick={() => router.push(listingPath(p))}
                 >
                   {t('viewListing')}
                 </Button>

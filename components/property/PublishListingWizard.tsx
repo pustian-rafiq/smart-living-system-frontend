@@ -180,12 +180,12 @@ export function PublishListingWizard({
       let videos = [...(initial?.videos || [])]
 
       if (imageFile) {
-        const uploaded = await uploadMediaFile(imageFile, 'image')
+        const uploaded = await uploadMediaFile(imageFile, 'property')
         if (!uploaded.ok) throw new Error(uploaded.error)
         images = [uploaded.data.url, ...images.filter(url => url !== uploaded.data.url)]
       }
       if (videoFile) {
-        const uploaded = await uploadMediaFile(videoFile, 'video')
+        const uploaded = await uploadMediaFile(videoFile, 'property_video')
         if (!uploaded.ok) throw new Error(uploaded.error)
         videos = [...videos.filter(url => url !== uploaded.data.url), uploaded.data.url]
       }

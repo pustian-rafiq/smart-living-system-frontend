@@ -515,7 +515,7 @@ export default function BillsPage() {
 
         {isOwner ? (
           <Tabs defaultValue="bills" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="w-full justify-start sm:grid sm:grid-cols-4">
               <TabsTrigger value="bills">
                 <FileText className="mr-2 h-4 w-4" />
                 {t('tabs.bills')}
@@ -547,7 +547,7 @@ export default function BillsPage() {
                     setStatusFilter(value as BillStatus | 'all')
                   }
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[180px] sm:flex-none">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1033,7 +1033,7 @@ export default function BillsPage() {
                   setStatusFilter(value as BillStatus | 'all')
                 }
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[180px] sm:flex-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

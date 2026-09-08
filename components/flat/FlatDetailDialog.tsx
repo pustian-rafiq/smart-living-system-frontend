@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { WhatsAppButton } from '@/components/contact/WhatsAppButton'
 import {
   Dialog,
   DialogContent,
@@ -102,6 +104,7 @@ export function FlatDetailDialog({
   onGenerateBill,
 }: FlatDetailDialogProps) {
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
+  const tContact = useTranslations('contact')
 
   if (!flat) return null
 
@@ -131,7 +134,7 @@ export function FlatDetailDialog({
 
           {/* Flat Details */}
           {(flat.area || flat.bedrooms || flat.bathrooms) && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {flat.area && (
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Area</p>
@@ -170,10 +173,15 @@ export function FlatDetailDialog({
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium">{flat.renter.phone}</p>
                       <p className="text-sm text-muted-foreground">Phone</p>
                     </div>
+                    <WhatsAppButton
+                      size="sm"
+                      number={flat.renter.whatsapp}
+                      message={tContact('messageRenter')}
+                    />
                   </div>
                   {flat.renter.email && (
                     <div className="flex items-center gap-3">

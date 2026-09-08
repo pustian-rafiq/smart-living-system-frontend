@@ -9,6 +9,57 @@ import {
 } from '@/lib/auth/demo-identity'
 import { clearAuthTokens, setAuthTokens } from '@/utils/auth-tokens'
 import { getDefaultPathForRole } from '@/lib/auth'
+import {
+  normalizeOwnerVerticals,
+  type OwnerVertical,
+} from '@/lib/owner-focus'
+
+const OWNER_VERTICALS_KEY = 'ownerEnabledVerticals'
+const OWNER_PRIMARY_KEY = 'ownerPrimaryFocus'
+const OWNER_FOCUS_SELECTED_KEY = 'ownerFocusSelected'
+
+function persistOwnerFocus(user: AuthUser): void {
+  if (user.role !== 'owner') {
+    sessionStorage.removeItem(OWNER_VERTICALS_KEY)
+    sessionStorage.removeItem(OWNER_PRIMARY_KEY)
+    sessionStorage.removeItem(OWNER_FOCUS_SELECTED_KEY)
+    return
+  }
+  sessionStorage.setItem(
+    OWNER_VERTICALS_KEY,
+    JSON.stringify(normalizeOwnerVerticals(user.ownerEnabledVerticals)),
+  )
+  sessionStorage.setItem(
+    OWNER_PRIMARY_KEY,
+    user.ownerPrimaryFocus || '',
+  )
+  sessionStorage.setItem(
+    OWNER_FOCUS_SELECTED_KEY,
+    user.ownerFocusSelected ? 'true' : 'false',
+  )
+}
+
+export function getStoredOwnerVerticals(): OwnerVertical[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = sessionStorage.getItem(OWNER_VERTICALS_KEY)
+    if (!raw) return []
+    return normalizeOwnerVerticals(JSON.parse(raw))
+  } catch {
+    return []
+  }
+}
+
+export function getStoredOwnerPrimaryFocus(): OwnerVertical | '' {
+  if (typeof window === 'undefined') return ''
+  const raw = sessionStorage.getItem(OWNER_PRIMARY_KEY) || ''
+  return normalizeOwnerVerticals([raw])[0] || ''
+}
+
+export function isOwnerFocusSelected(): boolean {
+  if (typeof window === 'undefined') return false
+  return sessionStorage.getItem(OWNER_FOCUS_SELECTED_KEY) === 'true'
+}
 
 export const getStoredRole = (): UserRole | null => {
   if (typeof window === 'undefined') return null
@@ -109,6 +160,7 @@ export function applyAuthSession(
       sessionStorage.removeItem('adminRole')
       sessionStorage.removeItem('adminId')
     }
+    persistOwnerFocus(session.user)
     syncDemoIdentityForRole(session.user.role)
   } else {
     sessionStorage.removeItem('isLoggedIn')
@@ -187,6 +239,9 @@ export const logout = (): void => {
   sessionStorage.removeItem('needsPinSetup')
   sessionStorage.removeItem('hasPin')
   sessionStorage.removeItem('pinReset')
+  sessionStorage.removeItem(OWNER_VERTICALS_KEY)
+  sessionStorage.removeItem(OWNER_PRIMARY_KEY)
+  sessionStorage.removeItem(OWNER_FOCUS_SELECTED_KEY)
   clearDemoIdentity()
   notifyAuthSessionChanged()
   void import('@/lib/api/auth').then(({ logoutApi }) => logoutApi())
@@ -244,5 +299,7 @@ export function syncUserDisplay(user: AuthUser): void {
     sessionStorage.setItem('profilePhotoUrl', user.profilePhotoUrl)
   }
   sessionStorage.setItem('loginPhone', user.phoneDigits)
+  if (user.role) sessionStorage.setItem('userRole', user.role)
+  persistOwnerFocus(user)
   notifyAuthSessionChanged()
 }

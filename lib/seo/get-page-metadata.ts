@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 import type { AppLocale } from '@/lib/i18n/config'
 import { buildMetadata } from './build-metadata'
+import { listingPath } from './slug'
 import type { SeoPageKey } from './page-keys'
 
 export type PageMetadataOptions = {
@@ -111,7 +112,7 @@ export async function getListingMetadata(property: {
   return buildMetadata({
     title,
     description: fullDescription,
-    path: `/listings/${property.id}`,
+    path: listingPath(property),
     locale,
     keywords: [
       property.type,

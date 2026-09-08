@@ -127,9 +127,9 @@ export const mockNotifications: Notification[] = [
   {
     id: 'n6',
     userId: 'r1',
-    title: 'Welcome to Smart Living',
+    title: 'Welcome to SmartBasa',
     message:
-      'Thank you for joining Smart Living System. We hope you have a great experience!',
+      'Thank you for joining SmartBasa. We hope you have a great experience!',
     type: 'other',
     read: true,
     createdAt: '2024-01-15T10:00:00',

@@ -10,6 +10,7 @@ import {
   Wallet,
   LayoutDashboard,
   Calculator,
+  Users,
 } from 'lucide-react'
 import type { Mess } from '@/types/mess'
 import { cn } from '@/lib/utils'
@@ -23,6 +24,11 @@ interface MessManageLinksProps {
 
 const links = (messId: string) =>
   [
+    {
+      href: `/mess/${messId}/members`,
+      label: 'Renters',
+      icon: Users,
+    },
     {
       href: `/mess/${messId}/hisab`,
       label: 'মিল হিসাব',

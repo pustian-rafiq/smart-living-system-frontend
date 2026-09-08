@@ -292,7 +292,7 @@ export default function FavoritesPage() {
 
         <Card className="mb-6">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Label>{t('sortBy')}:</Label>
               <Select
                 value={sortBy}
@@ -300,7 +300,7 @@ export default function FavoritesPage() {
                   setSortBy(value as 'date' | 'rent' | 'name')
                 }
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[180px] sm:flex-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -13,6 +13,7 @@ import { fetchDiscoverSearch } from '@/lib/api/discover'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { MapPin } from 'lucide-react'
 import type { Property } from '@/types/property'
+import { listingPath } from '@/lib/seo/slug'
 
 export default function AreaLandingPage() {
   const params = useParams()
@@ -34,7 +35,7 @@ export default function AreaLandingPage() {
   )
 
   const onViewDetails = (property: Property) => {
-    window.location.href = `/listings/${property.id}`
+    window.location.href = listingPath(property)
   }
   const onCall = (phone: string) => {
     window.location.href = `tel:${phone}`

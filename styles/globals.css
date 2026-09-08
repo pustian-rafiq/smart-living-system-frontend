@@ -77,6 +77,16 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Horizontal scrolling without a scrollbar eating a 40px-tall tab strip */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Leaflet (PropertyMap) — Tailwind preflight breaks OSM tiles without this */

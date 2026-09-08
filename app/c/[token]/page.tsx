@@ -48,7 +48,7 @@ export default function HeartbeatConfirmPage() {
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>This confirm link is missing or was typed incorrectly.</p>
               <Button asChild variant="outline">
-                <Link href="/">Go to Smart Living</Link>
+                <Link href="/">Go to SmartBasa</Link>
               </Button>
             </CardContent>
           </Card>
@@ -112,7 +112,7 @@ export default function HeartbeatConfirmPage() {
               <Button variant="ghost" className="w-full" asChild>
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />
-                  Smart Living home
+                  SmartBasa home
                 </Link>
               </Button>
             </CardContent>

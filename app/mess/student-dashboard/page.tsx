@@ -32,13 +32,13 @@ import {
   ScrollText,
 } from 'lucide-react'
 import {
-  fetchMessStudents,
   fetchMessById,
   fetchNoticesByMess,
   fetchOrCreateMessBill,
 } from '@/lib/api/mess'
 import { getCurrentAccountUserId } from '@/lib/api/account'
 import { ok } from '@/lib/api/http'
+import { useMessStudentSelf } from '@/hooks/useMessStudentSelf'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import type { Bill } from '@/types/bill'
@@ -50,15 +50,7 @@ export default function StudentDashboardPage() {
   const router = useRouter()
   const tenantId = getCurrentAccountUserId()
 
-  const loadStudents = useCallback(() => fetchMessStudents(), [])
-  const { data: students, loading: studentsLoading } = useMockQuery(loadStudents)
-  const student = useMemo(
-    () =>
-      students?.find(s => s.userId && s.userId === tenantId) ??
-      students?.find(s => s.messId) ??
-      students?.[0],
-    [students, tenantId]
-  )
+  const { student, loading: studentsLoading } = useMessStudentSelf()
 
   const loadMess = useCallback(
     () =>

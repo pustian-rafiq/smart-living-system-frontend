@@ -3,12 +3,15 @@ import type {
   HisabMonth,
   MealOffRequest,
   MemberDeposit,
+  MemberMealSheet,
   Mess,
   MessMealCalendar,
+  MessMember,
+  MessMemberDetail,
   MessUtilities,
   Notice,
+  OccupantType,
   Seat,
-  Student,
 } from '@/types/mess'
 import type { SMSTemplate, SMSGroup } from '@/types/sms'
 import type { Bill } from '@/types/bill'
@@ -19,8 +22,7 @@ import { hasAuthTokens } from '@/utils/auth-tokens'
 export async function fetchMessList(
   options?: { mine?: boolean },
 ): Promise<ApiResult<Mess[]>> {
-  const query = options?.mine ? '?mine=1' : ''
-  return apiRequest<Mess[]>(`/mess/${query}`, {
+  return apiRequest<Mess[]>(options?.mine ? '/mess/?mine=1' : '/mess/', {
     auth: Boolean(options?.mine),
   })
 }
@@ -79,7 +81,8 @@ export async function fetchMessExpenseSplit(
 
 export async function fetchMessStudents(
   messId?: string,
-): Promise<ApiResult<Student[]>> {
+  filters?: { q?: string; type?: OccupantType | 'all'; status?: MemberStatusFilter },
+): Promise<ApiResult<MessMember[]>> {
   if (!messId) {
     // Load all messes then aggregate students (student dashboard fallback)
     const messes = await fetchMessList()
@@ -87,37 +90,106 @@ export async function fetchMessStudents(
     if (!hasAuthTokens() || !messes.data.length) return { ok: true, data: [] }
     const lists = await Promise.all(
       messes.data.map(m =>
-        apiRequest<Student[]>(`/mess/${m.id}/students/`),
+        apiRequest<MessMember[]>(`/mess/${m.id}/students/`),
       ),
     )
     const students = lists.flatMap(r => (r.ok ? r.data : []))
     return { ok: true, data: students }
   }
   if (!hasAuthTokens()) return { ok: true, data: [] }
-  return apiRequest<Student[]>(`/mess/${messId}/students/`)
+  const params = new URLSearchParams()
+  if (filters?.q) params.set('q', filters.q)
+  if (filters?.type && filters.type !== 'all') params.set('type', filters.type)
+  if (filters?.status && filters.status !== 'all') {
+    params.set('status', filters.status)
+  }
+  const query = params.toString()
+  return apiRequest<MessMember[]>(
+    `/mess/${messId}/students/${query ? `?${query}` : ''}`,
+  )
+}
+
+export type MemberStatusFilter = 'all' | 'active' | 'inactive'
+
+/** Everything an owner can set on a member; all optional except name/phone. */
+export type MessMemberInput = {
+  name: string
+  phone: string
+  whatsappNumber?: string
+  email?: string
+  occupantType?: OccupantType
+  photoUrl?: string
+  studentId?: string
+  university?: string
+  organization?: string
+  designation?: string
+  emergencyContactName?: string
+  emergencyContactPhone?: string
+  nidNumber?: string
+  permanentAddress?: string
+  notes?: string
+  seatNumber?: string
+  joinedDate?: string
+  monthlyFee?: number
 }
 
 export async function assignMessStudent(
   messId: string,
-  data: {
-    name: string
-    phone: string
-    email?: string
-    studentId?: string
-    university?: string
-    seatNumber: string
-  },
-): Promise<ApiResult<Student>> {
-  return apiRequest<Student>(`/mess/${messId}/students/`, {
+  data: MessMemberInput,
+): Promise<ApiResult<MessMember>> {
+  return apiRequest<MessMember>(`/mess/${messId}/students/`, {
     method: 'POST',
     body: {
       name: data.name,
       phone: data.phone,
+      whatsappNumber: data.whatsappNumber || '',
       email: data.email || '',
+      occupantType: data.occupantType || 'student',
+      photoUrl: data.photoUrl || '',
       studentId: data.studentId || '',
       university: data.university || '',
-      seatNumber: data.seatNumber,
+      organization: data.organization || '',
+      designation: data.designation || '',
+      emergencyContactName: data.emergencyContactName || '',
+      emergencyContactPhone: data.emergencyContactPhone || '',
+      nidNumber: data.nidNumber || '',
+      permanentAddress: data.permanentAddress || '',
+      notes: data.notes || '',
+      seatNumber: data.seatNumber || '',
+      ...(data.joinedDate ? { joinedDate: data.joinedDate } : {}),
+      ...(data.monthlyFee != null ? { monthlyFee: data.monthlyFee } : {}),
     },
+  })
+}
+
+export async function fetchMessMember(
+  messId: string,
+  memberId: string,
+): Promise<ApiResult<MessMemberDetail>> {
+  return apiRequest<MessMemberDetail>(`/mess/${messId}/students/${memberId}/`)
+}
+
+export async function updateMessMember(
+  messId: string,
+  memberId: string,
+  patch: Partial<MessMemberInput> & {
+    isActive?: boolean
+    leftDate?: string | null
+    vacateSeat?: boolean
+  },
+): Promise<ApiResult<MessMember>> {
+  return apiRequest<MessMember>(`/mess/${messId}/students/${memberId}/`, {
+    method: 'PATCH',
+    body: patch,
+  })
+}
+
+export async function removeMessMember(
+  messId: string,
+  memberId: string,
+): Promise<ApiResult<{ id: string; removed: boolean }>> {
+  return apiRequest(`/mess/${messId}/students/${memberId}/`, {
+    method: 'DELETE',
   })
 }
 
@@ -353,6 +425,18 @@ export async function fetchHisabMonth(
   const q = params.toString()
   return apiRequest<HisabMonth>(
     `/mess/${messId}/hisab/month/${q ? `?${q}` : ''}`,
+  )
+}
+
+/** One member's day-by-day meals for a month (owner sheet, or the member's own). */
+export async function fetchMemberMonthMeals(
+  messId: string,
+  studentId: string,
+  year: number,
+  month: number,
+): Promise<ApiResult<MemberMealSheet>> {
+  return apiRequest<MemberMealSheet>(
+    `/mess/${messId}/students/${studentId}/meals/?year=${year}&month=${month}`,
   )
 }
 

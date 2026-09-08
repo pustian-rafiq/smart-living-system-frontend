@@ -195,7 +195,7 @@ export default function SavedSearchesPage() {
             setSelectedTab(value as 'all' | 'active' | 'inactive')
           }
         >
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="w-full justify-start sm:grid sm:grid-cols-3">
             <TabsTrigger value="all" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
               {t('tabs.all')} ({searchesList.length})

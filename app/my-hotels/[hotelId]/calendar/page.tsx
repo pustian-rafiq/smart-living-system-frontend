@@ -84,12 +84,12 @@ export default function BookingCalendarPage() {
         {/* Room Selector */}
         <Card className="mb-6">
           <CardContent className="p-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <label className="text-sm font-medium">
                 {t('calendar.filterByRoom')}
               </label>
               <Select value={selectedRoomId} onValueChange={setSelectedRoomId}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[200px] sm:flex-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

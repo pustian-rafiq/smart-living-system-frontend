@@ -30,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, X, Upload, Image as ImageIcon } from 'lucide-react'
 import type { DailyMenu, MealItem, MealCategory } from '@/types/meal'
@@ -162,32 +161,36 @@ export function DailyMenuDialog({
       mealCategories.find(c => c.value === category)?.label || category
 
     return (
-      <div className="space-y-3 rounded-lg border p-4">
-        <div className="flex items-center justify-between">
+      <div className="space-y-3 rounded-lg border p-3 sm:p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="font-semibold">{label}</h3>
           <Button
             type="button"
             variant="outline"
             size="sm"
+            className="w-full sm:w-auto"
             onClick={() =>
               fieldArray.append({ name: '', description: '', isSpecial: false })
             }
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Item
           </Button>
         </div>
 
         {fieldArray.fields.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
+          <p className="py-4 text-center text-sm text-muted-foreground">
             No items added yet
           </p>
         ) : (
           <div className="space-y-3">
             {fieldArray.fields.map((field, index) => (
-              <div key={field.id} className="rounded-lg border p-3 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 space-y-2">
+              <div
+                key={field.id}
+                className="space-y-2 rounded-lg border p-3"
+              >
+                <div className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1 space-y-2">
                     <FormField
                       control={form.control}
                       name={`${category}.${index}.name`}
@@ -209,6 +212,7 @@ export function DailyMenuDialog({
                             <Textarea
                               placeholder="Description (optional)"
                               rows={2}
+                              className="min-h-[4.5rem] resize-y"
                               {...field}
                             />
                           </FormControl>
@@ -216,12 +220,12 @@ export function DailyMenuDialog({
                         </FormItem>
                       )}
                     />
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                       <FormField
                         control={form.control}
                         name={`${category}.${index}.isSpecial`}
                         render={({ field }) => (
-                          <FormItem className="flex items-center space-x-2">
+                          <FormItem className="flex shrink-0 items-center space-x-2 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
@@ -239,10 +243,11 @@ export function DailyMenuDialog({
                           control={form.control}
                           name={`${category}.${index}.price`}
                           render={({ field }) => (
-                            <FormItem className="flex-1">
+                            <FormItem className="w-full sm:max-w-[10rem] sm:flex-1">
                               <FormControl>
                                 <Input
                                   type="number"
+                                  inputMode="decimal"
                                   placeholder="Price (৳)"
                                   {...field}
                                   onChange={e =>
@@ -263,8 +268,10 @@ export function DailyMenuDialog({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    size="icon"
+                    className="mt-0.5 h-9 w-9 shrink-0"
                     onClick={() => fieldArray.remove(index)}
+                    aria-label="Remove item"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -279,12 +286,12 @@ export function DailyMenuDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="left-[50%] top-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-full translate-x-[-50%] translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:top-[50%] sm:h-auto sm:max-h-[85vh] sm:w-[calc(100%-2rem)] sm:max-w-4xl sm:translate-y-[-50%] sm:rounded-lg sm:border sm:p-0">
+        <DialogHeader className="shrink-0 space-y-1.5 px-4 pb-2 pt-5 pr-12 text-left sm:px-6 sm:pt-6">
+          <DialogTitle className="text-base sm:text-lg">
             {menu ? 'Edit Daily Menu' : 'Create Daily Menu'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Add or edit the menu for a specific date
           </DialogDescription>
         </DialogHeader>
@@ -292,10 +299,10 @@ export function DailyMenuDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="flex min-h-0 flex-1 flex-col"
           >
-            <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
-              <div className="space-y-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:px-6">
+              <div className="space-y-3 pb-2 sm:space-y-4">
                 {/* Date */}
                 <FormField
                   control={form.control}
@@ -304,7 +311,7 @@ export function DailyMenuDialog({
                     <FormItem>
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" className="w-full" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -328,6 +335,7 @@ export function DailyMenuDialog({
                         <Textarea
                           placeholder="Any special notes or announcements..."
                           rows={3}
+                          className="resize-y"
                           {...field}
                         />
                       </FormControl>
@@ -336,17 +344,20 @@ export function DailyMenuDialog({
                   )}
                 />
               </div>
-            </ScrollArea>
+            </div>
 
-            <DialogFooter>
+            <DialogFooter className="shrink-0 gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:justify-end sm:gap-2 sm:space-x-0 sm:px-6 sm:py-4">
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit">{menu ? 'Update' : 'Create'} Menu</Button>
+              <Button type="submit" className="w-full sm:w-auto">
+                {menu ? 'Update' : 'Create'} Menu
+              </Button>
             </DialogFooter>
           </form>
         </Form>

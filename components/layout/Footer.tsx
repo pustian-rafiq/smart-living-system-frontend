@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { BrandLockup } from '@/components/layout/BrandLogo'
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear()
@@ -11,11 +12,11 @@ export const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About Section */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-              About
-            </h3>
+            <Link href="/" className="inline-flex" aria-label="SmartBasa home">
+              <BrandLockup className="h-20" />
+            </Link>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Smart Living System is a platform connecting renters and property
+              SmartBasa is a platform connecting renters and property
               owners in Bangladesh.
             </p>
           </div>
@@ -148,7 +149,7 @@ export const Footer = () => {
               Contact
             </h3>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li>Email: info@smartliving.bd</li>
+              <li>Email: info@smartbasa.com</li>
               <li>Phone: +880 1234 567890</li>
               <li>Dhaka, Bangladesh</li>
             </ul>
@@ -158,7 +159,7 @@ export const Footer = () => {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800">
           <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            © {currentYear} Smart Living System. All rights reserved.
+            © {currentYear} SmartBasa. All rights reserved.
           </p>
         </div>
       </div>

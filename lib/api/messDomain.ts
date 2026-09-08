@@ -79,6 +79,45 @@ export async function updateDailyMenu(
   return result.ok ? result.data : undefined
 }
 
+const EMPTY_WEEK_DAYS = [
+  'saturday',
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+] as const
+
+function normalizeWeeklySchedule(schedule: WeeklySchedule): WeeklySchedule {
+  let raw: unknown = schedule.schedule
+  if (typeof raw === 'string') {
+    try {
+      raw = JSON.parse(raw)
+    } catch {
+      raw = {}
+    }
+  }
+  const source =
+    raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)
+      : {}
+
+  const normalized = {} as WeeklySchedule['schedule']
+  for (const day of EMPTY_WEEK_DAYS) {
+    const dayValue = source[day]
+    normalized[day] =
+      dayValue && typeof dayValue === 'object' && !Array.isArray(dayValue)
+        ? (dayValue as WeeklySchedule['schedule'][typeof day])
+        : {}
+  }
+
+  return {
+    ...schedule,
+    schedule: normalized,
+  }
+}
+
 export async function getWeeklyScheduleByMess(
   messId: string,
 ): Promise<WeeklySchedule | undefined> {
@@ -87,7 +126,8 @@ export async function getWeeklyScheduleByMess(
     { auth: hasAuthTokens() },
   )
   if (!result.ok || !result.data.length) return undefined
-  return result.data.find(s => s.isActive) ?? result.data[0]
+  const selected = result.data.find(s => s.isActive) ?? result.data[0]
+  return normalizeWeeklySchedule(selected)
 }
 
 export async function addWeeklySchedule(
@@ -99,18 +139,19 @@ export async function addWeeklySchedule(
     `/mess/${schedule.messId}/meals/weekly/`,
     { method: 'POST', body: schedule },
   )
-  return result.ok ? result.data : undefined
+  return result.ok ? normalizeWeeklySchedule(result.data) : undefined
 }
 
 export async function updateWeeklySchedule(
   scheduleId: string,
   updates: Partial<WeeklySchedule> & { messId: string },
 ): Promise<WeeklySchedule | undefined> {
+  const { messId, ...body } = updates
   const result = await apiRequest<WeeklySchedule>(
-    `/mess/${updates.messId}/meals/weekly/${scheduleId}/`,
-    { method: 'PATCH', body: updates },
+    `/mess/${messId}/meals/weekly/${scheduleId}/`,
+    { method: 'PATCH', body },
   )
-  return result.ok ? result.data : undefined
+  return result.ok ? normalizeWeeklySchedule(result.data) : undefined
 }
 
 export async function getMealTimingByMess(
@@ -271,12 +312,11 @@ export async function markAttendance(
 export async function bulkMarkAttendance(
   messId: string,
   records: Omit<AttendanceRecord, 'id' | 'markedAt' | 'messId'>[],
-): Promise<AttendanceRecord[]> {
-  const result = await apiRequest<AttendanceRecord[]>(
-    `/mess/${messId}/attendance/bulk/`,
-    { method: 'POST', body: { records } },
-  )
-  return result.ok ? result.data : []
+): Promise<ApiResult<AttendanceRecord[]>> {
+  return apiRequest<AttendanceRecord[]>(`/mess/${messId}/attendance/bulk/`, {
+    method: 'POST',
+    body: { date: records[0]?.date, records },
+  })
 }
 
 export async function generateAttendanceReport(
@@ -308,7 +348,15 @@ export async function getSMSTemplatesByMess(
 
 export async function getSMSGroupsByMess(messId: string): Promise<SMSGroup[]> {
   const result = await apiRequest<SMSGroup[]>(`/mess/${messId}/sms/groups/`)
-  return result.ok ? result.data : []
+  if (!result.ok || !Array.isArray(result.data)) return []
+  return result.data.map(group => ({
+    ...group,
+    memberIds: Array.isArray(group.memberIds)
+      ? group.memberIds.map(String)
+      : Array.isArray((group as { member_ids?: unknown }).member_ids)
+        ? ((group as { member_ids: unknown[] }).member_ids).map(String)
+        : [],
+  }))
 }
 
 export async function getSMSMessagesByMess(
@@ -355,6 +403,78 @@ export async function sendBulkSMS(
     method: 'POST',
     body: payload,
   })
+  if (!result.ok) {
+    throw new Error(result.error || 'SMS send failed')
+  }
+  return result.data
+}
+
+export async function getOwnerSMSWallet(): Promise<
+  import('@/types/sms').OwnerSMSWallet | undefined
+> {
+  const result = await apiRequest<import('@/types/sms').OwnerSMSWallet>(
+    '/mess/sms/wallet/',
+  )
+  return result.ok ? result.data : undefined
+}
+
+export async function purchaseSMSCredits(
+  packageId: string,
+): Promise<
+  | {
+      balance: number
+      credits: number
+      amountBdt: number
+      wallet: import('@/types/sms').OwnerSMSWallet
+    }
+  | undefined
+> {
+  const result = await apiRequest<{
+    balance: number
+    credits: number
+    amountBdt: number
+    wallet: import('@/types/sms').OwnerSMSWallet
+  }>('/mess/sms/credits/purchase/', {
+    method: 'POST',
+    body: { packageId },
+  })
+  return result.ok ? result.data : undefined
+}
+
+export async function getOwnerSMSLedger(): Promise<{
+  wallet: import('@/types/sms').OwnerSMSWallet
+  ledger: import('@/types/sms').SMSCreditLedgerEntry[]
+} | undefined> {
+  const result = await apiRequest<{
+    wallet: import('@/types/sms').OwnerSMSWallet
+    ledger: import('@/types/sms').SMSCreditLedgerEntry[]
+  }>('/mess/sms/credits/ledger/')
+  return result.ok ? result.data : undefined
+}
+
+export async function getOwnerSMSHistory(params?: {
+  messId?: string
+  startDate?: string
+  endDate?: string
+}): Promise<{
+  wallet: import('@/types/sms').OwnerSMSWallet
+  messages: SMSMessage[]
+  totalSent: number
+  totalFailed: number
+  totalCost: number
+} | undefined> {
+  const search = new URLSearchParams()
+  if (params?.messId) search.set('messId', params.messId)
+  if (params?.startDate) search.set('startDate', params.startDate)
+  if (params?.endDate) search.set('endDate', params.endDate)
+  const qs = search.toString()
+  const result = await apiRequest<{
+    wallet: import('@/types/sms').OwnerSMSWallet
+    messages: SMSMessage[]
+    totalSent: number
+    totalFailed: number
+    totalCost: number
+  }>(`/mess/sms/history/${qs ? `?${qs}` : ''}`)
   return result.ok ? result.data : undefined
 }
 
@@ -406,9 +526,10 @@ export async function updateSMSGroup(
   groupId: string,
   updates: Partial<SMSGroup> & { messId: string },
 ): Promise<SMSGroup | undefined> {
+  const { messId, ...body } = updates
   const result = await apiRequest<SMSGroup>(
-    `/mess/${updates.messId}/sms/groups/${groupId}/`,
-    { method: 'PATCH', body: updates },
+    `/mess/${messId}/sms/groups/${groupId}/`,
+    { method: 'PATCH', body },
   )
   return result.ok ? result.data : undefined
 }
@@ -544,18 +665,34 @@ export async function getExpenseById(
   return expenses.find(e => e.id === expenseId)
 }
 
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
+/** `month` is 1–12; the API answers with the month name for display. */
 export async function getMonthlyExpenseSummary(
   messId: string,
-  month: string,
+  month: number,
   year: number,
 ): Promise<MonthlyExpenseSummary> {
   const result = await apiRequest<MonthlyExpenseSummary>(
-    `/mess/${messId}/expenses/summary/?month=${encodeURIComponent(month)}&year=${year}`,
+    `/mess/${messId}/expenses/summary/?month=${month}&year=${year}`,
   )
   if (!result.ok) {
     return {
       messId,
-      month,
+      month: MONTH_NAMES[month - 1] ?? String(month),
       year,
       totalAmount: 0,
       categoryBreakdown: [],

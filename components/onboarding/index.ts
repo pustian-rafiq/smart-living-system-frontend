@@ -1,5 +1,6 @@
 export { OnboardingWizard } from './OnboardingWizard'
 export type { OnboardingStep } from './OnboardingWizard'
 export { OwnerOnboardingDialog } from './OwnerOnboardingDialog'
+export { OwnerFocusDialog } from './OwnerFocusDialog'
 export { MessOnboardingDialog } from './MessOnboardingDialog'
 export { HotelOnboardingDialog } from './HotelOnboardingDialog'

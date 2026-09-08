@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { format } from 'date-fns'
@@ -34,10 +35,10 @@ import { getStoredRole } from '@/utils/auth'
 import { toast } from '@/lib/feedback/toast'
 import type { HisabGridRow } from '@/types/mess'
 import { Calculator, Check, RotateCcw, Save } from 'lucide-react'
+import { MessSubpageBackButton } from '@/components/mess/MessSubpageBackButton'
 
 export default function MessHisabPage() {
   const t = useTranslations('mess.hisab')
-  const tc = useTranslations('common')
   const params = useParams()
   const router = useRouter()
   const messId = String(params.messId || '')
@@ -70,13 +71,30 @@ export default function MessHisabPage() {
   const loadDeposits = useCallback(() => fetchMemberDeposits(messId), [messId])
   const loadStudents = useCallback(() => fetchMessStudents(messId), [messId])
 
-  const { data: mess, loading: messLoading, refetch: refetchMess } = useMockQuery(loadMess)
-  const { data: grid, loading: gridLoading, refetch: refetchGrid } = useMockQuery(loadGrid)
-  const { data: monthData, loading: monthLoading, refetch: refetchMonth } =
-    useMockQuery(loadMonth)
-  const { data: offs, refetch: refetchOff } = useMockQuery(loadOff)
+  const { data: mess, loading: messLoading, error: messError, refetch: refetchMess } =
+    useMockQuery(loadMess)
+  const {
+    data: grid,
+    loading: gridLoading,
+    error: gridError,
+    refetch: refetchGrid,
+  } = useMockQuery(loadGrid)
+  const {
+    data: monthData,
+    loading: monthLoading,
+    error: monthError,
+    refetch: refetchMonth,
+  } = useMockQuery(loadMonth)
+  const { data: offs, error: offsError, refetch: refetchOff } = useMockQuery(loadOff)
   const { data: deposits, refetch: refetchDep } = useMockQuery(loadDeposits)
-  const { data: students } = useMockQuery(loadStudents)
+  const { data: students, error: studentsError } = useMockQuery(loadStudents)
+
+  const accessError = [gridError, monthError, offsError, studentsError].find(
+    e =>
+      e &&
+      (/access|forbidden|owner|auth|sign in|log in|credential/i.test(e) ||
+        e.toLowerCase().includes('not authenticated')),
+  )
 
   useEffect(() => {
     if (grid?.rows) setRows(grid.rows)
@@ -211,11 +229,30 @@ export default function MessHisabPage() {
     refetchMonth()
   }
 
-  if (messLoading) {
+  if (messLoading && !mess) {
     return (
       <Layout>
         <div className="container mx-auto max-w-7xl px-4 py-6">
           <LoadingState label={t('loading')} />
+        </div>
+      </Layout>
+    )
+  }
+
+  if (messError || !mess) {
+    return (
+      <Layout>
+        <div className="container mx-auto max-w-7xl space-y-4 px-4 py-6">
+          <MessSubpageBackButton fallbackHref="/mess" />
+          <Card>
+            <CardContent className="space-y-3 py-10 text-center">
+              <p className="font-medium">{t('loadFailed')}</p>
+              <p className="text-sm text-muted-foreground">
+                {messError || t('notFound')}
+              </p>
+              <Button onClick={() => refetchMess()}>{t('retry')}</Button>
+            </CardContent>
+          </Card>
         </div>
       </Layout>
     )
@@ -226,15 +263,13 @@ export default function MessHisabPage() {
       <div className="container mx-auto max-w-7xl space-y-6 px-4 py-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <Button variant="ghost" className="mb-2 -ml-2" onClick={() => router.back()}>
-              ← {tc('back')}
-            </Button>
+            <MessSubpageBackButton fallbackHref="/mess" />
             <h1 className="flex items-center gap-2 text-2xl font-bold">
               <Calculator className="h-6 w-6" />
               {t('title')}
             </h1>
             <p className="text-muted-foreground">
-              {mess?.name} · {t('subtitle')}
+              {mess.name} · {t('subtitle')}
             </p>
           </div>
           {monthData ? (
@@ -244,6 +279,33 @@ export default function MessHisabPage() {
             </Badge>
           ) : null}
         </div>
+
+        {accessError ? (
+          <Card className="border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40">
+            <CardContent className="space-y-2 py-4 text-sm text-amber-950 dark:text-amber-100">
+              <p className="font-medium">{t('accessDeniedTitle')}</p>
+              <p>{accessError}</p>
+              <p className="text-muted-foreground">{t('accessDeniedHint')}</p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button size="sm" variant="outline" onClick={() => router.push('/mess')}>
+                  {t('backToMess')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    refetchGrid()
+                    refetchMonth()
+                    refetchOff()
+                    refetchMess()
+                  }}
+                >
+                  {t('retry')}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Tabs defaultValue="grid">
           <TabsList className="flex h-auto flex-wrap gap-1">
@@ -286,6 +348,13 @@ export default function MessHisabPage() {
               <CardContent>
                 {gridLoading ? (
                   <LoadingState label={t('loading')} />
+                ) : gridError ? (
+                  <div className="space-y-3 py-8 text-center">
+                    <p className="text-sm text-destructive">{gridError}</p>
+                    <Button size="sm" variant="outline" onClick={() => refetchGrid()}>
+                      {t('retry')}
+                    </Button>
+                  </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[720px] text-sm">
@@ -395,8 +464,17 @@ export default function MessHisabPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {monthLoading || !monthData ? (
+                {monthLoading ? (
                   <LoadingState label={t('loading')} />
+                ) : monthError || !monthData ? (
+                  <div className="space-y-3 py-8 text-center">
+                    <p className="text-sm text-destructive">
+                      {monthError || t('loadFailed')}
+                    </p>
+                    <Button size="sm" variant="outline" onClick={() => refetchMonth()}>
+                      {t('retry')}
+                    </Button>
+                  </div>
                 ) : (
                   <>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -429,7 +507,18 @@ export default function MessHisabPage() {
                         <tbody>
                           {monthData.members.map(m => (
                             <tr key={m.studentId} className="border-b">
-                              <td className="p-2 font-medium">{m.name}</td>
+                              <td className="p-2 font-medium">
+                                {isOwner ? (
+                                  <Link
+                                    className="hover:underline"
+                                    href={`/mess/${messId}/members/${m.studentId}/meals?year=${monthData.year}&month=${monthData.month}`}
+                                  >
+                                    {m.name}
+                                  </Link>
+                                ) : (
+                                  m.name
+                                )}
+                              </td>
                               <td className="p-2">{m.mealCount}</td>
                               <td className="p-2">{formatCurrency(m.mealCost)}</td>
                               <td className="p-2">{formatCurrency(m.guestCost)}</td>
@@ -684,7 +773,7 @@ export default function MessHisabPage() {
                     </label>
                   </div>
                   <Button onClick={handleSaveUtilities}>{t('saveUtilities')}</Button>
-                  {mess?.utilities ? (
+                  {mess.utilities ? (
                     <p className="text-sm text-muted-foreground">
                       {t('scoresPreview', {
                         water: mess.utilities.water.score,

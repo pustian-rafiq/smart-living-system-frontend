@@ -262,9 +262,9 @@ export function RenterPaymentsPanel() {
         </TabsContent>
 
         <TabsContent value="scheduled" className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[160px] sm:flex-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

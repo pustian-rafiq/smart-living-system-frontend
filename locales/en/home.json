@@ -1,6 +1,6 @@
 {
   "hero": {
-    "badge": "Bangladesh's First Unified Smart Living Platform",
+    "badge": "Bangladesh's First Unified Living Platform",
     "titleLine1": "Find Your Perfect",
     "titleLine2": "Living Space",
     "titleLine3": "in Bangladesh",
@@ -162,7 +162,7 @@
   },
   "cta": {
     "title": "Ready to Get Started?",
-    "subtitle": "Join thousands of users who are already using Smart Living System to find and manage properties in Bangladesh.",
+    "subtitle": "Join thousands of users who are already using SmartBasa to find and manage properties in Bangladesh.",
     "findAccommodation": "Find Accommodation",
     "browseProperties": "Browse Properties",
     "manageProperties": "Manage Properties",

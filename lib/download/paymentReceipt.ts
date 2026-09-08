@@ -32,7 +32,7 @@ function formatDateTime(iso?: string): string {
 export function buildPaymentReceiptHtml(
   bill: Bill,
   payment: PaymentTransaction,
-  organizationName = 'Smart Living System'
+  organizationName = 'SmartBasa'
 ): string {
   const billHtml = buildBillReceiptHtml(bill, organizationName)
   const paymentBlock = `
@@ -54,7 +54,7 @@ export function buildPaymentReceiptHtml(
 export function buildPaymentReceiptText(
   bill: Bill,
   payment: PaymentTransaction,
-  organizationName = 'Smart Living System'
+  organizationName = 'SmartBasa'
 ): string {
   return [
     organizationName,
@@ -80,7 +80,7 @@ export function downloadPaymentReceipt(
   payment: PaymentTransaction,
   format: 'html' | 'text' | 'pdf' | 'print' = 'html'
 ): void {
-  const org = 'Smart Living System'
+  const org = 'SmartBasa'
   const base = getBillFilename(bill, 'receipt').replace(/\.[^.]+$/, '')
 
   if (format === 'print') {

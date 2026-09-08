@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, UtensilsCrossed } from 'lucide-react'
 import type { DailyMenu, MealItem } from '@/types/meal'
-import { format } from 'date-fns'
+import { useAppFormat } from '@/hooks/useAppFormat'
 
 interface MenuCardProps {
   menu: DailyMenu
@@ -24,6 +24,7 @@ const categoryLabels = {
 }
 
 export function MenuCard({ menu, mealTiming }: MenuCardProps) {
+  const { formatDate } = useAppFormat()
   const renderMealItems = (items: MealItem[] | undefined, category: string) => {
     if (!items || items.length === 0) return null
 
@@ -80,9 +81,9 @@ export function MenuCard({ menu, mealTiming }: MenuCardProps) {
     <Card className="transition-all hover:shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>{format(new Date(menu.date), 'EEEE, MMMM dd, yyyy')}</span>
+          <span>{formatDate(menu.date, { style: 'full' })}</span>
           <Badge variant="outline">
-            {format(new Date(menu.date), 'MMM dd')}
+            {formatDate(menu.date, { style: 'short' })}
           </Badge>
         </CardTitle>
       </CardHeader>

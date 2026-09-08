@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,14 +13,14 @@ import type { Mess } from '@/types/mess'
 
 interface MessOverviewCardProps {
   mess: Mess
-  onAssignStudent: (mess: Mess) => void
+  onAssignRenter: (mess: Mess) => void
   /** Show owner management links (meals, attendance, etc.) */
   showManageLinks?: boolean
 }
 
 export function MessOverviewCard({
   mess,
-  onAssignStudent,
+  onAssignRenter,
   showManageLinks = true,
 }: MessOverviewCardProps) {
   const [imageError, setImageError] = useState(false)
@@ -137,14 +138,19 @@ export function MessOverviewCard({
           </div>
         )}
 
-        <Button
-          className="w-full"
-          onClick={() => onAssignStudent(mess)}
-          disabled={mess.availableSeats === 0}
-        >
-          <UserPlus className="mr-2 h-4 w-4" />
-          {mess.availableSeats === 0 ? 'Full — no seats' : 'Assign student'}
-        </Button>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <Button variant="outline" className="w-full" asChild>
+            <Link href={`/mess/${mess.id}/members`}>
+              <Users className="mr-2 h-4 w-4" />
+              Renters
+            </Link>
+          </Button>
+          {/* Enabled even when full: a renter can wait without a seat. */}
+          <Button className="w-full" onClick={() => onAssignRenter(mess)}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Assign renter
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

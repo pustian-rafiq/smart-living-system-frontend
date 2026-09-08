@@ -56,7 +56,7 @@ export default function Contact() {
             <ul className="space-y-4 text-sm text-muted-foreground">
               <li className="flex gap-3">
                 <Mail className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <span>info@smartliving.bd</span>
+                <span>info@smartbasa.com</span>
               </li>
               <li className="flex gap-3">
                 <Phone className="mt-0.5 h-5 w-5 shrink-0 text-primary" />

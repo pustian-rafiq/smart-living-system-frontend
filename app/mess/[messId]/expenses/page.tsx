@@ -31,10 +31,21 @@ import type { MessExpenseSplit } from '@/lib/api/mess'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, DollarSign, FileText, TrendingUp } from 'lucide-react'
+import { MessSubpageBackButton } from '@/components/mess/MessSubpageBackButton'
 import type { MessExpense, MonthlyExpenseSummary } from '@/types/messExpense'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { useConfirm } from '@/components/feedback'
 import { toast } from '@/lib/feedback/toast'
+
+/** One colour per expense category, so no two rows in the legend clash. */
+const CATEGORY_COLORS = [
+  '#0ea5e9',
+  '#22c55e',
+  '#eab308',
+  '#a855f7',
+  '#f97316',
+  '#ec4899',
+]
 
 export default function ExpensesManagementPage() {
   const t = useTranslations('mess')
@@ -67,7 +78,7 @@ export default function ExpensesManagementPage() {
   useEffect(() => {
     void getMonthlyExpenseSummary(
       messId,
-      format(new Date(), 'MMMM'),
+      new Date().getMonth() + 1,
       new Date().getFullYear()
     ).then(setMonthlySummary)
   }, [messId])
@@ -99,7 +110,7 @@ export default function ExpensesManagementPage() {
     setMonthlySummary(
       await getMonthlyExpenseSummary(
         messId,
-        format(new Date(), 'MMMM'),
+        new Date().getMonth() + 1,
         new Date().getFullYear()
       )
     )
@@ -131,6 +142,11 @@ export default function ExpensesManagementPage() {
     }
   }
 
+  // The API returns a row per category, zeros included — skip the chart entirely
+  // when nothing was spent.
+  const hasCategorySpend =
+    monthlySummary?.categoryBreakdown.some(cat => cat.amount > 0) ?? false
+
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
   const thisMonthExpenses = expenses
     .filter(e => e.date >= monthStart && e.date <= monthEnd)
@@ -154,19 +170,25 @@ export default function ExpensesManagementPage() {
     <Layout userRole="owner">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
+            <MessSubpageBackButton fallbackHref="/mess" />
             <h1 className="text-2xl font-bold mb-2">
               {t('expenses.managementTitle')}
             </h1>
             <p className="text-muted-foreground">{mess.name}</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleGenerateReport}>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 sm:flex-none"
+              onClick={handleGenerateReport}
+            >
               <FileText className="h-4 w-4 mr-2" />
               {t('expenses.generateReport')}
             </Button>
             <Button
+              className="flex-1 sm:flex-none"
               onClick={() => {
                 setEditingExpense(null)
                 setIsExpenseDialogOpen(true)
@@ -179,7 +201,7 @@ export default function ExpensesManagementPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mb-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -231,7 +253,7 @@ export default function ExpensesManagementPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">
                     {t('expenses.totalAmount')}
@@ -257,7 +279,7 @@ export default function ExpensesManagementPage() {
                   </p>
                 </div>
               </div>
-              {monthlySummary.categoryBreakdown.length > 0 && (
+              {hasCategorySpend && (
                 <CategoryBreakdown
                   categories={monthlySummary.categoryBreakdown.map(cat => ({
                     categoryId: cat.category,
@@ -271,9 +293,7 @@ export default function ExpensesManagementPage() {
                     new Map(
                       monthlySummary.categoryBreakdown.map((cat, i) => [
                         cat.category,
-                        ['#0ea5e9', '#22c55e', '#eab308', '#a855f7', '#f97316'][
-                          i % 5
-                        ],
+                        CATEGORY_COLORS[i % CATEGORY_COLORS.length],
                       ])
                     )
                   }
@@ -300,13 +320,13 @@ export default function ExpensesManagementPage() {
                 {split.shares.map(share => (
                   <li
                     key={`${share.studentId}-${share.name}`}
-                    className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+                    className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm"
                   >
-                    <span>
+                    <span className="min-w-0 truncate">
                       {share.name}
                       {share.seatNumber ? ` · ${share.seatNumber}` : ''}
                     </span>
-                    <span className="font-semibold">
+                    <span className="shrink-0 font-semibold">
                       ৳{share.share.toLocaleString()}
                     </span>
                   </li>
@@ -318,7 +338,7 @@ export default function ExpensesManagementPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="expenses" className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList>
               <TabsTrigger value="expenses">
                 {t('expenses.tabs.expenses')}
@@ -328,7 +348,7 @@ export default function ExpensesManagementPage() {
               </TabsTrigger>
             </TabsList>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[150px] sm:flex-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -410,7 +430,7 @@ export default function ExpensesManagementPage() {
                   type="bar"
                   title={t('expenses.expensesByMonth')}
                 />
-                {monthlySummary && monthlySummary.categoryBreakdown.length > 0 && (
+                {monthlySummary && hasCategorySpend && (
                   <CategoryBreakdown
                     categories={monthlySummary.categoryBreakdown.map(cat => ({
                       categoryId: cat.category,
@@ -424,9 +444,7 @@ export default function ExpensesManagementPage() {
                       new Map(
                         monthlySummary.categoryBreakdown.map((cat, i) => [
                           cat.category,
-                          ['#0ea5e9', '#22c55e', '#eab308', '#a855f7', '#f97316'][
-                            i % 5
-                          ],
+                          CATEGORY_COLORS[i % CATEGORY_COLORS.length],
                         ])
                       )
                     }

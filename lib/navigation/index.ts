@@ -16,6 +16,7 @@ export {
   getQuickActionsForRole,
   getMobileUtilityLinksForRole,
   quickActionTriggerIcon,
+  type OwnerNavOptions,
 } from './config'
 
 export { isNavItemActive, isChildActive, isHrefActive } from './utils'

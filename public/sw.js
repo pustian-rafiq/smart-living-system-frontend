@@ -1,4 +1,4 @@
-/* Smart Living service worker — push + offline shell */
+/* SmartBasa service worker — push + offline shell */
 const CACHE = 'smart-living-shell-v1'
 const PRECACHE = ['/', '/manifest.webmanifest', '/icons/icon.svg', '/offline']
 
@@ -65,7 +65,7 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('push', event => {
   let payload = {
-    title: 'Smart Living',
+    title: 'SmartBasa',
     body: 'You have a new update.',
     url: '/',
     icon: '/icons/icon.svg',

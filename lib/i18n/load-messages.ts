@@ -23,6 +23,7 @@ const namespaces = [
   'seo',
   'security',
   'living',
+  'contact',
 ] as const
 
 export type MessageNamespace = (typeof namespaces)[number]

@@ -54,6 +54,7 @@ export interface Booking {
   userId: string
   guestName: string
   guestPhone: string
+  guestWhatsapp?: string
   guestEmail?: string
   checkIn: string // YYYY-MM-DD
   checkOut: string // YYYY-MM-DD
@@ -118,6 +119,8 @@ export interface Hotel {
   ownerId: string
   ownerName: string
   ownerPhone: string
+  /** Owner's WhatsApp number; empty when the owner has not added one. */
+  ownerWhatsapp?: string
   ownerEmail?: string
   address: string
   area: string
@@ -131,7 +134,10 @@ export interface Hotel {
   checkOutTime: string // HH:mm
   minimumStay: number // nights
   licenseNumber?: string
+  /** Document name, or an externally hosted link. */
   licenseDocument?: string
+  /** Signed, short-lived link when the license was uploaded to storage. */
+  licenseDocumentUrl?: string
   verified: boolean
   featured: boolean
   averageRating: number // 0-5
@@ -163,6 +169,8 @@ export interface HotelRegistrationInput {
   minimumStay: number
   licenseNumber?: string
   licenseDocumentName?: string
+  /** Storage key from the upload response; kept private, signed per read. */
+  licenseDocumentKey?: string
   imageUrl?: string
   weekendMultiplier: number
   serviceChargePercent: number

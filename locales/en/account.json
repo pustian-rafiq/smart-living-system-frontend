@@ -26,7 +26,7 @@
     "success": "Account recovered. Redirecting to dashboard…",
     "otpHint": "Enter the OTP sent to your registered number.",
     "cardTitle": "Phone verification",
-    "cardDescription": "Enter the mobile number linked to your Smart Living account.",
+    "cardDescription": "Enter the mobile number linked to your SmartBasa account.",
     "noAccount": "Don't have access to this number?",
     "lostAccess": "Lost access to your number?",
     "contactSupport": "Contact support",

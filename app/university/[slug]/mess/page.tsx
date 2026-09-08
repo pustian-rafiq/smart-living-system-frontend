@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { PropertyCard } from '@/components/property/PropertyCard'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { fetchUniversityDetail } from '@/lib/api/universities'
+import { listingPath } from '@/lib/seo/slug'
 import { GraduationCap } from 'lucide-react'
 
 export default function UniversityLandingPage() {
@@ -91,7 +92,7 @@ export default function UniversityLandingPage() {
                 key={property.id}
                 property={property}
                 onViewDetails={p => {
-                  window.location.href = `/listings/${p.id}`
+                  window.location.href = listingPath(p)
                 }}
                 onCall={phone => {
                   window.location.href = `tel:${phone}`

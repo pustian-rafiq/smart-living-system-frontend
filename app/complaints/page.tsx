@@ -70,7 +70,7 @@ export default function ComplaintsPage() {
     const userId = getCurrentAccountUserId()
     let imageUrl: string | undefined
     if (data.image) {
-      const uploaded = await uploadMediaFile(data.image, 'image')
+      const uploaded = await uploadMediaFile(data.image, 'complaint')
       if (!uploaded.ok) {
         toast.error(uploaded.error)
         return
@@ -136,7 +136,7 @@ export default function ComplaintsPage() {
               setStatusFilter(value as ComplaintStatus | 'all')
             }
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[180px] sm:flex-none">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

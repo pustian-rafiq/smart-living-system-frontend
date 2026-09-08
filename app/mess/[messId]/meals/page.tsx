@@ -11,7 +11,7 @@ import { DailyMenuDialog } from '@/components/meal/DailyMenuDialog'
 import { WeeklyScheduleDialog } from '@/components/meal/WeeklyScheduleDialog'
 import { MealTimingDialog } from '@/components/meal/MealTimingDialog'
 import { MenuCard } from '@/components/meal/MenuCard'
-import { WeeklyMenuView } from '@/components/meal/WeeklyMenuView'
+import { WeeklyMenuBoard } from '@/components/meal/WeeklyMenuBoard'
 import {
   getDailyMenusByMess,
   getWeeklyScheduleByMess,
@@ -19,6 +19,7 @@ import {
   addDailyMenu,
   updateDailyMenu,
   addWeeklySchedule,
+  updateWeeklySchedule,
   updateMealTiming,
 } from '@/lib/api/messDomain'
 import { fetchMessById } from '@/lib/api/mess'
@@ -26,6 +27,7 @@ import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import { Plus, Calendar, Clock, UtensilsCrossed } from 'lucide-react'
+import { MessSubpageBackButton } from '@/components/mess/MessSubpageBackButton'
 import type { DailyMenu, WeeklySchedule, MealTiming } from '@/types/meal'
 import { format } from 'date-fns'
 
@@ -98,7 +100,12 @@ export default function MealManagementPage() {
   const handleWeeklyScheduleSubmit = async (
     data: Parameters<typeof addWeeklySchedule>[0]
   ) => {
-    if (!editingSchedule) {
+    if (editingSchedule) {
+      await updateWeeklySchedule(editingSchedule.id, {
+        ...data,
+        messId,
+      })
+    } else {
       await addWeeklySchedule(data)
     }
     setWeeklySchedule(await getWeeklyScheduleByMess(messId))
@@ -116,6 +123,7 @@ export default function MealManagementPage() {
     <Layout userRole="owner">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="mb-6">
+          <MessSubpageBackButton fallbackHref="/mess" />
           <h1 className="text-2xl font-bold mb-2">
             {t('meals.managementTitle')}
           </h1>
@@ -245,7 +253,8 @@ export default function MealManagementPage() {
                     {t('meals.editSchedule')}
                   </Button>
                 </div>
-                <WeeklyMenuView
+                <WeeklyMenuBoard
+                  key={weeklySchedule.id}
                   schedule={weeklySchedule}
                   mealTiming={mealTiming}
                 />

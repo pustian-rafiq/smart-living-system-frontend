@@ -54,14 +54,28 @@ const DATE_STYLE_MAP: Record<
   full: 'full',
 }
 
+/** Explicit day/month/year — Bangladesh standard (e.g. 06/09/2026). */
+const BD_NUMERIC_DATE: Intl.DateTimeFormatOptions = {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+}
+
 export function formatDate(
   date: Date | string | number,
   options?: { language?: AppLocale; style?: DateStyle }
 ): string {
   const locale = getLocaleCode(options?.language)
   const d = date instanceof Date ? date : new Date(date)
+  const style = options?.style ?? 'medium'
+
+  // Prefer explicit DMY for short so en-BD/bn-BD never fall back to US MDY.
+  if (style === 'short') {
+    return new Intl.DateTimeFormat(locale, BD_NUMERIC_DATE).format(d)
+  }
+
   return new Intl.DateTimeFormat(locale, {
-    dateStyle: DATE_STYLE_MAP[options?.style ?? 'medium'],
+    dateStyle: DATE_STYLE_MAP[style],
   }).format(d)
 }
 

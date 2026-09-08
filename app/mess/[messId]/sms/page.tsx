@@ -10,13 +10,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { BulkSMSDialog } from '@/components/sms/BulkSMSDialog'
 import { SMSTemplateDialog } from '@/components/sms/SMSTemplateDialog'
-import { SMSGroupDialog } from '@/components/sms/SMSGroupDialog'
+import { SMSGroupEditorDialog } from '@/components/sms/SMSGroupEditorDialog'
 import { SMSHistoryCard } from '@/components/sms/SMSHistoryCard'
+import { SMSWalletPanel } from '@/components/sms/SMSWalletPanel'
+import { MessSubpageBackButton } from '@/components/mess/MessSubpageBackButton'
 import {
   getSMSTemplatesByMess,
   getSMSGroupsByMess,
   getSMSMessagesByMess,
   getSMSHistory,
+  getOwnerSMSWallet,
+  getOwnerSMSLedger,
   addSMSTemplate,
   updateSMSTemplate,
   deleteSMSTemplate,
@@ -39,7 +43,14 @@ import {
   MessageSquare,
   DollarSign,
 } from 'lucide-react'
-import type { SMSTemplate, SMSGroup, SMSMessage, SMSHistory } from '@/types/sms'
+import type {
+  SMSTemplate,
+  SMSGroup,
+  SMSMessage,
+  SMSHistory,
+  OwnerSMSWallet,
+  SMSCreditLedgerEntry,
+} from '@/types/sms'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { useConfirm } from '@/components/feedback'
 import { toast } from '@/lib/feedback/toast'
@@ -73,19 +84,29 @@ export default function SMSManagementPage() {
     null
   )
   const [editingGroup, setEditingGroup] = useState<SMSGroup | null>(null)
+  const [wallet, setWallet] = useState<OwnerSMSWallet | null>(null)
+  const [ledger, setLedger] = useState<SMSCreditLedgerEntry[]>([])
 
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
   const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd')
 
-  useEffect(() => {
+  const refreshSmsData = useCallback(() => {
     void getSMSTemplatesByMess(messId).then(setTemplates)
     void getSMSGroupsByMess(messId).then(setGroups)
     void getSMSMessagesByMess(messId).then(setSMSHistory)
-  }, [messId])
+    void getSMSHistory(messId, monthStart, monthEnd).then(setHistory)
+    void getOwnerSMSWallet().then(w => {
+      if (w) setWallet(w)
+    })
+    void getOwnerSMSLedger().then(data => {
+      if (data?.ledger) setLedger(data.ledger)
+      if (data?.wallet) setWallet(data.wallet)
+    })
+  }, [messId, monthStart, monthEnd])
 
   useEffect(() => {
-    void getSMSHistory(messId, monthStart, monthEnd).then(setHistory)
-  }, [messId, monthStart, monthEnd])
+    refreshSmsData()
+  }, [refreshSmsData])
 
   useEffect(() => {
     if (role !== 'owner') {
@@ -136,19 +157,29 @@ export default function SMSManagementPage() {
   }
 
   const handleBulkSMSSubmit = async (data: Record<string, unknown>) => {
-    const message = await sendBulkSMS(messId, {
-      templateId: data.templateId || undefined,
-      content: data.content,
-      recipientType: data.recipientType,
-      recipients: data.recipients,
-      totalRecipients: data.totalRecipients,
-      sentBy: ownerId,
-      gateway: data.gateway || 'bKash',
-    })
-    setSMSHistory(await getSMSMessagesByMess(messId))
-    void getSMSHistory(messId, monthStart, monthEnd).then(setHistory)
-    if (message) {
-      toast.success(t('sms.sendSuccess', { count: message.successful }))
+    try {
+      const message = await sendBulkSMS(messId, {
+        templateId: data.templateId || undefined,
+        content: data.content,
+        recipientType: data.recipientType,
+        recipients: data.recipients,
+        studentIds: Array.isArray(data.recipients)
+          ? (data.recipients as { id?: string; studentId?: string }[]).map(
+              r => r.studentId || r.id
+            )
+          : undefined,
+        groupId: data.groupId || undefined,
+        totalRecipients: data.totalRecipients,
+        sentBy: ownerId,
+      })
+      refreshSmsData()
+      if (message) {
+        toast.success(t('sms.sendSuccess', { count: message.successful }))
+      } else {
+        toast.error('SMS send failed. Check credits and try again.')
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'SMS send failed.')
     }
   }
 
@@ -160,6 +191,7 @@ export default function SMSManagementPage() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
+          <MessSubpageBackButton fallbackHref="/mess" />
           <p className="text-center">{t('notFound')}</p>
         </div>
       </Layout>
@@ -170,8 +202,9 @@ export default function SMSManagementPage() {
     <Layout userRole="owner">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
+            <MessSubpageBackButton fallbackHref="/mess" />
             <h1 className="text-2xl font-bold mb-2">
               {t('sms.managementTitle')}
             </h1>
@@ -181,6 +214,18 @@ export default function SMSManagementPage() {
             <Send className="h-4 w-4 mr-2" />
             {t('sms.sendBulk')}
           </Button>
+        </div>
+
+        <div className="mb-6">
+          <SMSWalletPanel
+            wallet={wallet}
+            onUpdated={w => {
+              setWallet(w)
+              void getOwnerSMSLedger().then(data => {
+                if (data?.ledger) setLedger(data.ledger)
+              })
+            }}
+          />
         </div>
 
         {/* Stats */}
@@ -235,10 +280,11 @@ export default function SMSManagementPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="history" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex h-auto flex-wrap">
             <TabsTrigger value="history">
               {t('sms.tabs.history')}
             </TabsTrigger>
+            <TabsTrigger value="credits">Credits</TabsTrigger>
             <TabsTrigger value="templates">
               {t('sms.tabs.templates')}
             </TabsTrigger>
@@ -264,6 +310,58 @@ export default function SMSManagementPage() {
                     <Send className="h-4 w-4 mr-2" />
                     {t('sms.sendFirstSms')}
                   </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="credits" className="space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold">Credit ledger</h2>
+              <p className="text-sm text-muted-foreground">
+                Free quota, purchases, and SMS debits for your owner wallet.
+              </p>
+            </div>
+            {ledger.length > 0 ? (
+              <Card>
+                <CardContent className="divide-y p-0">
+                  {ledger.map(entry => (
+                    <div
+                      key={entry.id}
+                      className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium capitalize">
+                          {entry.entryType.replace(/_/g, ' ')}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {entry.note || '—'} ·{' '}
+                          {format(new Date(entry.createdAt), 'dd/MM/yyyy HH:mm')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={
+                            entry.credits >= 0
+                              ? 'font-semibold text-green-600'
+                              : 'font-semibold text-red-600'
+                          }
+                        >
+                          {entry.credits >= 0 ? '+' : ''}
+                          {entry.credits}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          bal {entry.balanceAfter}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  No credit movements yet.
                 </CardContent>
               </Card>
             )}
@@ -435,7 +533,9 @@ export default function SMSManagementPage() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
                           {t('sms.members', {
-                            count: group.memberIds.length,
+                            count: Array.isArray(group.memberIds)
+                              ? group.memberIds.length
+                              : 0,
                           })}
                         </span>
                       </div>
@@ -466,6 +566,11 @@ export default function SMSManagementPage() {
           open={isBulkSMSDialogOpen}
           onOpenChange={setIsBulkSMSDialogOpen}
           onSubmit={handleBulkSMSSubmit}
+          creditBalance={wallet?.balance ?? 0}
+          unitPriceBdt={wallet?.unitPriceBdt ?? 0.5}
+          gatewayLabel={
+            wallet?.gateway.label || 'SmartBasa SMS (BulkSMSBD)'
+          }
         />
         <SMSTemplateDialog
           template={editingTemplate}
@@ -477,7 +582,7 @@ export default function SMSManagementPage() {
           }}
           onSubmit={handleTemplateSubmit}
         />
-        <SMSGroupDialog
+        <SMSGroupEditorDialog
           group={editingGroup}
           messId={messId}
           open={isGroupDialogOpen}

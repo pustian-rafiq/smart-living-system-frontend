@@ -48,7 +48,7 @@ ${fees.seasonalSurcharge ? `<tr><td>Seasonal surcharge</td><td class="amount">�
 <tr><td>Balance at hotel</td><td class="amount">৳${fees.remainingAmount.toLocaleString()}</td></tr>
 </table>
 <p class="muted">Payment: ${booking.paymentMethod || '—'} · Txn: ${booking.transactionId || '—'}</p>
-<p class="muted">Generated ${new Date().toLocaleString('en-GB')} · Smart Living System</p>
+<p class="muted">Generated ${new Date().toLocaleString('en-GB')} · SmartBasa</p>
 </body></html>`
 }
 

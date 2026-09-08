@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { logout } from '@/utils/auth'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
+import { ownerRoleLabel } from '@/lib/owner-focus'
 import { cn } from '@/lib/utils'
 import type { UserRole } from '@/types'
 
@@ -53,6 +55,11 @@ export function UserAccountMenu({
 }: UserAccountMenuProps) {
   const router = useRouter()
   const initials = getInitials(userName)
+  const { enabledVerticals, primaryFocus, focusSelected } = useOwnerFocus()
+  const roleLabel =
+    role === 'owner'
+      ? ownerRoleLabel(primaryFocus, enabledVerticals, focusSelected)
+      : roleLabels[role]
 
   const handleLogout = () => {
     logout()
@@ -99,9 +106,7 @@ export function UserAccountMenu({
                 </Badge>
               )}
             </div>
-            <span className="text-xs text-muted-foreground">
-              {roleLabels[role]}
-            </span>
+            <span className="text-xs text-muted-foreground">{roleLabel}</span>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

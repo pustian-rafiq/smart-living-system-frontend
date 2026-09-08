@@ -1,13 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MenuCard } from '@/components/meal/MenuCard'
-import { WeeklyMenuView } from '@/components/meal/WeeklyMenuView'
+import { WeeklyMenuBoard } from '@/components/meal/WeeklyMenuBoard'
 import { MealPreferenceDialog } from '@/components/meal/MealPreferenceDialog'
 import {
   getDailyMenuByDate,
@@ -17,13 +17,15 @@ import {
   getMealPreferenceByUser,
   updateMealPreference,
 } from '@/lib/api/messDomain'
-import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
+import { fetchMessById } from '@/lib/api/mess'
+import { useMessStudentSelf } from '@/hooks/useMessStudentSelf'
 import { getCurrentAccountUserId } from '@/lib/api/account'
 import { ok } from '@/lib/api/http'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { Calendar, Heart, UtensilsCrossed } from 'lucide-react'
+import { MessSubpageBackButton } from '@/components/mess/MessSubpageBackButton'
 import { format } from 'date-fns'
 import type { DailyMenu, MealPreference, MealTiming, WeeklySchedule } from '@/types/meal'
 
@@ -33,15 +35,7 @@ export default function StudentMenuPage() {
   const role = getStoredRole()
   const tenantId = getCurrentAccountUserId()
 
-  const loadStudents = useCallback(() => fetchMessStudents(), [])
-  const { data: students } = useMockQuery(loadStudents)
-  const student = useMemo(
-    () =>
-      students?.find(s => s.id === tenantId) ??
-      students?.find(s => s.messId) ??
-      students?.[0],
-    [students, tenantId]
-  )
+  const { student } = useMessStudentSelf()
 
   const loadMess = useCallback(
     () =>
@@ -112,8 +106,9 @@ export default function StudentMenuPage() {
   return (
     <Layout userRole="renter">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
+            <MessSubpageBackButton fallbackHref="/mess/student-dashboard" />
             <h1 className="text-2xl font-bold mb-2">
               {t('studentMenu.title')}
             </h1>
@@ -158,7 +153,7 @@ export default function StudentMenuPage() {
 
           <TabsContent value="week" className="space-y-4">
             {weeklySchedule ? (
-              <WeeklyMenuView
+              <WeeklyMenuBoard
                 schedule={weeklySchedule}
                 mealTiming={mealTiming}
               />

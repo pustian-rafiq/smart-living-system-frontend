@@ -99,9 +99,9 @@ export function AttendanceCalendar({
     setCurrentMonth(new Date())
   }
 
-  // Get first day of month to determine offset
-  const firstDayOfWeek = monthStart.getDay()
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  // Bangladesh week: Sat → Fri
+  const firstDayPad = (monthStart.getDay() + 1) % 7
+  const weekDays = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
   return (
     <Card>
@@ -144,7 +144,7 @@ export function AttendanceCalendar({
           {/* Calendar grid */}
           <div className="grid grid-cols-7 gap-1">
             {/* Empty cells for days before month start */}
-            {Array.from({ length: firstDayOfWeek }).map((_, index) => (
+            {Array.from({ length: firstDayPad }).map((_, index) => (
               <div key={`empty-${index}`} className="aspect-square" />
             ))}
 

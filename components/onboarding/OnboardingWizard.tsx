@@ -68,7 +68,7 @@ export function OnboardingWizard({
         onOpenChange(v)
       }}
     >
-      <DialogContent className="max-w-lg gap-0 p-0 overflow-hidden">
+      <DialogContent className="max-w-lg gap-0 p-0 sm:p-0 overflow-hidden">
         <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 pt-6 pb-4">
           <DialogHeader className="text-left space-y-1">
             <div className="flex items-center gap-2 text-primary mb-1">

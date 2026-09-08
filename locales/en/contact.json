@@ -1,0 +1,14 @@
+{
+  "whatsapp": "WhatsApp",
+  "whatsappOwner": "WhatsApp owner",
+  "whatsappRenter": "WhatsApp renter",
+  "whatsappNumber": "WhatsApp number",
+  "whatsappNumberPlaceholder": "01XXXXXXXXX",
+  "whatsappNumberHint": "Optional. Used for WhatsApp chat instead of the phone number.",
+  "whatsappOwnerHint": "Shown on your public listings so renters can message you on WhatsApp.",
+  "whatsappRenterHint": "Optional. Lets you message this renter on WhatsApp.",
+  "sameAsPhone": "Same as phone number",
+  "notSet": "Not added",
+  "messageOwner": "Hello, I found your listing on Smart Living.",
+  "messageRenter": "Hello from your Smart Living owner."
+}

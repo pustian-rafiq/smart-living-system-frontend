@@ -106,7 +106,7 @@ export function UserDetailsDialog({
 
           <div className="border-t" />
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-md border p-3 text-center">
               <p className="text-lg font-semibold">{user.totalProperties ?? 0}</p>
               <p className="text-xs text-muted-foreground">Properties</p>

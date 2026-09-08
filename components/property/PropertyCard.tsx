@@ -20,6 +20,7 @@ import type { Property } from '@/types/property'
 import Image from 'next/image'
 import { formatCurrency } from '@/lib/format/locale'
 import { cn } from '@/lib/utils'
+import { listingPath } from '@/lib/seo/slug'
 
 interface PropertyCardProps {
   property: Property
@@ -49,7 +50,7 @@ export function PropertyCard({
   return (
     <Card className="group overflow-hidden border-border/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative h-48 w-full overflow-hidden bg-muted sm:h-56">
-        <Link href={`/listings/${property.id}`} className="absolute inset-0 z-0">
+        <Link href={listingPath(property)} className="absolute inset-0 z-0">
           <span className="sr-only">View {property.name}</span>
         </Link>
         {!imageError && property.images[0] ? (
@@ -147,7 +148,7 @@ export function PropertyCard({
       <CardContent className="p-4 sm:p-5">
         <div className="mb-3">
           <Link
-            href={`/listings/${property.id}`}
+            href={listingPath(property)}
             className="text-lg font-semibold leading-tight hover:text-primary sm:text-xl"
           >
             <span className="line-clamp-2">{property.name}</span>

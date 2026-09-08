@@ -4,11 +4,15 @@ import {
   isValidLocale,
   LOCALE_COOKIE,
 } from '@/lib/i18n/config'
+import { canonicalRedirect } from '@/lib/seo/canonical-redirect'
 import { shouldNoIndex } from '@/lib/seo/routes'
 
 const ONE_YEAR = 60 * 60 * 24 * 365
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const canonical = await canonicalRedirect(request)
+  if (canonical) return canonical
+
   const response = NextResponse.next()
   const current = request.cookies.get(LOCALE_COOKIE)?.value
 

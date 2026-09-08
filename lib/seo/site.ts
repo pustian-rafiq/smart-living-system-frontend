@@ -1,13 +1,13 @@
 /** Canonical site configuration for SEO, sitemap, and PWA. */
 export const siteConfig = {
-  name: 'Smart Living System',
-  shortName: 'Smart Living',
-  /** Set `NEXT_PUBLIC_SITE_URL` in production (e.g. https://smartliving.bd). */
+  name: 'SmartBasa',
+  shortName: 'SmartBasa',
+  /** Set `NEXT_PUBLIC_SITE_URL` in production (e.g. https://smartbasa.com). */
   url:
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
     'http://localhost:3000',
   defaultOgImage: '/opengraph-image',
-  twitterHandle: '@smartlivingbd',
+  twitterHandle: '@smartbasa',
   locale: 'en_BD',
   themeColor: '#0f766e',
   backgroundColor: '#ffffff',

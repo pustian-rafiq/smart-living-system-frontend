@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -33,8 +34,6 @@ import {
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Badge } from '@/components/ui/badge'
 import { Send, Users, MessageSquare } from 'lucide-react'
 import type { SMSRecipientType, SMSTemplate } from '@/types/sms'
 import {
@@ -52,7 +51,6 @@ const bulkSMSSchema = z.object({
   templateId: z.string().optional(),
   content: z.string().min(1, 'SMS content is required'),
   scheduledAt: z.string().optional(),
-  gateway: z.enum(['bKash', 'Nagad', 'Rocket', 'Twilio', 'Custom']).optional(),
 })
 
 interface BulkSMSDialogProps {
@@ -60,6 +58,9 @@ interface BulkSMSDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (data: any) => void
+  creditBalance?: number
+  unitPriceBdt?: number
+  gatewayLabel?: string
 }
 
 export function BulkSMSDialog({
@@ -67,6 +68,9 @@ export function BulkSMSDialog({
   open,
   onOpenChange,
   onSubmit,
+  creditBalance = 0,
+  unitPriceBdt = 0.5,
+  gatewayLabel = 'SmartBasa SMS (BulkSMSBD)',
 }: BulkSMSDialogProps) {
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
   const [templateVariables, setTemplateVariables] = useState<
@@ -102,7 +106,6 @@ export function BulkSMSDialog({
       templateId: 'none',
       content: '',
       scheduledAt: '',
-      gateway: 'bKash' as const,
     },
   })
 
@@ -122,7 +125,6 @@ export function BulkSMSDialog({
         templateId: 'none',
         content: '',
         scheduledAt: '',
-        gateway: 'bKash',
       })
       setSelectedRecipients([])
       setTemplateVariables({})
@@ -209,7 +211,9 @@ export function BulkSMSDialog({
     if (recipientType === 'all') return messStudents.length
     if (recipientType === 'group' && form.watch('groupId')) {
       const group = groups.find(g => g.id === form.watch('groupId'))
-      return group ? group.memberIds.length : 0
+      return group && Array.isArray(group.memberIds)
+        ? group.memberIds.length
+        : 0
     }
     if (recipientType === 'custom' || recipientType === 'individual') {
       return selectedRecipients.length
@@ -225,13 +229,13 @@ export function BulkSMSDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5" />
+      <DialogContent className="left-[50%] top-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-full translate-x-[-50%] translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:top-[50%] sm:h-auto sm:max-h-[85vh] sm:w-[calc(100%-2rem)] sm:max-w-3xl sm:translate-y-[-50%] sm:rounded-lg sm:border sm:p-0">
+        <DialogHeader className="shrink-0 space-y-1.5 px-4 pb-2 pt-5 pr-12 text-left sm:px-6 sm:pt-6">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Send className="h-5 w-5 shrink-0" />
             Send Bulk SMS
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Send SMS to students using templates or custom messages
           </DialogDescription>
         </DialogHeader>
@@ -239,10 +243,10 @@ export function BulkSMSDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="flex min-h-0 flex-1 flex-col"
           >
-            <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
-              <div className="space-y-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:px-6">
+              <div className="space-y-4 pb-2">
                 {/* Recipient Type */}
                 <FormField
                   control={form.control}
@@ -254,35 +258,35 @@ export function BulkSMSDialog({
                         <RadioGroup
                           value={field.value}
                           onValueChange={field.onChange}
-                          className="grid grid-cols-2 gap-4"
+                          className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"
                         >
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 rounded-md border p-3 sm:border-0 sm:p-0">
                             <RadioGroupItem value="all" id="all" />
-                            <label htmlFor="all" className="cursor-pointer">
+                            <label htmlFor="all" className="cursor-pointer text-sm">
                               All Students
                             </label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 rounded-md border p-3 sm:border-0 sm:p-0">
                             <RadioGroupItem value="group" id="group" />
-                            <label htmlFor="group" className="cursor-pointer">
+                            <label htmlFor="group" className="cursor-pointer text-sm">
                               Group
                             </label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 rounded-md border p-3 sm:border-0 sm:p-0">
                             <RadioGroupItem
                               value="individual"
                               id="individual"
                             />
                             <label
                               htmlFor="individual"
-                              className="cursor-pointer"
+                              className="cursor-pointer text-sm"
                             >
                               Individual
                             </label>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 rounded-md border p-3 sm:border-0 sm:p-0">
                             <RadioGroupItem value="custom" id="custom" />
-                            <label htmlFor="custom" className="cursor-pointer">
+                            <label htmlFor="custom" className="cursor-pointer text-sm">
                               Custom
                             </label>
                           </div>
@@ -313,7 +317,11 @@ export function BulkSMSDialog({
                           <SelectContent>
                             {groups.map(group => (
                               <SelectItem key={group.id} value={group.id}>
-                                {group.name} ({group.memberIds.length} members)
+                                {group.name} (
+                                {Array.isArray(group.memberIds)
+                                  ? group.memberIds.length
+                                  : 0}{' '}
+                                members)
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -327,10 +335,12 @@ export function BulkSMSDialog({
                 {/* Individual/Custom Recipient Selection */}
                 {(recipientType === 'individual' ||
                   recipientType === 'custom') && (
-                  <FormItem>
-                    <FormLabel>Select Recipients</FormLabel>
-                    <div className="rounded-lg border p-4 max-h-48 overflow-y-auto space-y-2">
-                      <div className="flex items-center justify-between mb-2">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Select Recipients
+                    </Label>
+                    <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border p-3 sm:p-4">
+                      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <span className="text-sm text-muted-foreground">
                           {selectedRecipients.length} selected
                         </span>
@@ -339,6 +349,7 @@ export function BulkSMSDialog({
                             type="button"
                             variant="outline"
                             size="sm"
+                            className="flex-1 sm:flex-none"
                             onClick={() =>
                               setSelectedRecipients(messStudents.map(s => s.id))
                             }
@@ -349,6 +360,7 @@ export function BulkSMSDialog({
                             type="button"
                             variant="outline"
                             size="sm"
+                            className="flex-1 sm:flex-none"
                             onClick={() => setSelectedRecipients([])}
                           >
                             Clear
@@ -367,15 +379,14 @@ export function BulkSMSDialog({
                           />
                           <label
                             htmlFor={`student-${student.id}`}
-                            className="flex-1 cursor-pointer text-sm"
+                            className="min-w-0 flex-1 cursor-pointer break-words text-sm"
                           >
                             {student.name} ({student.phone})
                           </label>
                         </div>
                       ))}
                     </div>
-                    <FormMessage />
-                  </FormItem>
+                  </div>
                 )}
 
                 {/* Template Selection */}
@@ -414,13 +425,13 @@ export function BulkSMSDialog({
                 {selectedTemplate &&
                   selectedTemplate.variables &&
                   selectedTemplate.variables.length > 0 && (
-                    <div className="space-y-2 rounded-lg border p-4 bg-muted/30">
+                    <div className="space-y-2 rounded-lg border bg-muted/30 p-3 sm:p-4">
                       <p className="text-sm font-medium">Template Variables</p>
                       {selectedTemplate.variables.map(variable => (
-                        <FormItem key={variable}>
-                          <FormLabel className="capitalize">
+                        <div key={variable} className="space-y-2">
+                          <Label className="capitalize">
                             {variable.replace(/_/g, ' ')}
-                          </FormLabel>
+                          </Label>
                           <Input
                             value={templateVariables[variable] || ''}
                             onChange={e =>
@@ -431,7 +442,7 @@ export function BulkSMSDialog({
                             }
                             placeholder={`Enter ${variable}`}
                           />
-                        </FormItem>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -446,14 +457,15 @@ export function BulkSMSDialog({
                       <FormControl>
                         <Textarea
                           placeholder="Enter your SMS message..."
-                          rows={6}
+                          rows={5}
+                          className="min-h-[7.5rem] resize-y"
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
                         Character count: {field.value.length} / 160 (SMS limit)
                         {field.value.length > 160 && (
-                          <span className="text-red-600 ml-2">
+                          <span className="ml-2 text-red-600">
                             Message will be split into multiple SMS
                           </span>
                         )}
@@ -463,34 +475,16 @@ export function BulkSMSDialog({
                   )}
                 />
 
-                {/* Gateway Selection */}
-                <FormField
-                  control={form.control}
-                  name="gateway"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>SMS Gateway</FormLabel>
-                      <Select
-                        value={field.value || 'bKash'}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="bKash">bKash</SelectItem>
-                          <SelectItem value="Nagad">Nagad</SelectItem>
-                          <SelectItem value="Rocket">Rocket</SelectItem>
-                          <SelectItem value="Twilio">Twilio</SelectItem>
-                          <SelectItem value="Custom">Custom Gateway</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Gateway (system-owned BulkSMSBD) */}
+                <div className="space-y-2 rounded-lg border p-3 sm:p-4">
+                  <Label className="text-sm font-medium">SMS Gateway</Label>
+                  <p className="text-sm font-medium">{gatewayLabel}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Messages are sent through the SmartBasa platform SMS
+                    account. Owners do not configure personal API keys. Credits
+                    are deducted from your wallet for each successful SMS.
+                  </p>
+                </div>
 
                 {/* Scheduled Send (Optional) */}
                 <FormField
@@ -502,6 +496,7 @@ export function BulkSMSDialog({
                       <FormControl>
                         <Input
                           type="datetime-local"
+                          className="w-full"
                           {...field}
                           value={field.value || ''}
                         />
@@ -515,48 +510,76 @@ export function BulkSMSDialog({
                 />
 
                 {/* Recipient Count & Cost Estimate */}
-                <div className="rounded-lg border p-4 bg-primary/5">
-                  <div className="flex items-center justify-between">
+                <div className="rounded-lg border bg-primary/5 p-3 sm:p-4">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-primary" />
+                      <Users className="h-4 w-4 shrink-0 text-primary" />
                       <span className="text-sm font-medium">Recipients</span>
                     </div>
                     <span className="font-bold">{recipientCount}</span>
                   </div>
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="mt-2 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-primary" />
+                      <MessageSquare className="h-4 w-4 shrink-0 text-primary" />
                       <span className="text-sm font-medium">
-                        Estimated Cost
+                        Credits required
                       </span>
                     </div>
-                    <span className="font-bold">
-                      ৳{(recipientCount * 0.5).toFixed(2)}
+                    <span className="font-bold">{recipientCount}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">Your balance</span>
+                    <span
+                      className={`font-bold ${
+                        creditBalance < recipientCount
+                          ? 'text-destructive'
+                          : ''
+                      }`}
+                    >
+                      {creditBalance}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    * Cost: ৳0.50 per SMS
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">Est. cost</span>
+                    <span className="font-bold">
+                      ৳{(recipientCount * unitPriceBdt).toFixed(2)}
+                    </span>
+                  </div>
+                  {creditBalance < recipientCount && (
+                    <p className="mt-2 text-xs text-destructive">
+                      Not enough credits. Buy more SMS from the wallet panel.
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    * Only successful sends debit credits (৳
+                    {unitPriceBdt.toFixed(2)} each).
                   </p>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
 
-            <DialogFooter>
+            <DialogFooter className="shrink-0 gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:justify-end sm:gap-2 sm:space-x-0 sm:px-6 sm:py-4">
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
+                className="w-full sm:w-auto"
                 disabled={
-                  recipientCount === 0 || form.watch('content').length === 0
+                  recipientCount === 0 ||
+                  form.watch('content').length === 0 ||
+                  creditBalance < recipientCount
                 }
               >
-                <Send className="h-4 w-4 mr-2" />
-                Send SMS ({recipientCount} recipients)
+                <Send className="mr-2 h-4 w-4" />
+                <span className="truncate">
+                  Send SMS ({recipientCount} recipients)
+                </span>
               </Button>
             </DialogFooter>
           </form>

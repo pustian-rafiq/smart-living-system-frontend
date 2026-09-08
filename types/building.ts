@@ -4,6 +4,8 @@ export interface Renter {
   id: string
   name: string
   phone: string
+  /** WhatsApp number so owners can message instead of calling. */
+  whatsapp?: string
   email?: string
   nid?: string
   address?: string

@@ -43,9 +43,9 @@ export function ExpenseCard({
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-base md:text-lg flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              {expense.description}
+            <CardTitle className="text-base md:text-lg flex items-start gap-2">
+              <DollarSign className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <span className="min-w-0 break-words">{expense.description}</span>
             </CardTitle>
             <div className="flex items-center gap-2 mt-2">
               <Badge
@@ -68,18 +68,20 @@ export function ExpenseCard({
 
         {/* Details */}
         <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">Date:</span>
             <span className="font-medium">
               {format(new Date(expense.date), 'MMM dd, yyyy')}
             </span>
           </div>
           {expense.vendor && (
-            <div className="flex items-center gap-2">
-              <Store className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Store className="h-4 w-4 shrink-0 text-muted-foreground" />
               <span className="text-muted-foreground">Vendor:</span>
-              <span className="font-medium">{expense.vendor}</span>
+              <span className="min-w-0 break-words font-medium">
+                {expense.vendor}
+              </span>
             </div>
           )}
         </div>

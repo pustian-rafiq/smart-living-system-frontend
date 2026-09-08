@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -14,6 +15,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -37,6 +39,7 @@ const profileSchema = z.object({
     .min(1, 'Name is required')
     .max(100, 'Name must be less than 100 characters'),
   phone: z.string().min(1, 'Phone number is required'),
+  whatsappNumber: z.string().optional(),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   role: z.enum(['renter', 'owner', 'admin']),
 })
@@ -49,6 +52,7 @@ interface EditProfileDialogProps {
   initialData: {
     name: string
     phone: string
+    whatsappNumber?: string
     email?: string
     role: UserRole
   }
@@ -61,11 +65,13 @@ export function EditProfileDialog({
   initialData,
   onSave,
 }: EditProfileDialogProps) {
+  const tContact = useTranslations('contact')
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: initialData.name,
       phone: initialData.phone,
+      whatsappNumber: initialData.whatsappNumber || '',
       email: initialData.email || '',
       role: initialData.role,
     },
@@ -110,6 +116,40 @@ export function EditProfileDialog({
                   <FormControl>
                     <Input placeholder="+8801712345678" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="whatsappNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{tContact('whatsappNumber')}</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        placeholder={tContact('whatsappNumberPlaceholder')}
+                        {...field}
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="shrink-0"
+                      onClick={() =>
+                        form.setValue('whatsappNumber', form.getValues('phone'), {
+                          shouldDirty: true,
+                        })
+                      }
+                    >
+                      {tContact('sameAsPhone')}
+                    </Button>
+                  </div>
+                  <FormDescription>
+                    {tContact('whatsappOwnerHint')}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

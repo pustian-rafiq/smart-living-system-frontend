@@ -22,6 +22,7 @@ import {
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { fetchOwnerListings, updateListing } from '@/lib/api/properties'
 import { fetchFlatLimitStatus } from '@/lib/api/subscriptions'
+import { listingPath } from '@/lib/seo/slug'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import { confirmDiscoverItem } from '@/lib/api/discover'
 import { Building2, Plus, Eye, Pencil, Pause, Play, Sparkles, CheckCircle } from 'lucide-react'
@@ -172,7 +173,7 @@ export default function MyListingsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => router.push(`/listings/${listing.id}`)}
+                      onClick={() => router.push(listingPath(listing))}
                     >
                       <Eye className="mr-1 h-3.5 w-3.5" />
                       {t('view')}

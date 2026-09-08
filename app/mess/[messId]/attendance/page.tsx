@@ -31,6 +31,7 @@ import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, Calendar, FileText, Users } from 'lucide-react'
+import { MessSubpageBackButton } from '@/components/mess/MessSubpageBackButton'
 import type { AttendanceRecord, AttendanceSummary, AttendanceReport } from '@/types/attendance'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { toast } from '@/lib/feedback/toast'
@@ -114,31 +115,53 @@ export default function AttendanceManagementPage() {
     studentIds: string[]
     date: string
     status: AttendanceRecord['status']
+    mealStatus: AttendanceRecord['status']
     type: AttendanceRecord['type']
     checkInTime?: string
     checkOutTime?: string
     mealCategory?: AttendanceRecord['mealCategory']
     notes?: string
   }) => {
-    const records = data.studentIds.map(studentId => ({
-      studentId,
-      studentName:
-        messStudents.find(s => s.id === studentId)?.name || 'Unknown',
-      date: data.date,
-      status: data.status,
-      type: data.type,
-      checkInTime: data.checkInTime
-        ? new Date(`${data.date}T${data.checkInTime}`).toISOString()
-        : undefined,
-      checkOutTime: data.checkOutTime
-        ? new Date(`${data.date}T${data.checkOutTime}`).toISOString()
-        : undefined,
-      mealCategory: data.mealCategory,
-      notes: data.notes,
-      markedBy: ownerId,
-    }))
+    const toIso = (time?: string) =>
+      time ? new Date(`${data.date}T${time}`).toISOString() : undefined
 
-    await bulkMarkAttendance(messId, records)
+    // Stay and meal land in separate rows so each one feeds its own summary counter.
+    const records = data.studentIds.flatMap(studentId => {
+      const base = {
+        studentId,
+        studentName:
+          messStudents.find(s => s.id === studentId)?.name || 'Unknown',
+        date: data.date,
+        notes: data.notes,
+        markedBy: ownerId,
+      }
+      const rows: Omit<AttendanceRecord, 'id' | 'markedAt' | 'messId'>[] = []
+      if (data.type !== 'meal') {
+        rows.push({
+          ...base,
+          status: data.status,
+          type: 'general',
+          checkInTime: toIso(data.checkInTime),
+          checkOutTime: toIso(data.checkOutTime),
+        })
+      }
+      if (data.type !== 'general') {
+        rows.push({
+          ...base,
+          status: data.mealStatus,
+          type: 'meal',
+          mealCategory: data.mealCategory,
+        })
+      }
+      return rows
+    })
+
+    const result = await bulkMarkAttendance(messId, records)
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
+    toast.success(t('attendance.marked', { count: data.studentIds.length }))
     setAttendanceRecords(await getAttendanceByMess(messId))
     setTodayRecords(await getAttendanceByDate(messId, selectedDate))
   }
@@ -184,8 +207,9 @@ export default function AttendanceManagementPage() {
     <Layout userRole="owner">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
+            <MessSubpageBackButton fallbackHref="/mess" />
             <h1 className="text-2xl font-bold mb-2">
               {t('attendance.managementTitle')}
             </h1>
@@ -260,7 +284,7 @@ export default function AttendanceManagementPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="calendar" className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList>
               <TabsTrigger value="calendar">
                 {t('attendance.tabs.calendar')}
@@ -273,7 +297,7 @@ export default function AttendanceManagementPage() {
               </TabsTrigger>
             </TabsList>
             <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[200px] sm:flex-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Layout } from '@/components/layout/Layout'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -11,13 +11,14 @@ import {
   getAttendanceByStudent,
   getAttendanceSummary,
 } from '@/lib/api/messDomain'
-import { fetchMessById, fetchMessStudents } from '@/lib/api/mess'
-import { getCurrentAccountUserId } from '@/lib/api/account'
+import { fetchMessById } from '@/lib/api/mess'
 import { ok } from '@/lib/api/http'
+import { useMessStudentSelf } from '@/hooks/useMessStudentSelf'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { useRouter } from 'next/navigation'
 import { Calendar, FileText } from 'lucide-react'
+import { MessSubpageBackButton } from '@/components/mess/MessSubpageBackButton'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import type { AttendanceRecord, AttendanceSummary } from '@/types/attendance'
 
@@ -25,17 +26,8 @@ export default function StudentAttendancePage() {
   const t = useTranslations('mess')
   const router = useRouter()
   const role = getStoredRole()
-  const tenantId = getCurrentAccountUserId()
 
-  const loadStudents = useCallback(() => fetchMessStudents(), [])
-  const { data: students } = useMockQuery(loadStudents)
-  const student = useMemo(
-    () =>
-      students?.find(s => s.id === tenantId) ??
-      students?.find(s => s.messId) ??
-      students?.[0],
-    [students, tenantId]
-  )
+  const { student } = useMessStudentSelf()
 
   const loadMess = useCallback(
     () =>
@@ -92,6 +84,7 @@ export default function StudentAttendancePage() {
     <Layout userRole="renter">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="mb-6">
+          <MessSubpageBackButton fallbackHref="/mess/student-dashboard" />
           <h1 className="text-2xl font-bold mb-2">
             {t('studentDashboard.myAttendance')}
           </h1>

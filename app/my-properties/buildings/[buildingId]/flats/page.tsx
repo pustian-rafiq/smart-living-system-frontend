@@ -100,6 +100,7 @@ function FlatsPageContent() {
     const result = await assignRenter(flat.id, {
       name: renter.name,
       phone: renter.phone,
+      whatsapp: renter.whatsapp,
       email: renter.email,
       nid: renter.nid,
       address: renter.address,
@@ -182,7 +183,7 @@ function FlatsPageContent() {
           value={statusFilter}
           onValueChange={value => setStatusFilter(value as FlatStatus | 'all')}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[180px] sm:flex-none">
             <SelectValue placeholder={t('statusPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
@@ -201,7 +202,7 @@ function FlatsPageContent() {
           </SelectContent>
         </Select>
         <Select value={floorFilter} onValueChange={setFloorFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[160px] sm:flex-none">
             <SelectValue placeholder={t('floorPlaceholder')} />
           </SelectTrigger>
           <SelectContent>

@@ -1,5 +1,5 @@
 /**
- * HTTP client for Smart Living API.
+ * HTTP client for SmartBasa API.
  * Parses ApiResult envelope; attaches JWT; refreshes on 401 via httpOnly cookie.
  */
 

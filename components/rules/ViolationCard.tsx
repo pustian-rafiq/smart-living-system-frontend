@@ -37,11 +37,11 @@ export function ViolationCard({
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-base md:text-lg flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+            <CardTitle className="text-base md:text-lg flex items-start gap-2 break-words">
+              <AlertTriangle className="h-5 w-5 shrink-0 text-red-600" />
               {violation.ruleTitle}
             </CardTitle>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <Badge
                 variant="outline"
                 className={`text-xs ${severityColors[violation.severity]}`}
@@ -63,13 +63,15 @@ export function ViolationCard({
       <CardContent className="space-y-4">
         {/* Student Info */}
         <div className="flex items-center gap-2 text-sm">
-          <User className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium">{violation.studentName}</span>
+          <User className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span className="min-w-0 break-words font-medium">
+            {violation.studentName}
+          </span>
         </div>
 
         {/* Violation Date */}
-        <div className="flex items-center gap-2 text-sm">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+          <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="text-muted-foreground">Violation Date:</span>
           <span className="font-medium">
             {format(new Date(violation.violationDate), 'MMM dd, yyyy')}
@@ -82,8 +84,8 @@ export function ViolationCard({
         {/* Penalty */}
         {violation.penalty && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-            <div className="flex items-center gap-2 mb-1">
-              <DollarSign className="h-4 w-4 text-red-600" />
+            <div className="flex items-start gap-2 mb-1">
+              <DollarSign className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
               <p className="text-sm font-medium text-red-800 dark:text-red-200">
                 Penalty:{' '}
                 {violation.penalty.type.charAt(0).toUpperCase() +

@@ -9,6 +9,7 @@ import { FeaturedBadge } from '@/components/monetization/FeaturedBadge'
 import { FreshnessBadge } from '@/components/discover/FreshnessBadge'
 import { RatingDisplay } from './RatingDisplay'
 import type { Hotel } from '@/types/hotel'
+import { hotelPath } from '@/lib/seo/slug'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -125,10 +126,10 @@ export function HotelCard({ hotel, onViewDetails }: HotelCardProps) {
             onClick={handleViewDetails}
             asChild
           >
-            <Link href={`/hotels/${hotel.id}`}>View Details</Link>
+            <Link href={hotelPath(hotel)}>View Details</Link>
           </Button>
           <Button className="flex-1" asChild>
-            <Link href={`/hotels/${hotel.id}/book`}>Book Now</Link>
+            <Link href={`${hotelPath(hotel)}/book`}>Book Now</Link>
           </Button>
         </div>
       </CardContent>

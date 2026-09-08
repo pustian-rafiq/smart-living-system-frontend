@@ -226,7 +226,7 @@ export function RenterHistoryDialog({
         </div>
 
         <Tabs defaultValue="rentals" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="w-full justify-start sm:grid sm:grid-cols-5">
             <TabsTrigger value="rentals">Rentals</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="complaints">Complaints</TabsTrigger>

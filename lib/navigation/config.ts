@@ -139,22 +139,26 @@ export const primaryNavItems: NavItem[] = [
     labelKey: 'primary.properties',
     icon: Building2,
     roles: ['owner'],
+    ownerVertical: 'apartment',
     matchPrefixes: ['/my-properties', '/my-listings', '/listings'],
     children: [
       {
         labelKey: 'children.myBuildings',
         href: '/my-properties',
         descriptionKey: 'children.myBuildingsDesc',
+        ownerVertical: 'apartment',
       },
       {
         labelKey: 'children.bookingRequests',
         href: '/my-properties/bookings',
         descriptionKey: 'children.bookingRequestsDesc',
+        ownerVertical: 'apartment',
       },
       {
         labelKey: 'children.myListings',
         href: '/my-listings',
         descriptionKey: 'children.myListingsDesc',
+        ownerVertical: 'apartment',
       },
     ],
   },
@@ -162,22 +166,26 @@ export const primaryNavItems: NavItem[] = [
     labelKey: 'primary.myHotels',
     icon: Hotel,
     roles: ['owner'],
+    ownerVertical: 'hotel',
     matchPrefixes: ['/my-hotels'],
     children: [
       {
         labelKey: 'children.allHotels',
         href: '/my-hotels',
         descriptionKey: 'children.allHotelsDesc',
+        ownerVertical: 'hotel',
       },
       {
         labelKey: 'children.registerHotel',
         href: '/my-hotels/new',
         descriptionKey: 'children.registerHotelDesc',
+        ownerVertical: 'hotel',
       },
       {
         labelKey: 'children.browseMarketplace',
         href: '/hotels',
         descriptionKey: 'children.browseMarketplaceDesc',
+        ownerVertical: 'hotel',
       },
     ],
   },
@@ -186,6 +194,7 @@ export const primaryNavItems: NavItem[] = [
     href: '/mess',
     icon: UtensilsCrossed,
     roles: ['owner'],
+    ownerVertical: 'mess',
     matchPrefixes: ['/mess'],
   },
   {
@@ -198,11 +207,13 @@ export const primaryNavItems: NavItem[] = [
         labelKey: 'children.generateRent',
         href: '/bills?mode=generate',
         descriptionKey: 'children.generateRentDesc',
+        ownerVertical: 'apartment',
       },
       {
         labelKey: 'children.bills',
         href: '/bills',
         descriptionKey: 'children.billsDesc',
+        ownerVertical: 'apartment',
       },
       {
         labelKey: 'children.payments',
@@ -215,7 +226,11 @@ export const primaryNavItems: NavItem[] = [
         descriptionKey: 'children.subscriptionDesc',
       },
       { labelKey: 'children.reports', href: '/reports' },
-      { labelKey: 'children.expenses', href: '/expenses' },
+      {
+        labelKey: 'children.expenses',
+        href: '/expenses',
+        ownerVertical: 'apartment',
+      },
     ],
   },
   {
@@ -303,6 +318,7 @@ export const bottomNavItems: BottomNavItem[] = [
     icon: Building2,
     matchPrefixes: ['/my-properties', '/my-listings', '/my-properties/bookings'],
     roles: ['owner'],
+    ownerVertical: 'apartment',
   },
   {
     labelKey: 'bottom.hotels',
@@ -310,6 +326,7 @@ export const bottomNavItems: BottomNavItem[] = [
     icon: Hotel,
     matchPrefixes: ['/my-hotels'],
     roles: ['owner'],
+    ownerVertical: 'hotel',
   },
   {
     labelKey: 'bottom.mess',
@@ -317,6 +334,7 @@ export const bottomNavItems: BottomNavItem[] = [
     icon: UtensilsCrossed,
     matchPrefixes: ['/mess'],
     roles: ['owner'],
+    ownerVertical: 'mess',
   },
   {
     labelKey: 'bottom.menu',
@@ -359,18 +377,21 @@ export const quickActionItems: QuickActionItem[] = [
     href: '/my-properties',
     descriptionKey: 'quickActions.addBuildingDesc',
     roles: ['owner'],
+    ownerVertical: 'apartment',
   },
   {
     labelKey: 'quickActions.registerHotel',
     href: '/my-hotels/new',
     descriptionKey: 'quickActions.registerHotelDesc',
     roles: ['owner'],
+    ownerVertical: 'hotel',
   },
   {
     labelKey: 'quickActions.publishListing',
     href: '/my-listings/new',
     descriptionKey: 'quickActions.publishListingDesc',
     roles: ['owner'],
+    ownerVertical: 'apartment',
   },
   {
     labelKey: 'quickActions.createNotice',
@@ -419,20 +440,81 @@ export const mobileUtilityLinks: MobileUtilityLink[] = [
   },
 ]
 
-export function getMobileUtilityLinksForRole(role: UserRole): MobileUtilityLink[] {
+import type { OwnerVertical } from '@/lib/owner-focus'
+import type { NavChildItem } from './types'
+
+export type OwnerNavOptions = {
+  /** Enabled verticals when focus has been chosen. Empty + not selected → hide vertical items. */
+  enabledVerticals?: OwnerVertical[]
+  focusSelected?: boolean
+}
+
+function allowsVertical(
+  required: OwnerVertical | undefined,
+  options?: OwnerNavOptions,
+): boolean {
+  if (!required) return true
+  if (!options?.focusSelected) return false
+  return (options.enabledVerticals || []).includes(required)
+}
+
+function filterChildren(
+  children: NavChildItem[] | undefined,
+  options?: OwnerNavOptions,
+): NavChildItem[] | undefined {
+  if (!children) return undefined
+  const next = children.filter(child =>
+    allowsVertical(child.ownerVertical, options),
+  )
+  return next.length ? next : undefined
+}
+
+export function getMobileUtilityLinksForRole(
+  role: UserRole,
+): MobileUtilityLink[] {
   return mobileUtilityLinks.filter(item => item.roles.includes(role))
 }
 
-export function getPrimaryNavForRole(role: UserRole): NavItem[] {
-  return primaryNavItems.filter(item => item.roles.includes(role))
+export function getPrimaryNavForRole(
+  role: UserRole,
+  options?: OwnerNavOptions,
+): NavItem[] {
+  return primaryNavItems
+    .filter(item => item.roles.includes(role))
+    .map(item => {
+      if (role !== 'owner') return item
+      const children = filterChildren(item.children, options)
+      return { ...item, children }
+    })
+    .filter(item => {
+      if (role !== 'owner') return true
+      if (!allowsVertical(item.ownerVertical, options)) return false
+      const original = primaryNavItems.find(i => i.labelKey === item.labelKey)
+      if (original?.children?.length && !item.children?.length) return false
+      return true
+    })
 }
 
-export function getBottomNavForRole(role: UserRole): BottomNavItem[] {
-  return bottomNavItems.filter(item => item.roles.includes(role))
+export function getBottomNavForRole(
+  role: UserRole,
+  options?: OwnerNavOptions,
+): BottomNavItem[] {
+  return bottomNavItems.filter(item => {
+    if (!item.roles.includes(role)) return false
+    if (role !== 'owner') return true
+    return allowsVertical(item.ownerVertical, options)
+  })
 }
 
-export function getQuickActionsForRole(role: UserRole): QuickActionItem[] {
-  return quickActionItems.filter(item => item.roles.includes(role))
+export function getQuickActionsForRole(
+  role: UserRole,
+  options?: OwnerNavOptions,
+): QuickActionItem[] {
+  return quickActionItems.filter(item => {
+    if (!item.roles.includes(role)) return false
+    if (role !== 'owner') return true
+    return allowsVertical(item.ownerVertical, options)
+  })
 }
 
 export const quickActionTriggerIcon = Plus

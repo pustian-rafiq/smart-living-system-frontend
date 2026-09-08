@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Check, ChevronRight, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { BrandIcon } from '@/components/layout/BrandLogo'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Sheet,
@@ -23,6 +24,7 @@ import {
 } from '@/lib/navigation'
 import type { NavItem } from '@/lib/navigation'
 import type { UserRole } from '@/types'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
 
 interface MobileNavDrawerProps {
   open: boolean
@@ -122,10 +124,12 @@ export function MobileNavDrawer({
 }: MobileNavDrawerProps) {
   const pathname = usePathname()
   const { label } = useNavLabels()
+  const { navOptions } = useOwnerFocus()
+  const ownerOpts = userRole === 'owner' ? navOptions : undefined
 
-  const navItems = getPrimaryNavForRole(userRole)
+  const navItems = getPrimaryNavForRole(userRole, ownerOpts)
   const utilityLinks = getMobileUtilityLinksForRole(userRole)
-  const quickActions = getQuickActionsForRole(userRole)
+  const quickActions = getQuickActionsForRole(userRole, ownerOpts)
 
   const close = () => onOpenChange(false)
 
@@ -133,13 +137,11 @@ export function MobileNavDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="flex h-full w-[min(100vw-2rem,320px)] flex-col gap-0 p-0 sm:max-w-xs md:hidden"
+        className="flex h-full w-[min(100vw-2rem,320px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-xs sm:p-0 md:hidden"
       >
         <SheetHeader className="border-b px-5 py-4 text-left">
           <SheetTitle className="flex items-center gap-2 text-base">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-sm font-bold">SL</span>
-            </div>
+            <BrandIcon />
             {label('drawer.allMenus')}
           </SheetTitle>
           <SheetDescription asChild>

@@ -7,6 +7,7 @@ import type {
   MealDay,
 } from '@/types/meal'
 import { format, startOfWeek, endOfWeek, addDays, formatISO } from 'date-fns'
+import { BD_WEEK_STARTS_ON } from '@/lib/format/bangladesh'
 
 // Sample meal items
 const sampleMealItems: MealItem[] = [
@@ -118,10 +119,10 @@ export const mockWeeklySchedules: WeeklySchedule[] = [
   {
     id: 'schedule1',
     messId: 'm1',
-    weekStartDate: formatISO(startOfWeek(new Date(), { weekStartsOn: 1 }), {
+    weekStartDate: formatISO(startOfWeek(new Date(), { weekStartsOn: BD_WEEK_STARTS_ON }), {
       representation: 'date',
     }),
-    weekEndDate: formatISO(endOfWeek(new Date(), { weekStartsOn: 1 }), {
+    weekEndDate: formatISO(endOfWeek(new Date(), { weekStartsOn: BD_WEEK_STARTS_ON }), {
       representation: 'date',
     }),
     schedule: {

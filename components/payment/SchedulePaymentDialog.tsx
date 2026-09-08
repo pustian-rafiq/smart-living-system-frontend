@@ -328,7 +328,7 @@ export function SchedulePaymentDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('remindDaysBefore')}</FormLabel>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                             {reminderDayOptions.map(day => (
                               <div
                                 key={day}

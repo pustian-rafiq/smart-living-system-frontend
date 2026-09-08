@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
+import { WhatsAppButton } from '@/components/contact/WhatsAppButton'
 import {
   Dialog,
   DialogContent,
@@ -36,6 +38,7 @@ import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge'
 import { InstantBookBadge } from '@/components/shared/InstantBookBadge'
 import { useRouter } from 'next/navigation'
 import type { Property } from '@/types/property'
+import { listingPath } from '@/lib/seo/slug'
 import type { BookingFormData } from '@/types/booking'
 
 interface PropertyDetailDialogProps {
@@ -71,6 +74,7 @@ export function PropertyDetailDialog({
 }: PropertyDetailDialogProps) {
   const [showBookingForm, setShowBookingForm] = useState(false)
   const router = useRouter()
+  const tContact = useTranslations('contact')
 
   if (!property) return null
 
@@ -280,6 +284,11 @@ export function PropertyDetailDialog({
                   <Phone className="mr-2 h-4 w-4" />
                   Call
                 </Button>
+                <WhatsAppButton
+                  size="sm"
+                  number={property.ownerWhatsapp}
+                  message={tContact('messageOwner')}
+                />
               </div>
             </div>
             <p className="text-sm text-muted-foreground">{property.ownerPhone}</p>
@@ -293,7 +302,7 @@ export function PropertyDetailDialog({
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button variant="outline" className="flex-1" asChild>
-              <Link href={`/listings/${property.id}`} onClick={() => onOpenChange(false)}>
+              <Link href={listingPath(property)} onClick={() => onOpenChange(false)}>
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Full listing page
               </Link>

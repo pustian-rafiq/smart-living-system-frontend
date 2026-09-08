@@ -143,7 +143,7 @@ export default function NoticesPage() {
 
     let pdfUrl: string | undefined
     if (data.pdfFile) {
-      const uploaded = await uploadMediaFile(data.pdfFile, 'document')
+      const uploaded = await uploadMediaFile(data.pdfFile, 'notice')
       if (!uploaded.ok) {
         toast.error(uploaded.error)
         return
@@ -153,7 +153,7 @@ export default function NoticesPage() {
 
     let imageUrls: string[] | undefined
     if (data.imageFiles?.length) {
-      const uploaded = await uploadMediaFiles(data.imageFiles, 'image')
+      const uploaded = await uploadMediaFiles(data.imageFiles, 'notice')
       if (!uploaded.ok) {
         toast.error(uploaded.error)
         return

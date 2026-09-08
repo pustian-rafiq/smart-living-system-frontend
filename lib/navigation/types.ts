@@ -1,10 +1,13 @@
 import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '@/types'
+import type { OwnerVertical } from '@/lib/owner-focus'
 
 export interface NavChildItem {
   labelKey: string
   href: string
   descriptionKey?: string
+  /** When set, only show for owners who enabled this vertical. */
+  ownerVertical?: OwnerVertical
 }
 
 export interface NavItem {
@@ -14,6 +17,8 @@ export interface NavItem {
   children?: NavChildItem[]
   matchPrefixes?: string[]
   roles: UserRole[]
+  /** When set, only show for owners who enabled this vertical. */
+  ownerVertical?: OwnerVertical
 }
 
 export interface BottomNavItem {
@@ -23,6 +28,7 @@ export interface BottomNavItem {
   matchPrefixes?: string[]
   roles: UserRole[]
   action?: 'menu'
+  ownerVertical?: OwnerVertical
 }
 
 export interface QuickActionItem {
@@ -30,6 +36,7 @@ export interface QuickActionItem {
   href: string
   descriptionKey?: string
   roles: UserRole[]
+  ownerVertical?: OwnerVertical
 }
 
 export interface MobileUtilityLink {

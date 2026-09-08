@@ -43,6 +43,8 @@ export interface Property {
   ownerId: string
   ownerName: string
   ownerPhone: string
+  /** Owner's WhatsApp number; empty when the owner has not added one. */
+  ownerWhatsapp?: string
   createdAt: string
   /** Instant book auto-approves; otherwise owner must accept */
   instantBook?: boolean

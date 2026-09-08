@@ -36,6 +36,7 @@ export interface SMSGroup {
 export interface SMSMessage {
   id: string
   messId: string
+  messName?: string
   templateId?: string
   content: string
   recipientType: SMSRecipientType
@@ -47,8 +48,10 @@ export interface SMSMessage {
   scheduledAt?: string // For scheduled SMS
   sentAt?: string
   sentBy: string
-  gateway?: 'bKash' | 'Nagad' | 'Rocket' | 'Twilio' | 'Custom'
-  cost?: number // Total cost in BDT
+  sentByName?: string
+  sentByPhone?: string
+  gateway?: string
+  cost?: number // Total cost in BDT (owner credit accounting)
   errorMessage?: string
   metadata?: {
     [key: string]: any
@@ -65,4 +68,44 @@ export interface SMSHistory {
     startDate: string
     endDate: string
   }
+}
+
+export interface SMSCreditPackage {
+  id: string
+  label: string
+  credits: number
+  price: number
+  description: string
+}
+
+export interface OwnerSMSWallet {
+  balance: number
+  lifetimeGranted: number
+  lifetimePurchased: number
+  lifetimeUsed: number
+  period: string
+  planTier: string
+  planName: string
+  monthlyFreeQuota: number
+  unitPriceBdt: number
+  gateway: {
+    provider: string
+    channel: string
+    configured: boolean
+    label: string
+  }
+  packages: SMSCreditPackage[]
+}
+
+export interface SMSCreditLedgerEntry {
+  id: string
+  entryType: string
+  credits: number
+  balanceAfter: number
+  note: string
+  messId?: string | null
+  messName?: string | null
+  smsMessageId?: string | null
+  createdAt: string
+  metadata?: Record<string, unknown>
 }

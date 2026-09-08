@@ -194,8 +194,7 @@ function MessagesPageContent() {
 
   const handleSendFile = async (file: File) => {
     if (!selectedChat) return
-    const kind = file.type.startsWith('image/') ? 'image' : 'document'
-    const uploaded = await uploadMediaFile(file, kind)
+    const uploaded = await uploadMediaFile(file, 'chat')
     if (!uploaded.ok) return
     handleSendMessage(uploaded.data.url, 'file')
   }

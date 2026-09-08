@@ -93,10 +93,10 @@ export function AttendanceReportDialog({
         endDate = todayStr
         break
       case 'weekly':
-        startDate = formatISO(startOfWeek(today, { weekStartsOn: 1 }), {
+        startDate = formatISO(startOfWeek(today, { weekStartsOn: 6 }), {
           representation: 'date',
         })
-        endDate = formatISO(endOfWeek(today, { weekStartsOn: 1 }), {
+        endDate = formatISO(endOfWeek(today, { weekStartsOn: 6 }), {
           representation: 'date',
         })
         break

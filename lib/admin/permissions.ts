@@ -15,6 +15,8 @@ export type AdminPermission =
   | 'analytics.view'
   | 'settings.manage'
   | 'audit.view'
+  | 'sms.view'
+  | 'sms.manage'
 
 const ALL_PERMISSIONS: AdminPermission[] = [
   'dashboard.view',
@@ -31,6 +33,8 @@ const ALL_PERMISSIONS: AdminPermission[] = [
   'analytics.view',
   'settings.manage',
   'audit.view',
+  'sms.view',
+  'sms.manage',
 ]
 
 const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
@@ -45,6 +49,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     'disputes.manage',
     'bookings.view',
     'fraud.manage',
+    'sms.view',
   ],
 }
 
@@ -84,6 +89,7 @@ export function canAccessAdminRoute(
     { prefix: '/admin/settings', permission: 'settings.manage' },
     { prefix: '/admin/audit-logs', permission: 'audit.view' },
     { prefix: '/admin/analytics', permission: 'analytics.view' },
+    { prefix: '/admin/sms', permission: 'sms.view' },
     { prefix: '/admin/users', permission: 'users.view' },
     { prefix: '/admin/properties', permission: 'properties.moderate' },
     { prefix: '/admin/bookings', permission: 'bookings.view' },

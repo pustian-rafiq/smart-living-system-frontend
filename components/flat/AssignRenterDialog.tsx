@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -13,6 +14,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,6 +27,7 @@ import type { Flat, Renter } from '@/types/building'
 const schema = z.object({
   name: z.string().min(2, 'Name is required'),
   phone: z.string().min(10, 'Valid phone is required'),
+  whatsapp: z.string().optional(),
   email: z.string().email('Valid email required').optional().or(z.literal('')),
   nid: z.string().min(10, 'NID is required for BD rentals'),
   address: z.string().optional(),
@@ -46,11 +49,13 @@ export function AssignRenterDialog({
   onOpenChange,
   onAssign,
 }: AssignRenterDialogProps) {
+  const tContact = useTranslations('contact')
   const form = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
     defaultValues: {
       name: '',
       phone: '',
+      whatsapp: '',
       email: '',
       nid: '',
       address: '',
@@ -64,6 +69,7 @@ export function AssignRenterDialog({
       id: `renter-${Date.now()}`,
       name: data.name.trim(),
       phone: data.phone.trim(),
+      whatsapp: data.whatsapp?.trim() || undefined,
       email: data.email?.trim() || undefined,
       nid: data.nid.trim(),
       address: data.address?.trim() || data.jobOrInstitute?.trim() || undefined,
@@ -132,6 +138,39 @@ export function AssignRenterDialog({
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="whatsapp"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{tContact('whatsappNumber')}</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        placeholder={tContact('whatsappNumberPlaceholder')}
+                        {...field}
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="shrink-0"
+                      onClick={() =>
+                        form.setValue('whatsapp', form.getValues('phone'), {
+                          shouldDirty: true,
+                        })
+                      }
+                    >
+                      {tContact('sameAsPhone')}
+                    </Button>
+                  </div>
+                  <FormDescription>
+                    {tContact('whatsappRenterHint')}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="email"

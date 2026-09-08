@@ -17,10 +17,12 @@ export interface Booking {
   renterId: string
   renterName: string
   renterPhone: string
+  renterWhatsapp?: string
   renterEmail?: string
   ownerId: string
   ownerName: string
   ownerPhone: string
+  ownerWhatsapp?: string
   status: BookingStatus
   /** Instant bookings are auto-approved; requests need owner action */
   bookingMode?: BookingMode

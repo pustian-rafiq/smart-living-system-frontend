@@ -18,7 +18,7 @@ export const mockAdminUsers: AdminUser[] = [
   {
     id: 'admin1',
     name: 'Admin User',
-    email: 'admin@smartliving.com',
+    email: 'admin@smartbasa.com',
     phone: '+8801711111111',
     role: 'super-admin',
     createdAt: '2024-01-01',
@@ -28,7 +28,7 @@ export const mockAdminUsers: AdminUser[] = [
   {
     id: 'admin2',
     name: 'Moderator One',
-    email: 'moderator@smartliving.com',
+    email: 'moderator@smartbasa.com',
     phone: '+8801722222222',
     role: 'moderator',
     createdAt: '2024-01-15',
@@ -38,7 +38,7 @@ export const mockAdminUsers: AdminUser[] = [
   {
     id: 'admin3',
     name: 'Support Agent',
-    email: 'support@smartliving.com',
+    email: 'support@smartbasa.com',
     phone: '+8801733333333',
     role: 'support',
     createdAt: '2024-02-01',
@@ -274,8 +274,8 @@ export const mockAnalytics: AnalyticsData = {
 }
 
 export const mockSystemSettings: SystemSettings = {
-  platformName: 'Smart Living System',
-  platformEmail: 'support@smartliving.com',
+  platformName: 'SmartBasa',
+  platformEmail: 'support@smartbasa.com',
   platformPhone: '+8801712345678',
   commissionRate: 5,
   subscriptionPlans: {

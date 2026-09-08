@@ -158,15 +158,15 @@ export default function RemindersPage() {
         </div>
 
         <Tabs defaultValue="all" className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList>
               <TabsTrigger value="all">{t('tabs.all')}</TabsTrigger>
               <TabsTrigger value="pending">{t('tabs.pending')}</TabsTrigger>
               <TabsTrigger value="history">{t('tabs.history')}</TabsTrigger>
             </TabsList>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[150px] sm:flex-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

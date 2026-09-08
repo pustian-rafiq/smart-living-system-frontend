@@ -111,10 +111,10 @@ export function BookingCalendar({
     setCurrentMonth(addMonths(currentMonth, 1))
   }
 
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const weekDays = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
-  // Get first day of month offset
-  const firstDayOffset = monthStart.getDay()
+  // Bangladesh week starts Saturday
+  const firstDayOffset = (monthStart.getDay() + 1) % 7
 
   return (
     <Card>

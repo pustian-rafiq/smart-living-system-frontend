@@ -36,8 +36,8 @@ export interface DailyMenu {
 export interface WeeklySchedule {
   id: string
   messId: string
-  weekStartDate: string // ISO date string (Monday of the week)
-  weekEndDate: string // ISO date string (Sunday of the week)
+  weekStartDate: string // ISO date string (Saturday of the Bangladesh week)
+  weekEndDate: string // ISO date string (Friday of the Bangladesh week)
   schedule: {
     [key in MealDay]: {
       breakfast?: MealItem[]

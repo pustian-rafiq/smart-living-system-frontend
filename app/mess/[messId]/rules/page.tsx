@@ -32,6 +32,7 @@ import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { getStoredRole } from '@/utils/auth'
 import { Plus, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { MessSubpageBackButton } from '@/components/mess/MessSubpageBackButton'
 import type { MessRule, RuleAcceptance, RuleViolation } from '@/types/messRules'
 import { useConfirm } from '@/components/feedback'
 import { toast } from '@/lib/feedback/toast'
@@ -145,8 +146,11 @@ export default function RulesManagementPage() {
     <Layout userRole={role as 'owner' | 'renter'}>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
+            <MessSubpageBackButton
+              fallbackHref={isRenter ? '/mess/student-dashboard' : '/mess'}
+            />
             <h1 className="text-2xl font-bold mb-2">
               {t('rules.managementTitle')}
             </h1>
@@ -167,7 +171,7 @@ export default function RulesManagementPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="rules" className="space-y-6">
-          <TabsList>
+          <TabsList className="max-w-full justify-start overflow-x-auto">
             <TabsTrigger value="rules">
               <FileText className="h-4 w-4 mr-2" />
               {t('rules.tabs.rules')}
@@ -221,13 +225,13 @@ export default function RulesManagementPage() {
           {/* Violations Tab (Owner) */}
           {isOwner && (
             <TabsContent value="violations" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-semibold sm:text-xl">
                   {t('rules.violationsTitle')}
                 </h2>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[150px]">
+                    <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[150px] sm:flex-none">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -252,7 +256,7 @@ export default function RulesManagementPage() {
                     value={severityFilter}
                     onValueChange={setSeverityFilter}
                   >
-                    <SelectTrigger className="w-[150px]">
+                    <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[150px] sm:flex-none">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

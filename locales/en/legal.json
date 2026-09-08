@@ -10,11 +10,11 @@
   },
   "terms": {
     "title": "Terms & Conditions",
-    "description": "Rules for using Smart Living System in Bangladesh — for renters, owners, and guests."
+    "description": "Rules for using SmartBasa in Bangladesh — for renters, owners, and guests."
   },
   "privacy": {
     "title": "Privacy Policy",
-    "description": "How Smart Living collects, uses, and protects your personal information."
+    "description": "How SmartBasa collects, uses, and protects your personal information."
   },
   "safety": {
     "title": "Safety & anti-scam guide",
@@ -22,7 +22,7 @@
     "reportFraud": "Report fraud",
     "scamAlert": {
       "title": "If you already sent money to a scammer",
-      "body": "Contact your mobile wallet provider (bKash/Nagad/Rocket) immediately with the transaction ID. File a report with local police for significant amounts. Then notify us at info@smartliving.bd with screenshots so we can block the account."
+      "body": "Contact your mobile wallet provider (bKash/Nagad/Rocket) immediately with the transaction ID. File a report with local police for significant amounts. Then notify us at info@smartbasa.com with screenshots so we can block the account."
     },
     "cards": {
       "verifyFirst": {
@@ -63,9 +63,9 @@
     }
   },
   "about": {
-    "title": "About Smart Living",
+    "title": "About SmartBasa",
     "description": "We are building a modern living system for Bangladesh — from discovery and booking to rent, bills, and day-to-day communication.",
-    "intro": "Whether you are a student in a mess, a professional in a flat, or a traveller needing a guest house, Smart Living brings listings and management into one consistent experience. This web app is frontend-first: data is mocked like API responses so we can plug in a real backend without rewriting screens.",
+    "intro": "Whether you are a student in a mess, a professional in a flat, or a traveller needing a guest house, SmartBasa brings listings and management into one consistent experience. This web app is frontend-first: data is mocked like API responses so we can plug in a real backend without rewriting screens.",
     "pillars": {
       "allInOne": {
         "title": "All-in-one",

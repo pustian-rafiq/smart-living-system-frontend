@@ -5,9 +5,16 @@ import { Building2, Receipt, Home } from 'lucide-react'
 import { OnboardingWizard } from './OnboardingWizard'
 import { Button } from '@/components/ui/button'
 import { useOnboarding } from '@/hooks/useOnboarding'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
 
 export function OwnerOnboardingDialog() {
   const { shouldShow, complete } = useOnboarding('owner')
+  const { hasVertical, focusSelected } = useOwnerFocus()
+
+  // Apartment-focused onboarding only — mess/hotel have their own wizards.
+  if (!focusSelected || !hasVertical('apartment')) {
+    return null
+  }
 
   return (
     <OnboardingWizard

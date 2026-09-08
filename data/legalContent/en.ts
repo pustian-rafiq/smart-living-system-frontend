@@ -36,7 +36,7 @@ export const termsSections: LegalSection[] = [
     id: 'acceptance',
     title: '1. Acceptance of terms',
     paragraphs: [
-      'By accessing or using Smart Living System (“Platform”), you agree to these Terms & Conditions. If you do not agree, please do not use the Platform.',
+      'By accessing or using SmartBasa (“Platform”), you agree to these Terms & Conditions. If you do not agree, please do not use the Platform.',
       'The Platform is operated for users in Bangladesh and is intended to connect renters, students, travellers, and property owners for mess, hostel, apartment, and short-stay listings.',
     ],
   },
@@ -97,7 +97,7 @@ export const termsSections: LegalSection[] = [
     title: '7. Limitation of liability',
     paragraphs: [
       'The Platform is provided “as is”. We strive for accuracy but do not guarantee uninterrupted service or that every user will fulfil their obligations.',
-      'To the fullest extent permitted by Bangladesh law, Smart Living System is not liable for indirect losses, disputes between users, or offline agreements made outside the Platform.',
+      'To the fullest extent permitted by Bangladesh law, SmartBasa is not liable for indirect losses, disputes between users, or offline agreements made outside the Platform.',
     ],
   },
   {
@@ -105,7 +105,7 @@ export const termsSections: LegalSection[] = [
     title: '8. Changes & contact',
     paragraphs: [
       'We may update these terms. Material changes will be noted on this page with an updated date.',
-      'Questions: info@smartliving.bd · +880 1234 567890 · Dhaka, Bangladesh.',
+      'Questions: info@smartbasa.com · +880 1234 567890 · Dhaka, Bangladesh.',
     ],
   },
 ]
@@ -115,7 +115,7 @@ export const privacySections: LegalSection[] = [
     id: 'overview',
     title: '1. Overview',
     paragraphs: [
-      'Smart Living System respects your privacy. This Policy explains what we collect, why we use it, and your choices. It applies to our website and apps for users in Bangladesh.',
+      'SmartBasa respects your privacy. This Policy explains what we collect, why we use it, and your choices. It applies to our website and apps for users in Bangladesh.',
     ],
   },
   {
@@ -171,7 +171,7 @@ export const privacySections: LegalSection[] = [
       'Access or correct profile information from Profile settings.',
       'Delete your account (subject to outstanding bills or legal holds).',
       'Opt out of non-essential marketing SMS/email.',
-      'Contact us to raise a privacy complaint: info@smartliving.bd.',
+      'Contact us to raise a privacy complaint: info@smartbasa.com.',
     ],
   },
   {
@@ -201,7 +201,7 @@ export const faqItems: FaqItem[] = [
   {
     id: 'faq-2',
     category: 'Getting started',
-    question: 'Is Smart Living free for renters?',
+    question: 'Is SmartBasa free for renters?',
     answer:
       'Browsing, saving favourites, and many renter features are free. You pay rent and booking amounts directly to owners or through the Platform payment flow where enabled.',
   },
@@ -273,7 +273,7 @@ export const faqItems: FaqItem[] = [
     category: 'Support',
     question: 'How do I contact support?',
     answer:
-      'Email info@smartliving.bd, call +880 1234 567890, or use the Contact form. Help Center articles and this FAQ cover most common questions.',
+      'Email info@smartbasa.com, call +880 1234 567890, or use the Contact form. Help Center articles and this FAQ cover most common questions.',
   },
 ]
 
@@ -383,7 +383,7 @@ export const safetyTips: SafetyTip[] = [
       'Scammers try to move chat to WhatsApp quickly to avoid records. Use in-app Messages and documented payments.',
     severity: 'important',
     dos: [
-      'Keep booking and payment history in Smart Living.',
+      'Keep booking and payment history in SmartBasa.',
       'Screenshot suspicious chats and report via Complaints.',
     ],
     donts: [
@@ -421,7 +421,7 @@ export const safetyTips: SafetyTip[] = [
     dos: [
       'File a Complaint with evidence (screenshots, transaction ID).',
       'Contact local police for large financial loss.',
-      'Email info@smartliving.bd with listing URL.',
+      'Email info@smartbasa.com with listing URL.',
     ],
   },
 ]

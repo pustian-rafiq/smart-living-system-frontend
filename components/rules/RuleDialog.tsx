@@ -119,10 +119,12 @@ export function RuleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{rule ? 'Edit Rule' : 'Create Rule'}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="left-[50%] top-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-full translate-x-[-50%] translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:top-[50%] sm:h-auto sm:max-h-[85vh] sm:w-[calc(100%-2rem)] sm:max-w-2xl sm:translate-y-[-50%] sm:rounded-lg sm:border sm:p-0">
+        <DialogHeader className="shrink-0 space-y-1.5 px-4 pb-2 pr-12 pt-5 text-left sm:px-6 sm:pt-6">
+          <DialogTitle className="text-base sm:text-lg">
+            {rule ? 'Edit Rule' : 'Create Rule'}
+          </DialogTitle>
+          <DialogDescription className="text-sm">
             Define rules and regulations for your mess
           </DialogDescription>
         </DialogHeader>
@@ -130,9 +132,9 @@ export function RuleDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="flex min-h-0 flex-1 flex-col"
           >
-            <div className="space-y-4">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-2 sm:px-6">
               {/* Title */}
               <FormField
                 control={form.control}
@@ -171,7 +173,7 @@ export function RuleDialog({
               />
 
               {/* Category & Severity */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="category"
@@ -249,8 +251,8 @@ export function RuleDialog({
                 control={form.control}
                 name="requiresAcceptance"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
+                  <FormItem className="flex flex-row items-start justify-between gap-3 rounded-lg border p-3 sm:p-4">
+                    <div className="min-w-0 space-y-0.5">
                       <FormLabel>Requires Student Acceptance</FormLabel>
                       <p className="text-sm text-muted-foreground">
                         Students must accept this rule before it applies to them
@@ -258,6 +260,7 @@ export function RuleDialog({
                     </div>
                     <FormControl>
                       <Switch
+                        className="mt-0.5 shrink-0"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
@@ -267,7 +270,7 @@ export function RuleDialog({
               />
 
               {/* Dates */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="effectiveDate"
@@ -297,7 +300,7 @@ export function RuleDialog({
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="shrink-0 flex-col-reverse gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:justify-end sm:space-x-0 sm:px-6">
               <Button
                 type="button"
                 variant="outline"

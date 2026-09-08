@@ -24,21 +24,80 @@ interface CategoryBreakdownProps {
   title?: string
 }
 
+interface SliceLabelProps {
+  cx?: number
+  cy?: number
+  midAngle?: number
+  innerRadius?: number
+  outerRadius?: number
+  percent?: number
+}
+
+const RADIAN = Math.PI / 180
+
+/**
+ * Percentages sit inside their slice so they can never collide with a
+ * neighbour's label, however narrow the screen. Slivers under 5% stay bare —
+ * the legend and the list below name every category anyway.
+ */
+function renderSliceLabel({
+  cx = 0,
+  cy = 0,
+  midAngle = 0,
+  innerRadius = 0,
+  outerRadius = 0,
+  percent = 0,
+}: SliceLabelProps) {
+  if (percent < 0.05) return null
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.6
+  return (
+    <text
+      x={cx + radius * Math.cos(-midAngle * RADIAN)}
+      y={cy + radius * Math.sin(-midAngle * RADIAN)}
+      fill="#fff"
+      textAnchor="middle"
+      dominantBaseline="central"
+      fontSize={12}
+      fontWeight={600}
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  )
+}
+
 export function CategoryBreakdown({
   categories,
   categoryColors,
   title = 'Category Breakdown',
 }: CategoryBreakdownProps) {
   const titleId = useId()
-  const data = categories.map(cat => ({
+  const colorFor = (categoryId: string) =>
+    categoryColors.get(categoryId) || '#6b7280'
+
+  // Only spent categories go in the pie — a 0% slice has no wedge to sit in and
+  // its label collides with its neighbours. The list below still shows them all.
+  const used = categories.filter(cat => cat.amount > 0)
+  const data = used.map(cat => ({
     name: cat.categoryName,
     value: cat.amount,
     percentage: cat.percentage,
+    color: colorFor(cat.categoryId),
   }))
 
-  const COLORS = categories.map(
-    cat => categoryColors.get(cat.categoryId) || '#6b7280'
-  )
+  if (used.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle id={titleId}>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            No expenses recorded for this period yet.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -50,7 +109,11 @@ export function CategoryBreakdown({
           <VisuallyHidden as="figcaption">
             Pie chart of expenses by category. Full breakdown in the list below.
           </VisuallyHidden>
-          <div aria-hidden="true" className="h-[300px] w-full" tabIndex={0}>
+          <div
+            aria-hidden="true"
+            className="h-[260px] w-full sm:h-[300px]"
+            tabIndex={0}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -58,29 +121,30 @@ export function CategoryBreakdown({
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }: { name?: string; percent?: number }) =>
-                    `${name ?? ''}: ${((percent ?? 0) * 100).toFixed(1)}%`
-                  }
-                  outerRadius={80}
+                  label={renderSliceLabel}
+                  outerRadius="75%"
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                  {data.map(entry => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number | string | undefined) => [
-                    formatCurrency(Number(value ?? 0)),
-                    'Amount',
-                  ]}
+                  formatter={(
+                    value: number | string | undefined,
+                    name: number | string | undefined,
+                  ) => [formatCurrency(Number(value ?? 0)), String(name ?? '')]}
                   labelStyle={{ color: 'hsl(var(--foreground))' }}
                   contentStyle={{
                     backgroundColor: 'hsl(var(--background))',
                     border: '1px solid hsl(var(--border))',
                   }}
                 />
-                <Legend />
+                <Legend
+                  verticalAlign="bottom"
+                  wrapperStyle={{ fontSize: 12, lineHeight: '18px' }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -89,20 +153,20 @@ export function CategoryBreakdown({
           className="mt-4 space-y-2"
           aria-label="Expense category breakdown"
         >
-          {categories.map((cat, index) => (
+          {categories.map(cat => (
             <li
               key={cat.categoryId}
-              className="flex items-center justify-between text-sm"
+              className="flex items-center justify-between gap-2 text-sm"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2">
                 <span
                   className="h-3 w-3 shrink-0 rounded-full"
-                  style={{ backgroundColor: COLORS[index] }}
+                  style={{ backgroundColor: colorFor(cat.categoryId) }}
                   aria-hidden="true"
                 />
-                <span>{cat.categoryName}</span>
+                <span className="truncate">{cat.categoryName}</span>
               </div>
-              <div className="text-right">
+              <div className="shrink-0 text-right">
                 <span className="font-medium">{formatCurrency(cat.amount)}</span>
                 <span className="ml-2 text-muted-foreground">
                   ({cat.percentage.toFixed(1)}%)

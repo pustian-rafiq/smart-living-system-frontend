@@ -1,4 +1,13 @@
 import type { UserRole } from '@/types'
+import {
+  defaultPathForOwnerFocus,
+  type OwnerVertical,
+} from '@/lib/owner-focus'
+import {
+  getStoredOwnerPrimaryFocus,
+  getStoredOwnerVerticals,
+  isOwnerFocusSelected,
+} from '@/utils/auth'
 
 type RoleRule = {
   /** Path prefix match */
@@ -48,8 +57,15 @@ export function getDefaultPathForRole(role: UserRole): string {
   switch (role) {
     case 'admin':
       return '/admin'
-    case 'owner':
+    case 'owner': {
+      if (typeof window !== 'undefined' && isOwnerFocusSelected()) {
+        return defaultPathForOwnerFocus(
+          getStoredOwnerPrimaryFocus() as OwnerVertical | '',
+          getStoredOwnerVerticals(),
+        )
+      }
       return '/dashboard'
+    }
     case 'renter':
     default:
       return '/dashboard'

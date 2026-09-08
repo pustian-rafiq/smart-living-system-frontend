@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import {
@@ -23,41 +23,48 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, X } from 'lucide-react'
 import type { WeeklySchedule, MealDay } from '@/types/meal'
-import { startOfWeek, endOfWeek, formatISO } from 'date-fns'
-
-const mealItemSchema = z.object({
-  name: z.string().min(1, 'Item name is required'),
-  description: z.string().optional(),
-  isSpecial: z.boolean().optional(),
-  price: z.number().optional(),
-})
+import { formatISO } from 'date-fns'
+import {
+  BD_WEEK_DAYS,
+  bdEndOfWeek,
+  bdStartOfWeek,
+} from '@/lib/format/bangladesh'
 
 const weeklyScheduleSchema = z.object({
   weekStartDate: z.string().min(1, 'Week start date is required'),
   weekEndDate: z.string().min(1, 'Week end date is required'),
 })
 
-const daysOfWeek: { value: MealDay; label: string }[] = [
-  { value: 'monday', label: 'Monday' },
-  { value: 'tuesday', label: 'Tuesday' },
-  { value: 'wednesday', label: 'Wednesday' },
-  { value: 'thursday', label: 'Thursday' },
-  { value: 'friday', label: 'Friday' },
-  { value: 'saturday', label: 'Saturday' },
-  { value: 'sunday', label: 'Sunday' },
-]
+function emptyWeekSchedule(): Record<
+  MealDay,
+  {
+    breakfast?: any[]
+    lunch?: any[]
+    dinner?: any[]
+    snack?: any[]
+  }
+> {
+  return {
+    saturday: {},
+    sunday: {},
+    monday: {},
+    tuesday: {},
+    wednesday: {},
+    thursday: {},
+    friday: {},
+  }
+}
 
 interface WeeklyScheduleDialogProps {
   schedule?: WeeklySchedule | null
   messId: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (data: any) => void
+  onSubmit: (data: any) => void | Promise<void>
 }
 
 export function WeeklyScheduleDialog({
@@ -67,33 +74,16 @@ export function WeeklyScheduleDialog({
   onOpenChange,
   onSubmit,
 }: WeeklyScheduleDialogProps) {
-  const [scheduleData, setScheduleData] = useState<
-    Record<
-      MealDay,
-      {
-        breakfast?: any[]
-        lunch?: any[]
-        dinner?: any[]
-        snack?: any[]
-      }
-    >
-  >({
-    monday: {},
-    tuesday: {},
-    wednesday: {},
-    thursday: {},
-    friday: {},
-    saturday: {},
-    sunday: {},
-  })
+  const [scheduleData, setScheduleData] = useState(emptyWeekSchedule)
+  const [saving, setSaving] = useState(false)
 
   const form = useForm({
     resolver: zodResolver(weeklyScheduleSchema),
     defaultValues: {
-      weekStartDate: formatISO(startOfWeek(new Date(), { weekStartsOn: 1 }), {
+      weekStartDate: formatISO(bdStartOfWeek(new Date()), {
         representation: 'date',
       }),
-      weekEndDate: formatISO(endOfWeek(new Date(), { weekStartsOn: 1 }), {
+      weekEndDate: formatISO(bdEndOfWeek(new Date()), {
         representation: 'date',
       }),
     },
@@ -105,57 +95,56 @@ export function WeeklyScheduleDialog({
         weekStartDate: schedule.weekStartDate,
         weekEndDate: schedule.weekEndDate,
       })
-      setScheduleData(schedule.schedule)
-    } else if (!schedule && open) {
-      const weekStart = formatISO(
-        startOfWeek(new Date(), { weekStartsOn: 1 }),
-        {
-          representation: 'date',
-        }
-      )
-      const weekEnd = formatISO(endOfWeek(new Date(), { weekStartsOn: 1 }), {
-        representation: 'date',
-      })
-      form.reset({
-        weekStartDate: weekStart,
-        weekEndDate: weekEnd,
-      })
       setScheduleData({
-        monday: {},
-        tuesday: {},
-        wednesday: {},
-        thursday: {},
-        friday: {},
-        saturday: {},
-        sunday: {},
+        ...emptyWeekSchedule(),
+        ...(schedule.schedule ?? {}),
       })
+    } else if (!schedule && open) {
+      form.reset({
+        weekStartDate: formatISO(bdStartOfWeek(new Date()), {
+          representation: 'date',
+        }),
+        weekEndDate: formatISO(bdEndOfWeek(new Date()), {
+          representation: 'date',
+        }),
+      })
+      setScheduleData(emptyWeekSchedule())
     }
   }, [schedule, open, form])
 
-  const handleSubmit = (data: any) => {
-    onSubmit({
-      ...data,
-      messId,
-      schedule: scheduleData,
-    })
-    form.reset()
-    onOpenChange(false)
+  const handleSubmit = async (data: any) => {
+    setSaving(true)
+    try {
+      await onSubmit({
+        ...data,
+        messId,
+        schedule: scheduleData,
+        isActive: true,
+      })
+      form.reset()
+      onOpenChange(false)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const addMealItem = (
     day: MealDay,
     category: 'breakfast' | 'lunch' | 'dinner' | 'snack'
   ) => {
-    setScheduleData(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [category]: [
-          ...(prev[day][category] || []),
-          { name: '', description: '', isSpecial: false },
-        ],
-      },
-    }))
+    setScheduleData(prev => {
+      const dayData = prev[day] ?? {}
+      return {
+        ...prev,
+        [day]: {
+          ...dayData,
+          [category]: [
+            ...(dayData[category] || []),
+            { name: '', description: '', isSpecial: false },
+          ],
+        },
+      }
+    })
   }
 
   const removeMealItem = (
@@ -163,13 +152,16 @@ export function WeeklyScheduleDialog({
     category: 'breakfast' | 'lunch' | 'dinner' | 'snack',
     index: number
   ) => {
-    setScheduleData(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [category]: prev[day][category]?.filter((_, i) => i !== index) || [],
-      },
-    }))
+    setScheduleData(prev => {
+      const dayData = prev[day] ?? {}
+      return {
+        ...prev,
+        [day]: {
+          ...dayData,
+          [category]: dayData[category]?.filter((_, i) => i !== index) || [],
+        },
+      }
+    })
   }
 
   const updateMealItem = (
@@ -179,21 +171,25 @@ export function WeeklyScheduleDialog({
     field: string,
     value: any
   ) => {
-    setScheduleData(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [category]:
-          prev[day][category]?.map((item, i) =>
-            i === index ? { ...item, [field]: value } : item
-          ) || [],
-      },
-    }))
+    setScheduleData(prev => {
+      const dayData = prev[day] ?? {}
+      return {
+        ...prev,
+        [day]: {
+          ...dayData,
+          [category]:
+            dayData[category]?.map((item, i) =>
+              i === index ? { ...item, [field]: value } : item
+            ) || [],
+        },
+      }
+    })
   }
 
   const renderDaySchedule = (day: MealDay) => {
-    const dayData = scheduleData[day]
-    const dayLabel = daysOfWeek.find(d => d.value === day)?.label || day
+    const dayData = scheduleData[day] ?? {}
+    const dayLabel =
+      BD_WEEK_DAYS.find(d => d.value === day)?.label || day
 
     return (
       <div className="space-y-4">
@@ -212,7 +208,7 @@ export function WeeklyScheduleDialog({
                 Add
               </Button>
             </div>
-            {dayData[category] && dayData[category].length > 0 ? (
+            {dayData[category] && dayData[category]!.length > 0 ? (
               <div className="space-y-2">
                 {dayData[category].map((item, index) => (
                   <div
@@ -304,8 +300,8 @@ export function WeeklyScheduleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-5xl flex-col gap-0 overflow-hidden p-0 sm:max-h-[85vh] sm:p-0">
+        <DialogHeader className="shrink-0 space-y-1.5 px-6 pb-2 pt-6 pr-12 text-left">
           <DialogTitle>
             {schedule ? 'Edit Weekly Schedule' : 'Create Weekly Schedule'}
           </DialogTitle>
@@ -317,18 +313,18 @@ export function WeeklyScheduleDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="flex min-h-0 flex-1 flex-col"
           >
-            <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
-              <div className="space-y-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-2">
+              <div className="space-y-4 pb-2">
                 {/* Week Dates */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="weekStartDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Week Start Date (Monday)</FormLabel>
+                        <FormLabel>Week Start Date (Saturday)</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -341,7 +337,7 @@ export function WeeklyScheduleDialog({
                     name="weekEndDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Week End Date (Sunday)</FormLabel>
+                        <FormLabel>Week End Date (Friday)</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -351,38 +347,43 @@ export function WeeklyScheduleDialog({
                   />
                 </div>
 
-                {/* Weekly Schedule */}
-                <Tabs defaultValue="monday" className="w-full">
-                  <TabsList className="grid w-full grid-cols-7">
-                    {daysOfWeek.map(day => (
+                {/* Weekly Schedule — Bangladesh order: Sat → Fri */}
+                <Tabs defaultValue="saturday" className="w-full">
+                  <TabsList className="grid h-auto w-full grid-cols-4 gap-1 sm:grid-cols-7">
+                    {BD_WEEK_DAYS.map(day => (
                       <TabsTrigger
                         key={day.value}
                         value={day.value}
                         className="text-xs"
                       >
-                        {day.label.slice(0, 3)}
+                        {day.short}
                       </TabsTrigger>
                     ))}
                   </TabsList>
-                  {daysOfWeek.map(day => (
+                  {BD_WEEK_DAYS.map(day => (
                     <TabsContent key={day.value} value={day.value}>
                       {renderDaySchedule(day.value)}
                     </TabsContent>
                   ))}
                 </Tabs>
               </div>
-            </ScrollArea>
+            </div>
 
-            <DialogFooter>
+            <DialogFooter className="shrink-0 gap-2 border-t bg-background px-6 py-4 sm:space-x-0">
               <Button
                 type="button"
                 variant="outline"
+                disabled={saving}
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit">
-                {schedule ? 'Update' : 'Create'} Schedule
+              <Button type="submit" disabled={saving}>
+                {saving
+                  ? 'Saving…'
+                  : schedule
+                    ? 'Update Schedule'
+                    : 'Create Schedule'}
               </Button>
             </DialogFooter>
           </form>

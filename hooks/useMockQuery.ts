@@ -26,16 +26,24 @@ export function useMockQuery<T>(
 
   const run = useCallback(async () => {
     setState(s => ({ ...s, loading: true, error: null }))
-    const result = await fetcher()
-    if (result.ok) {
-      setState({ data: result.data, loading: false, error: null })
-    } else {
-      setState(s => ({ ...s, data: null, loading: false, error: result.error }))
+    try {
+      const result = await fetcher()
+      if (result.ok) {
+        setState({ data: result.data, loading: false, error: null })
+      } else {
+        setState({ data: null, loading: false, error: result.error })
+      }
+    } catch (e) {
+      setState({
+        data: null,
+        loading: false,
+        error: e instanceof Error ? e.message : 'Something went wrong',
+      })
     }
   }, [fetcher])
 
   useEffect(() => {
-    run()
+    void run()
   }, [run])
 
   return { ...state, refetch: run }

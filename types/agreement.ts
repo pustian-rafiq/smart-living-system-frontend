@@ -10,6 +10,8 @@ export interface RentalAgreement {
   endDate: string
   monthlyRent: number
   securityDeposit: number
+  /** Storage key of a privately stored upload. `documentUrl` is signed per read. */
+  documentKey?: string
   documentUrl: string
   documentName: string
   documentSize: number // in bytes
@@ -55,6 +57,7 @@ export interface AgreementRenewal {
   newStartDate: string
   newEndDate: string
   newMonthlyRent?: number
+  documentKey?: string
   documentUrl: string
   renewedAt: string
   renewedBy: string

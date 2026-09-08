@@ -142,13 +142,16 @@ export default function RegisterHotelPage() {
       imageUrl = uploaded.data.url
     }
     let licenseDocumentName = values.licenseDocumentName || undefined
+    let licenseDocumentKey: string | undefined
     if (licenseFile) {
       const uploaded = await uploadMediaFile(licenseFile, 'document')
       if (!uploaded.ok) {
         toast.error(uploaded.error)
         return
       }
-      licenseDocumentName = uploaded.data.url
+      // Licenses stay private: keep the key, the API signs a URL per read.
+      licenseDocumentKey = uploaded.data.key
+      licenseDocumentName = licenseFile.name
     }
     const result = await registerHotel({
       ...values,
@@ -156,6 +159,7 @@ export default function RegisterHotelPage() {
       imageUrl,
       licenseNumber: values.licenseNumber || undefined,
       licenseDocumentName: licenseDocumentName || 'license.pdf',
+      licenseDocumentKey,
     })
     if (result.ok) setCreatedId(result.data.id)
     else toast.error(result.error)

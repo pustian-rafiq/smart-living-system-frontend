@@ -129,7 +129,7 @@ export function MealPreferenceDialog({
                       key={field.id}
                       className="rounded-lg border p-4 space-y-3"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <FormField
                           control={form.control}
                           name={`preferences.${index}.category`}
@@ -141,7 +141,7 @@ export function MealPreferenceDialog({
                                 onValueChange={field.onChange}
                               >
                                 <FormControl>
-                                  <SelectTrigger className="w-[150px]">
+                                  <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[150px] sm:flex-none">
                                     <SelectValue />
                                   </SelectTrigger>
                                 </FormControl>

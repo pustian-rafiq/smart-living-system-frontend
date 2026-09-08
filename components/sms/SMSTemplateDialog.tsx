@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -32,7 +33,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { X } from 'lucide-react'
 import type { SMSTemplate } from '@/types/sms'
 
 const smsTemplateSchema = z.object({
@@ -127,12 +127,12 @@ export function SMSTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="left-[50%] top-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-full translate-x-[-50%] translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:top-[50%] sm:h-auto sm:max-h-[85vh] sm:w-[calc(100%-2rem)] sm:max-w-2xl sm:translate-y-[-50%] sm:rounded-lg sm:border sm:p-0">
+        <DialogHeader className="shrink-0 space-y-1.5 px-4 pb-2 pt-5 pr-12 text-left sm:px-6 sm:pt-6">
+          <DialogTitle className="text-base sm:text-lg">
             {template ? 'Edit SMS Template' : 'Create SMS Template'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Create reusable SMS templates with variables for personalization
           </DialogDescription>
         </DialogHeader>
@@ -140,140 +140,148 @@ export function SMSTemplateDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="flex min-h-0 flex-1 flex-col"
           >
-            <div className="space-y-4">
-              {/* Template Name */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Template Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Payment Reminder" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Category */}
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select
-                      value={field.value || 'general'}
-                      onValueChange={field.onChange}
-                    >
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:px-6">
+              <div className="space-y-4 pb-2">
+                {/* Template Name */}
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Template Name</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
+                        <Input
+                          placeholder="e.g., Payment Reminder"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="payment">Payment</SelectItem>
-                        <SelectItem value="attendance">Attendance</SelectItem>
-                        <SelectItem value="notice">Notice</SelectItem>
-                        <SelectItem value="reminder">Reminder</SelectItem>
-                        <SelectItem value="general">General</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Template Content */}
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Template Content</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter your SMS template. Use {variable} for dynamic content..."
-                        rows={6}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Use variables like {'{name}'}, {'{date}'}, {'{amount}'}{' '}
-                      etc. Click below to insert.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                {/* Category */}
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select
+                        value={field.value || 'general'}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="payment">Payment</SelectItem>
+                          <SelectItem value="attendance">Attendance</SelectItem>
+                          <SelectItem value="notice">Notice</SelectItem>
+                          <SelectItem value="reminder">Reminder</SelectItem>
+                          <SelectItem value="general">General</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Variable Buttons */}
-              <div className="space-y-2">
-                <FormLabel>Insert Variables</FormLabel>
-                <div className="flex flex-wrap gap-2">
-                  {commonVariables.map(variable => (
-                    <Button
-                      key={variable.key}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => insertVariable(variable.key)}
-                    >
-                      {variable.key}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+                {/* Template Content */}
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Template Content</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter your SMS template. Use {variable} for dynamic content..."
+                          className="min-h-[7.5rem] resize-y"
+                          rows={6}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Use variables like {'{name}'}, {'{date}'}, {'{amount}'}{' '}
+                        etc. Click below to insert.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Detected Variables */}
-              {uniqueVariables.length > 0 && (
-                <div className="rounded-lg border p-3 bg-muted/30">
-                  <p className="text-sm font-medium mb-2">
-                    Detected Variables:
-                  </p>
+                {/* Variable Buttons */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Insert Variables</Label>
                   <div className="flex flex-wrap gap-2">
-                    {uniqueVariables.map(variable => (
-                      <Badge key={variable} variant="outline">
-                        {'{' + variable + '}'}
-                      </Badge>
+                    {commonVariables.map(variable => (
+                      <Button
+                        key={variable.key}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs sm:text-sm"
+                        onClick={() => insertVariable(variable.key)}
+                      >
+                        {variable.key}
+                      </Button>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {/* Preview */}
-              {content && (
-                <div className="rounded-lg border p-3 bg-muted/30">
-                  <p className="text-sm font-medium mb-2">Preview:</p>
-                  <p className="text-sm text-muted-foreground">
-                    {content
-                      .replace(/\{name\}/g, 'John Doe')
-                      .replace(/\{date\}/g, '2024-01-15')
-                      .replace(/\{amount\}/g, '৳3,500')
-                      .replace(/\{status\}/g, 'present')
-                      .replace(/\{time\}/g, '12:00 PM')
-                      .replace(/\{meal\}/g, 'Lunch')
-                      .replace(/\{message\}/g, 'Important announcement')}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Character count: {content.length} / 160 (SMS limit)
-                  </p>
-                </div>
-              )}
+                {/* Detected Variables */}
+                {uniqueVariables.length > 0 && (
+                  <div className="rounded-lg border bg-muted/30 p-3 sm:p-4">
+                    <p className="mb-2 text-sm font-medium">
+                      Detected Variables:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {uniqueVariables.map(variable => (
+                        <Badge key={variable} variant="outline">
+                          {'{' + variable + '}'}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Preview */}
+                {content && (
+                  <div className="rounded-lg border bg-muted/30 p-3 sm:p-4">
+                    <p className="mb-2 text-sm font-medium">Preview:</p>
+                    <p className="break-words text-sm text-muted-foreground">
+                      {content
+                        .replace(/\{name\}/g, 'John Doe')
+                        .replace(/\{date\}/g, '2024-01-15')
+                        .replace(/\{amount\}/g, '৳3,500')
+                        .replace(/\{status\}/g, 'present')
+                        .replace(/\{time\}/g, '12:00 PM')
+                        .replace(/\{meal\}/g, 'Lunch')
+                        .replace(/\{message\}/g, 'Important announcement')}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Character count: {content.length} / 160 (SMS limit)
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="shrink-0 gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:justify-end sm:space-x-0 sm:px-6">
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" className="w-full sm:w-auto">
                 {template ? 'Update' : 'Create'} Template
               </Button>
             </DialogFooter>

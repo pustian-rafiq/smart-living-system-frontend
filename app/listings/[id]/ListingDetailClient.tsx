@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { WhatsAppButton } from '@/components/contact/WhatsAppButton'
 import { Layout } from '@/components/layout/Layout'
 import {
   PageContainer,
@@ -46,6 +47,7 @@ import {
   fetchReviewSummary,
 } from '@/lib/api/reviews'
 import { createBooking } from '@/lib/api/bookings'
+import { listingPath } from '@/lib/seo/slug'
 import { reportDiscoverItem } from '@/lib/api/discover'
 import type { Booking, BookingFormData } from '@/types/booking'
 import type { ReviewFormData } from '@/types/review'
@@ -64,6 +66,7 @@ import {
 export function ListingDetailClient({ id }: { id: string }) {
   const t = useTranslations('property.detail')
   const ts = useTranslations('living.seats')
+  const tContact = useTranslations('contact')
   const { formatCurrency } = useAppFormat()
   const router = useRouter()
   const [showBooking, setShowBooking] = useState(false)
@@ -390,6 +393,12 @@ export function ListingDetailClient({ id }: { id: string }) {
                 <Phone className="mr-2 h-4 w-4" />
                 {t('callOwner', { name: property.ownerName })}
               </Button>
+              <WhatsAppButton
+                className="mt-2 w-full"
+                number={property.ownerWhatsapp}
+                message={tContact('messageOwner')}
+                label={tContact('whatsappOwner')}
+              />
               <Button
                 variant="ghost"
                 className="mt-1 w-full text-muted-foreground"
@@ -424,6 +433,13 @@ export function ListingDetailClient({ id }: { id: string }) {
               <p className="text-sm text-muted-foreground">
                 {property.ownerPhone}
               </p>
+              <WhatsAppButton
+                className="mt-3 w-full"
+                size="sm"
+                number={property.ownerWhatsapp}
+                message={tContact('messageOwner')}
+                showNumber
+              />
             </div>
           </aside>
         </div>
@@ -432,7 +448,7 @@ export function ListingDetailClient({ id }: { id: string }) {
           <div className="mt-12">
             <PropertyRecommendations
               properties={recommendations}
-              onViewDetails={p => router.push(`/listings/${p.id}`)}
+              onViewDetails={p => router.push(listingPath(p))}
               onCall={onCall}
             />
           </div>

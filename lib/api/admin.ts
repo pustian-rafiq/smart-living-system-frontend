@@ -309,6 +309,137 @@ export async function patchFraudReport(
   })
 }
 
+export type AdminSMSOverview = {
+  ownerWallets: number
+  totalBalance: number
+  totalGranted: number
+  totalPurchased: number
+  totalUsed: number
+  smsBatches: number
+  smsSuccessful: number
+  smsFailed: number
+  smsCostBdt: number
+  activePackages: number
+  unitPriceBdt: number
+  gateway: {
+    provider: string
+    channel: string
+    configured: boolean
+    label: string
+  }
+  freeQuota: { free: number; basic: number; premium: number }
+}
+
+export type AdminSMSPackage = {
+  id: string
+  packageKey: string
+  label: string
+  credits: number
+  priceBdt: number
+  description: string
+  isActive: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type AdminOwnerSMSWallet = {
+  ownerId: string
+  ownerName: string
+  ownerPhone: string
+  balance: number
+  lifetimeGranted: number
+  lifetimePurchased: number
+  lifetimeUsed: number
+  available: number
+  occupied: number
+  period: string
+  planTier: string
+  planName: string
+  monthlyFreeQuota: number
+  smsBatches: number
+  smsSuccessful: number
+  smsFailed: number
+  smsCostBdt: number
+  updatedAt: string
+}
+
+export async function fetchAdminSMSOverview(): Promise<
+  ApiResult<AdminSMSOverview>
+> {
+  return apiRequest('/admin/sms/overview/')
+}
+
+export async function fetchAdminSMSPackages(
+  all = true,
+): Promise<ApiResult<AdminSMSPackage[]>> {
+  return apiRequest(`/admin/sms/packages/${all ? '?all=1' : ''}`)
+}
+
+export async function createAdminSMSPackage(
+  body: Partial<AdminSMSPackage> & {
+    packageKey: string
+    label: string
+    credits: number
+    priceBdt: number
+  },
+): Promise<ApiResult<AdminSMSPackage>> {
+  return apiRequest('/admin/sms/packages/', { method: 'POST', body })
+}
+
+export async function updateAdminSMSPackage(
+  id: string,
+  body: Partial<AdminSMSPackage>,
+): Promise<ApiResult<AdminSMSPackage>> {
+  return apiRequest(`/admin/sms/packages/${id}/`, { method: 'PATCH', body })
+}
+
+export async function deactivateAdminSMSPackage(
+  id: string,
+): Promise<ApiResult<AdminSMSPackage>> {
+  return apiRequest(`/admin/sms/packages/${id}/`, { method: 'DELETE' })
+}
+
+export async function fetchAdminSMSWallets(
+  params: PageQuery,
+): Promise<ApiResult<PaginatedData<AdminOwnerSMSWallet>>> {
+  return pagedGet('/admin/sms/wallets/', params)
+}
+
+export async function fetchAdminSMSWalletDetail(
+  ownerId: string,
+): Promise<
+  ApiResult<{
+    wallet: AdminOwnerSMSWallet
+    ledger: import('@/types/sms').SMSCreditLedgerEntry[]
+    messages: import('@/types/sms').SMSMessage[]
+  }>
+> {
+  return apiRequest(`/admin/sms/wallets/${ownerId}/`)
+}
+
+export async function adjustAdminSMSCredits(
+  ownerId: string,
+  credits: number,
+  note?: string,
+): Promise<
+  ApiResult<{
+    wallet: AdminOwnerSMSWallet
+    ledger: import('@/types/sms').SMSCreditLedgerEntry[]
+  }>
+> {
+  return apiRequest(`/admin/sms/wallets/${ownerId}/adjust/`, {
+    method: 'POST',
+    body: { credits, note },
+  })
+}
+
+export async function fetchAdminSMSMessages(
+  params: PageQuery,
+): Promise<ApiResult<PaginatedData<import('@/types/sms').SMSMessage>>> {
+  return pagedGet('/admin/sms/messages/', params)
+}
+
 /** Client-side filters for pages that still filter locally after fetch */
 export function getVerificationRequestsByStatus(
   status: VerificationStatus,

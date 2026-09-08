@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { WhatsAppButton } from '@/components/contact/WhatsAppButton'
 import { Layout } from '@/components/layout/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -119,12 +120,12 @@ export default function BookingManagementPage() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex items-center gap-4">
+        <div className="mb-6 flex flex-wrap items-center gap-4">
           <Select
             value={statusFilter}
             onValueChange={value => setStatusFilter(value as any)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-auto min-w-[7.5rem] flex-1 sm:w-[180px] sm:flex-none">
               <SelectValue placeholder={tc('filterByStatus')} />
             </SelectTrigger>
             <SelectContent>
@@ -187,6 +188,12 @@ export default function BookingManagementPage() {
                             <p className="text-xs text-muted-foreground">
                               {booking.guestPhone}
                             </p>
+                            <WhatsAppButton
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-1.5 text-xs"
+                              number={booking.guestWhatsapp}
+                            />
                           </div>
                         </TableCell>
                         <TableCell>

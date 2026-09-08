@@ -22,6 +22,7 @@ import {
   Calendar,
   ShieldAlert,
   LogOut,
+  Smartphone,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard'
@@ -66,6 +67,12 @@ const adminMenuItems: {
     href: '/admin/bookings',
     icon: Calendar,
     permission: 'bookings.view',
+  },
+  {
+    title: 'SMS',
+    href: '/admin/sms',
+    icon: Smartphone,
+    permission: 'sms.view',
   },
   {
     title: 'Complaints',

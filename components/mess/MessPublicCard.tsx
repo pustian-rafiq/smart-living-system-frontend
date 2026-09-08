@@ -1,13 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
+import { WhatsAppButton } from '@/components/contact/WhatsAppButton'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MapPin, Phone, Users } from 'lucide-react'
 import { formatCurrency } from '@/lib/format/locale'
+import { messPath } from '@/lib/seo/slug'
 import { FreshnessBadge } from '@/components/discover/FreshnessBadge'
 import type { Mess } from '@/types/mess'
 
@@ -17,12 +20,13 @@ interface MessPublicCardProps {
 
 export function MessPublicCard({ mess }: MessPublicCardProps) {
   const [imageError, setImageError] = useState(false)
+  const tContact = useTranslations('contact')
   const hasSeats = mess.availableSeats > 0
 
   return (
     <Card className="group overflow-hidden border-border/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative h-48 w-full overflow-hidden bg-muted sm:h-56">
-        <Link href={`/messes/${mess.id}`} className="absolute inset-0 z-0">
+        <Link href={messPath(mess)} className="absolute inset-0 z-0">
           <span className="sr-only">View {mess.name}</span>
         </Link>
         {!imageError && mess.images[0] ? (
@@ -67,7 +71,7 @@ export function MessPublicCard({ mess }: MessPublicCardProps) {
 
       <CardContent className="p-4 sm:p-5">
         <Link
-          href={`/messes/${mess.id}`}
+          href={messPath(mess)}
           className="text-lg font-semibold leading-tight hover:text-primary sm:text-xl"
         >
           <span className="line-clamp-2">{mess.name}</span>
@@ -112,7 +116,7 @@ export function MessPublicCard({ mess }: MessPublicCardProps) {
 
         <div className="mt-4 flex gap-2">
           <Button variant="outline" className="flex-1" asChild>
-            <Link href={`/messes/${mess.id}`}>View details</Link>
+            <Link href={messPath(mess)}>View details</Link>
           </Button>
           <Button className="flex-1" asChild>
             <a href={`tel:${mess.ownerPhone}`}>
@@ -120,6 +124,13 @@ export function MessPublicCard({ mess }: MessPublicCardProps) {
               Call
             </a>
           </Button>
+          <WhatsAppButton
+            size="icon"
+            number={mess.ownerWhatsapp}
+            message={tContact('messageOwner')}
+            label=""
+            aria-label={tContact('whatsapp')}
+          />
         </div>
       </CardContent>
     </Card>

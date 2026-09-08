@@ -1,5 +1,5 @@
-import { mockHotels } from '@/data/mockHotels'
-import { mockProperties } from '@/data/mockProperties'
+import { fetchSitemapEntities, type SitemapEntity } from './fetch-entity'
+import { hotelPath, listingPath, messPath } from './slug'
 import { absoluteUrl } from './site'
 
 /** Paths that should be indexed and appear in the sitemap. */
@@ -74,36 +74,49 @@ export function shouldNoIndex(pathname: string): boolean {
   return isPrivatePath(pathname) || isPublicNoIndexPath(pathname)
 }
 
-/** All sitemap entries with optional change frequency hints. */
-export function getSitemapEntries(): Array<{
+type SitemapEntry = {
   url: string
   lastModified?: Date
   changeFrequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly'
   priority?: number
-}> {
+}
+
+function lastModified(entity: SitemapEntity, fallback: Date): Date {
+  if (!entity.updatedAt) return fallback
+  const parsed = new Date(entity.updatedAt)
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed
+}
+
+function entityEntries(
+  entities: SitemapEntity[],
+  toPath: (entity: SitemapEntity) => string,
+  priority: number,
+  fallback: Date
+): SitemapEntry[] {
+  return entities.map(entity => ({
+    url: absoluteUrl(toPath(entity)),
+    lastModified: lastModified(entity, fallback),
+    changeFrequency: 'weekly' as const,
+    priority,
+  }))
+}
+
+/** Static pages plus every public listing, hotel and mess from the API. */
+export async function getSitemapEntries(): Promise<SitemapEntry[]> {
   const now = new Date()
-  const staticEntries = publicIndexablePaths.map(path => ({
+  const staticEntries: SitemapEntry[] = publicIndexablePaths.map(path => ({
     url: absoluteUrl(path),
     lastModified: now,
     changeFrequency: path === '/' ? ('daily' as const) : ('weekly' as const),
     priority: path === '/' ? 1 : path === '/search' ? 0.9 : 0.7,
   }))
 
-  const listingEntries = mockProperties
-    .filter(p => p.available)
-    .map(p => ({
-      url: absoluteUrl(`/listings/${p.id}`),
-      lastModified: now,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }))
+  const { listings, hotels, messes } = await fetchSitemapEntities()
 
-  const hotelEntries = mockHotels.map(h => ({
-    url: absoluteUrl(`/hotels/${h.id}`),
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.75,
-  }))
-
-  return [...staticEntries, ...listingEntries, ...hotelEntries]
+  return [
+    ...staticEntries,
+    ...entityEntries(listings, listingPath, 0.8, now),
+    ...entityEntries(hotels, hotelPath, 0.75, now),
+    ...entityEntries(messes, messPath, 0.75, now),
+  ]
 }

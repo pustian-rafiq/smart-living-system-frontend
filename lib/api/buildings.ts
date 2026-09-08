@@ -81,6 +81,7 @@ export async function assignRenter(
   data: {
     name: string
     phone: string
+    whatsapp?: string
     email?: string
     nid?: string
     address?: string

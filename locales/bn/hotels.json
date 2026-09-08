@@ -78,7 +78,7 @@
       "licenseNumber": "ট্রেড / হোটেল লাইসেন্স নম্বর",
       "licenseNumberDesc": "বাংলাদেশে যাচাইকরণের জন্য প্রয়োজন",
       "licenseDocumentName": "লাইসেন্স ডকুমেন্টের নাম",
-      "licenseDocumentDesc": "ডেমো: ফাইলনাম লিখুন; বাস্তব আপলোড ব্যাকএন্ডে আসবে",
+      "licenseDocumentDesc": "ঐচ্ছিক। নিচে ফাইল আপলোড করলে এটি স্বয়ংক্রিয়ভাবে পূরণ হবে",
       "coverImageUrl": "কভার ছবির URL",
       "weekendMultiplier": "সাপ্তাহিক ছুটির মূল্য গুণক",
       "weekendMultiplierDesc": "যেমন 1.15 = শুক্র–শনি রাতে +১৫%",

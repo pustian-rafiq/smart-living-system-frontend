@@ -78,7 +78,7 @@
       "licenseNumber": "Trade / hotel license number",
       "licenseNumberDesc": "Required for verification in Bangladesh",
       "licenseDocumentName": "License document name",
-      "licenseDocumentDesc": "Demo: enter filename; real upload comes with backend",
+      "licenseDocumentDesc": "Optional. Upload the file below and this fills in automatically",
       "coverImageUrl": "Cover image URL",
       "weekendMultiplier": "Weekend price multiplier",
       "weekendMultiplierDesc": "e.g. 1.15 = +15% Fri–Sat nights",

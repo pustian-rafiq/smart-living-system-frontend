@@ -110,6 +110,64 @@ export interface HisabMonth {
   paymentTodo?: boolean
 }
 
+/** One calendar day on a member's monthly meal sheet. */
+export interface MemberMealDay {
+  date: string
+  day: number
+  weekday: string
+  breakfast: number
+  lunch: number
+  dinner: number
+  guestBreakfast: number
+  guestLunch: number
+  guestDinner: number
+  memberTotal: number
+  guestTotal: number
+  notes: string
+  /** False when the owner never marked this day. */
+  logged: boolean
+}
+
+export interface MemberMealSheet {
+  messId: string
+  messName: string
+  year: number
+  month: number
+  monthStart: string
+  monthEnd: string
+  status: 'open' | 'closed'
+  member: {
+    studentId: string
+    name: string
+    phone: string
+    seatNumber: string
+    occupantType: OccupantType
+    isActive: boolean
+  }
+  days: MemberMealDay[]
+  totals: {
+    breakfast: number
+    lunch: number
+    dinner: number
+    memberMeals: number
+    guestMeals: number
+    daysWithMeals: number
+    daysInMonth: number
+  }
+  costs: {
+    mealRate: number
+    mealCost: number
+    guestMealPrice?: number | null
+    guestCost: number
+    fixedShare: number
+    deposits: number
+    total: number
+    due: number
+    credit: number
+  }
+  generatedAt: string
+}
+
 export interface MealOffRequest {
   id: string
   messId: string
@@ -136,18 +194,87 @@ export interface MemberDeposit {
   createdAt?: string | null
 }
 
-export interface Student {
+/** A mess seat can be taken by anyone, not only university students. */
+export type OccupantType =
+  | 'student'
+  | 'job_holder'
+  | 'business'
+  | 'family'
+  | 'other'
+
+export interface MessMember {
   id: string
   messId: string
+  messName?: string
   userId?: string
   name: string
   phone: string
+  /** Renter's WhatsApp number so owners can message instead of calling. */
+  whatsappNumber?: string
   email?: string
+  occupantType: OccupantType
+  photoUrl?: string
+  /** Institution id — only meaningful when occupantType is 'student'. */
   studentId?: string
   university?: string
+  /** Employer or business name for non-student members. */
+  organization?: string
+  designation?: string
+  emergencyContactName?: string
+  emergencyContactPhone?: string
+  nidNumber?: string
+  permanentAddress?: string
+  notes?: string
   seatNumber?: string
+  roomNumber?: string
   joinedDate: string
+  leftDate?: string | null
   monthlyFee: number
+  isActive?: boolean
+}
+
+/** Legacy alias — members were student-only before occupant types existed. */
+export type Student = MessMember
+
+export interface MessMemberDetail {
+  member: MessMember
+  attendance: {
+    totalDays: number
+    presentDays: number
+    absentDays: number
+    lateDays: number
+    excusedDays: number
+    mealAttended: number
+    mealAbsent: number
+    attendanceRate: number
+    mealAttendanceRate: number
+    period: { startDate: string; endDate: string }
+  }
+  hisab: {
+    year: number
+    month: number
+    mealRate: number
+    row: {
+      mealCount: number
+      mealCost: number
+      guestMeals: number
+      guestCost: number
+      fixedShare: number
+      deposits: number
+      total: number
+      due: number
+      credit: number
+    } | null
+  }
+  deposits: MemberDeposit[]
+  violations: Array<{
+    id: string
+    ruleTitle: string
+    violationDate: string
+    description: string
+    severity: string
+    status: string
+  }>
 }
 
 export interface Notice {
@@ -193,6 +320,8 @@ export interface Mess {
   description?: string
   ownerName: string
   ownerPhone: string
+  /** Owner's WhatsApp number; empty when the owner has not added one. */
+  ownerWhatsapp?: string
   createdAt: string
   featured?: boolean
   lastConfirmedAt?: string | null

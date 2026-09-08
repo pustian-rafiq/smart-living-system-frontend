@@ -8,6 +8,8 @@ export type AuthUser = {
   id: string
   phone: string
   phoneDigits: string
+  /** WhatsApp number shown on public listings; '' when not added. */
+  whatsappNumber: string
   email: string
   name: string
   role: UserRole
@@ -18,6 +20,9 @@ export type AuthUser = {
   locale: string
   heartbeatSmsOptIn?: boolean
   pushOptIn?: boolean
+  ownerPrimaryFocus?: import('@/lib/owner-focus').OwnerVertical | ''
+  ownerEnabledVerticals?: import('@/lib/owner-focus').OwnerVertical[]
+  ownerFocusSelected?: boolean
   adminRole: AdminRole | null
   createdAt: string
   updatedAt: string
@@ -178,24 +183,70 @@ export async function updateCurrentUser(input: {
   name?: string
   email?: string
   locale?: string
+  whatsappNumber?: string
   profilePhoto?: File
   heartbeatSmsOptIn?: boolean
   pushOptIn?: boolean
+  ownerPrimaryFocus?: import('@/lib/owner-focus').OwnerVertical | ''
+  ownerEnabledVerticals?: import('@/lib/owner-focus').OwnerVertical[]
+  ownerFocusSelected?: boolean
 }): Promise<ApiResult<AuthUser>> {
-  const form = new FormData()
-  if (input.name !== undefined) form.append('name', input.name)
-  if (input.email !== undefined) form.append('email', input.email)
-  if (input.locale !== undefined) form.append('locale', input.locale)
+  if (input.profilePhoto) {
+    const form = new FormData()
+    if (input.name !== undefined) form.append('name', input.name)
+    if (input.email !== undefined) form.append('email', input.email)
+    if (input.locale !== undefined) form.append('locale', input.locale)
+    if (input.whatsappNumber !== undefined) {
+      form.append('whatsappNumber', input.whatsappNumber)
+    }
+    if (input.heartbeatSmsOptIn !== undefined) {
+      form.append('heartbeatSmsOptIn', String(input.heartbeatSmsOptIn))
+    }
+    if (input.pushOptIn !== undefined) {
+      form.append('pushOptIn', String(input.pushOptIn))
+    }
+    if (input.ownerPrimaryFocus !== undefined) {
+      form.append('ownerPrimaryFocus', input.ownerPrimaryFocus)
+    }
+    if (input.ownerEnabledVerticals !== undefined) {
+      form.append(
+        'ownerEnabledVerticals',
+        JSON.stringify(input.ownerEnabledVerticals),
+      )
+    }
+    if (input.ownerFocusSelected !== undefined) {
+      form.append('ownerFocusSelected', String(input.ownerFocusSelected))
+    }
+    form.append('profilePhoto', input.profilePhoto)
+    return apiRequest<AuthUser>('/accounts/me/', {
+      method: 'PATCH',
+      formData: form,
+    })
+  }
+
+  const body: Record<string, unknown> = {}
+  if (input.name !== undefined) body.name = input.name
+  if (input.email !== undefined) body.email = input.email
+  if (input.locale !== undefined) body.locale = input.locale
+  if (input.whatsappNumber !== undefined) {
+    body.whatsappNumber = input.whatsappNumber
+  }
   if (input.heartbeatSmsOptIn !== undefined) {
-    form.append('heartbeatSmsOptIn', String(input.heartbeatSmsOptIn))
+    body.heartbeatSmsOptIn = input.heartbeatSmsOptIn
   }
-  if (input.pushOptIn !== undefined) {
-    form.append('pushOptIn', String(input.pushOptIn))
+  if (input.pushOptIn !== undefined) body.pushOptIn = input.pushOptIn
+  if (input.ownerPrimaryFocus !== undefined) {
+    body.ownerPrimaryFocus = input.ownerPrimaryFocus
   }
-  if (input.profilePhoto) form.append('profilePhoto', input.profilePhoto)
+  if (input.ownerEnabledVerticals !== undefined) {
+    body.ownerEnabledVerticals = input.ownerEnabledVerticals
+  }
+  if (input.ownerFocusSelected !== undefined) {
+    body.ownerFocusSelected = input.ownerFocusSelected
+  }
   return apiRequest<AuthUser>('/accounts/me/', {
     method: 'PATCH',
-    formData: form,
+    body,
   })
 }
 

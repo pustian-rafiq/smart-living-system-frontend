@@ -50,7 +50,7 @@ export function SMSHistoryCard({ message, onView }: SMSHistoryCardProps) {
                 {message.content.substring(0, 50)}...
               </span>
             </CardTitle>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <Badge
                 variant="outline"
                 className={`text-xs ${statusColors[message.status]}`}
@@ -62,6 +62,11 @@ export function SMSHistoryCard({ message, onView }: SMSHistoryCardProps) {
               <Badge variant="outline" className="text-xs">
                 {message.recipientType}
               </Badge>
+              {message.messName && (
+                <Badge variant="outline" className="text-xs">
+                  {message.messName}
+                </Badge>
+              )}
               {message.gateway && (
                 <Badge variant="outline" className="text-xs">
                   {message.gateway}

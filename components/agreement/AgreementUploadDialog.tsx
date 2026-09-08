@@ -23,6 +23,7 @@ import {
   FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -300,9 +301,9 @@ export function AgreementUploadDialog({
                   />
                 )}
 
-                {/* File Upload */}
-                <FormItem>
-                  <FormLabel>Agreement Document (PDF)</FormLabel>
+                {/* File Upload — plain markup: not backed by a form field */}
+                <div className="space-y-2">
+                  <Label>Agreement Document (PDF)</Label>
                   <div className="space-y-2">
                     <Input
                       type="file"
@@ -338,10 +339,10 @@ export function AgreementUploadDialog({
                       </div>
                     )}
                   </div>
-                  <FormDescription>
+                  <p className="text-sm text-muted-foreground">
                     Upload a PDF file of your rental agreement
-                  </FormDescription>
-                </FormItem>
+                  </p>
+                </div>
 
                 <PRCATemplateSelector
                   selected={selectedTemplate}
@@ -526,7 +527,7 @@ export function AgreementUploadDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Renewal Reminder Days</FormLabel>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                         {reminderDays.map(day => (
                           <div
                             key={day}

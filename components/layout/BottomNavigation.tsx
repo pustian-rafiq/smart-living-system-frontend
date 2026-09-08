@@ -10,6 +10,7 @@ import {
 } from '@/lib/navigation'
 import { useMobileNav } from '@/components/layout/MobileNavContext'
 import type { UserRole } from '@/types'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
 
 interface BottomNavigationProps {
   userRole: UserRole
@@ -26,7 +27,11 @@ export function BottomNavigation({ userRole }: BottomNavigationProps) {
   const pathname = usePathname()
   const { isOpen, openMenu } = useMobileNav()
   const { label } = useNavLabels()
-  const items = getBottomNavForRole(userRole)
+  const { navOptions } = useOwnerFocus()
+  const items = getBottomNavForRole(
+    userRole,
+    userRole === 'owner' ? navOptions : undefined,
+  )
 
   return (
     <nav

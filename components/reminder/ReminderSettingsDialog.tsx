@@ -141,7 +141,7 @@ export function ReminderSettingsDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Days Before</FormLabel>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                               {reminderDays.map(day => (
                                 <div
                                   key={day}
@@ -279,7 +279,7 @@ export function ReminderSettingsDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Days Before</FormLabel>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                               {reminderDays.map(day => (
                                 <div
                                   key={day}

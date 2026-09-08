@@ -30,6 +30,7 @@ import {
 } from '@/lib/api/hotels'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { calculateBookingFees } from '@/lib/hotel/pricing'
+import { extractEntityId, hotelPath } from '@/lib/seo/slug'
 import { getCurrentAccountUserId } from '@/lib/api/account'
 import { useAppFormat } from '@/hooks/useAppFormat'
 import type { Booking, Room } from '@/types/hotel'
@@ -42,7 +43,7 @@ export default function HotelBookingPage() {
   const { formatDate } = useAppFormat()
   const params = useParams()
   const router = useRouter()
-  const hotelId = params.hotelId as string
+  const hotelId = extractEntityId(params.hotelId)
 
   const loadHotel = useCallback(() => fetchHotelById(hotelId), [hotelId])
   const { data: hotel } = useMockQuery(loadHotel)
@@ -191,7 +192,7 @@ export default function HotelBookingPage() {
               </Button>
             </div>
             <Button variant="outline" asChild>
-              <Link href={`/hotels/${hotel.id}`}>{t('book.backToHotel')}</Link>
+              <Link href={hotelPath(hotel)}>{t('book.backToHotel')}</Link>
             </Button>
           </div>
         </PageContainer>

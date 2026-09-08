@@ -167,7 +167,7 @@ export function VideoPlayer({
 
       {/* Fullscreen Video Dialog */}
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black border-none">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 sm:p-0 bg-black border-none">
           <div className="relative h-[95vh] w-full">
             <Button
               variant="ghost"

@@ -50,11 +50,11 @@ export function RuleCard({
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-base md:text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
+            <CardTitle className="text-base md:text-lg flex items-start gap-2 break-words">
+              <FileText className="h-5 w-5 shrink-0 text-primary" />
               {rule.title}
             </CardTitle>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <Badge variant="outline" className="text-xs">
                 {categoryLabels[rule.category]}
               </Badge>
@@ -93,9 +93,9 @@ export function RuleCard({
         {/* Penalty */}
         {rule.penalty && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+              <p className="min-w-0 break-words text-sm font-medium text-red-800 dark:text-red-200">
                 Penalty: {rule.penalty}
               </p>
             </div>
@@ -112,12 +112,12 @@ export function RuleCard({
 
         {/* Actions */}
         {showActions && (
-          <div className="flex gap-2 pt-2 border-t">
+          <div className="flex flex-wrap gap-2 pt-2 border-t">
             {!isAccepted && rule.requiresAcceptance && onAccept && (
               <Button
                 variant="default"
                 size="sm"
-                className="flex-1"
+                className="min-w-[8rem] flex-1"
                 onClick={() => onAccept(rule)}
               >
                 <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -128,7 +128,7 @@ export function RuleCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1"
+                className="min-w-[8rem] flex-1"
                 onClick={() => onView(rule)}
               >
                 View Details
