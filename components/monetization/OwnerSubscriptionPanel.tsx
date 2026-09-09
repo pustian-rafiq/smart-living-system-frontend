@@ -9,9 +9,10 @@ import { PlanCard } from './PlanCard'
 import { SubscriptionUsageMeter } from './SubscriptionUsageMeter'
 import { FreeTierLimitBanner } from './FreeTierLimitBanner'
 import { useMockQuery } from '@/hooks/useMockQuery'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
 import {
   fetchOwnerSubscription,
-  fetchFlatLimitStatus,
+  fetchOwnerUsageStatus,
   fetchSubscriptionPlans,
   upgradeOwnerPlan,
 } from '@/lib/api/subscriptions'
@@ -23,15 +24,21 @@ export function OwnerSubscriptionPanel() {
   const [tick, setTick] = useState(0)
   const [upgrading, setUpgrading] = useState<PlanTier | null>(null)
   const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null)
+  const { enabledVerticals, hasVertical } = useOwnerFocus()
 
   const loadSub = useCallback(() => fetchOwnerSubscription(), [tick])
-  const loadLimit = useCallback(() => fetchFlatLimitStatus(), [tick])
+  const loadUsage = useCallback(() => fetchOwnerUsageStatus(), [tick])
   const loadPlans = useCallback(() => fetchSubscriptionPlans(), [tick])
 
   const { data: subscription } = useMockQuery(loadSub)
-  const { data: limitStatus } = useMockQuery(loadLimit)
+  const { data: usage } = useMockQuery(loadUsage)
   const { data: plansData } = useMockQuery(loadPlans)
   const plans: SubscriptionPlan[] = plansData ?? []
+
+  const meterVerticals =
+    enabledVerticals.length > 0
+      ? enabledVerticals
+      : (['mess', 'apartment', 'hotel'] as const)
 
   const handleUpgrade = async (tier: PlanTier) => {
     if (tier === 'free' || tier === subscription?.planTier) return
@@ -49,11 +56,14 @@ export function OwnerSubscriptionPanel() {
 
   return (
     <div className="space-y-6">
-      {limitStatus && (
-        <FreeTierLimitBanner status={limitStatus} />
+      {usage && (
+        <FreeTierLimitBanner
+          usage={usage}
+          verticals={[...meterVerticals]}
+        />
       )}
 
-      {subscription && limitStatus && (
+      {subscription && usage && (
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -67,7 +77,10 @@ export function OwnerSubscriptionPanel() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <SubscriptionUsageMeter status={limitStatus} />
+            <SubscriptionUsageMeter
+              usage={usage}
+              verticals={[...meterVerticals]}
+            />
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
@@ -81,9 +94,11 @@ export function OwnerSubscriptionPanel() {
                 {subscription.activeFeaturedListings !== 1 ? 's' : ''}
               </span>
             </div>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/my-listings">Boost a listing</Link>
-            </Button>
+            {hasVertical('apartment') && (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/my-listings">Boost a listing</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -110,12 +125,18 @@ export function OwnerSubscriptionPanel() {
         <CardContent className="p-4 text-sm text-muted-foreground">
           <p className="font-medium text-foreground">How billing works</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
-            <li>Free: up to 3 flats — try the platform</li>
             <li>
-              Basic and Premium apply immediately to your owner account (sandbox
-              billing until live bKash credentials are set)
+              Free: 1 mess · 3 flats · 1 hotel — try the businesses you run
             </li>
-            <li>Featured boosts are one-time add-ons per listing</li>
+            <li>
+              Limits apply per module; your dashboard only shows businesses you
+              enabled under business focus
+            </li>
+            <li>
+              Basic and Premium apply immediately (sandbox billing until live
+              bKash credentials are set)
+            </li>
+            <li>Featured boosts are one-time add-ons per listing / mess / hotel</li>
             <li>Platform commission on bookings is separate — see Payments</li>
           </ul>
         </CardContent>

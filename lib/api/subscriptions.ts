@@ -4,6 +4,7 @@ import type {
   FeaturedBoostOption,
   FlatLimitStatus,
   OwnerSubscription,
+  OwnerUsageStatus,
   PlanTier,
   SubscriptionPlan,
 } from '@/types/subscription'
@@ -33,6 +34,13 @@ export async function fetchFlatLimitStatus(
   _ownerId?: string,
 ): Promise<ApiResult<FlatLimitStatus>> {
   return apiRequest<FlatLimitStatus>('/subscriptions/flat-limit/')
+}
+
+/** Per-module usage (mess / flats / hotels) for the logged-in owner. */
+export async function fetchOwnerUsageStatus(
+  _ownerId?: string,
+): Promise<ApiResult<OwnerUsageStatus>> {
+  return apiRequest<OwnerUsageStatus>('/subscriptions/usage/')
 }
 
 export async function upgradeOwnerPlan(

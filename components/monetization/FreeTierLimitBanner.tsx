@@ -4,24 +4,63 @@ import Link from 'next/link'
 import { AlertTriangle, ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SubscriptionUsageMeter } from './SubscriptionUsageMeter'
-import type { FlatLimitStatus } from '@/types/subscription'
+import type { OwnerUsageStatus } from '@/types/subscription'
+import type { OwnerVertical } from '@/lib/owner-focus'
+import { OWNER_VERTICAL_META } from '@/lib/owner-focus'
 import { cn } from '@/lib/utils'
 
 interface FreeTierLimitBannerProps {
-  status: FlatLimitStatus
+  usage: OwnerUsageStatus
+  verticals?: OwnerVertical[]
   className?: string
   compact?: boolean
 }
 
+function findAlertModule(
+  usage: OwnerUsageStatus,
+  verticals: OwnerVertical[]
+): { key: OwnerVertical; label: string } | null {
+  const modules = {
+    mess: usage.mess,
+    apartment: usage.apartment,
+    hotel: usage.hotel,
+  }
+  const ordered =
+    verticals.length > 0
+      ? verticals
+      : (['mess', 'apartment', 'hotel'] as OwnerVertical[])
+
+  const atLimit = ordered.find(k => modules[k].atLimit)
+  if (atLimit) {
+    return { key: atLimit, label: OWNER_VERTICAL_META[atLimit].label }
+  }
+  const near = ordered.find(k => modules[k].nearLimit)
+  if (near) {
+    return { key: near, label: OWNER_VERTICAL_META[near].label }
+  }
+  return null
+}
+
 export function FreeTierLimitBanner({
-  status,
+  usage,
+  verticals,
   className,
   compact,
 }: FreeTierLimitBannerProps) {
-  if (status.max < 0) return null
-  if (!status.nearLimit && !status.atLimit) return null
+  const keys =
+    verticals && verticals.length > 0
+      ? verticals
+      : (usage.enabledVerticals as OwnerVertical[])
 
-  const isCritical = status.atLimit
+  const alert = findAlertModule(usage, keys)
+  if (!alert) return null
+
+  const module = {
+    mess: usage.mess,
+    apartment: usage.apartment,
+    hotel: usage.hotel,
+  }[alert.key]
+  const isCritical = module.atLimit
 
   if (compact) {
     return (
@@ -43,10 +82,15 @@ export function FreeTierLimitBanner({
           />
           <div>
             <p className="font-medium">
-              {isCritical ? 'Flat limit reached' : 'Approaching flat limit'}
+              {isCritical
+                ? `${alert.label} limit reached`
+                : `Approaching ${alert.label.toLowerCase()} limit`}
             </p>
             <p className="text-sm text-muted-foreground">
-              {status.planName} plan: {status.used} / {status.max} flats
+              {usage.planName} plan:{' '}
+              {module.max < 0
+                ? `${module.used} (unlimited)`
+                : `${module.used} / ${module.max}`}
             </p>
           </div>
         </div>
@@ -80,17 +124,17 @@ export function FreeTierLimitBanner({
         <div>
           <p className="font-semibold">
             {isCritical
-              ? `You’ve reached the ${status.max}-flat limit on ${status.planName}`
-              : `You’re using ${status.used} of ${status.max} flats on ${status.planName}`}
+              ? `You’ve reached the ${alert.label.toLowerCase()} limit on ${usage.planName}`
+              : `You’re using ${module.used} of ${module.max} on ${alert.label} (${usage.planName})`}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {isCritical
-              ? 'Upgrade to Basic or Premium to add more flats. Existing units stay active.'
-              : 'Upgrade now to avoid interruptions when adding new units.'}
+              ? 'Upgrade to Basic or Premium to add more. Existing units stay active.'
+              : 'Upgrade now to avoid interruptions when adding more.'}
           </p>
         </div>
       </div>
-      <SubscriptionUsageMeter status={status} />
+      <SubscriptionUsageMeter usage={usage} verticals={keys} />
       <Button asChild size="sm">
         <Link href="/subscription">
           View plans & upgrade

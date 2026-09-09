@@ -15,6 +15,8 @@ export function getSubscriptionPlans(): SubscriptionPlan[] {
       name: PLAN_LABELS.free,
       price: 0,
       maxFlats: subscriptionPlans.free.maxFlats,
+      maxMesses: 1,
+      maxHotels: 1,
       features: subscriptionPlans.free.features,
     },
     {
@@ -22,6 +24,8 @@ export function getSubscriptionPlans(): SubscriptionPlan[] {
       name: PLAN_LABELS.basic,
       price: subscriptionPlans.basic.price,
       maxFlats: subscriptionPlans.basic.maxFlats,
+      maxMesses: 3,
+      maxHotels: 3,
       features: subscriptionPlans.basic.features,
       highlighted: true,
     },
@@ -30,6 +34,8 @@ export function getSubscriptionPlans(): SubscriptionPlan[] {
       name: PLAN_LABELS.premium,
       price: subscriptionPlans.premium.price,
       maxFlats: subscriptionPlans.premium.maxFlats,
+      maxMesses: -1,
+      maxHotels: -1,
       features: subscriptionPlans.premium.features,
     },
   ]
@@ -43,4 +49,18 @@ export function getPlanByTier(tier: PlanTier): SubscriptionPlan {
 
 export function formatPlanLimit(maxFlats: number): string {
   return maxFlats < 0 ? 'Unlimited flats' : `Up to ${maxFlats} flats`
+}
+
+export function formatModuleLimit(max: number, unit: string): string {
+  if (max < 0) return `Unlimited ${unit}`
+  return `Up to ${max} ${unit}`
+}
+
+export function formatPlanModulesSummary(plan: SubscriptionPlan): string {
+  const parts = [
+    formatModuleLimit(plan.maxMesses ?? 1, 'messes'),
+    formatModuleLimit(plan.maxFlats, 'flats'),
+    formatModuleLimit(plan.maxHotels ?? 1, 'hotels'),
+  ]
+  return parts.join(' · ')
 }

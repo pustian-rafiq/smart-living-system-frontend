@@ -1,11 +1,17 @@
 import type {
+  CollectionReport,
+  OwnerCollectionSettings,
+  OwnerGatewayCredential,
+  OwnerPaymentAnalytics,
+  OwnerPayout,
   PayBillInput,
+  PaymentClaim,
+  PaymentInstructions,
+  PaymentMethod,
+  PaymentSchedule,
   PaymentTransaction,
   RecordCashPaymentInput,
   ScheduledPayment,
-  PaymentSchedule,
-  OwnerPayout,
-  OwnerPaymentAnalytics,
 } from '@/types/payment'
 import { apiRequest } from './client'
 import type { ApiResult } from './http'
@@ -74,9 +80,9 @@ export async function payBill(
 export async function recordCashPaymentApi(
   input: RecordCashPaymentInput,
 ): Promise<
-  ApiResult<{ transaction: PaymentTransaction; payout: OwnerPayout }>
+  ApiResult<{ transaction: PaymentTransaction; payout: OwnerPayout | null }>
 > {
-  return apiRequest<{ transaction: PaymentTransaction; payout: OwnerPayout }>(
+  return apiRequest<{ transaction: PaymentTransaction; payout: OwnerPayout | null }>(
     '/payments/record-cash/',
     {
       method: 'POST',
@@ -90,6 +96,8 @@ export async function recordCashPaymentApi(
         receivedBy: input.receivedBy || '',
         receiptNote: input.receiptNote || '',
         receiptFileName: input.receiptFileName || '',
+        paymentMethod: input.paymentMethod || 'Cash',
+        transactionId: input.transactionId || '',
       },
     },
   )
@@ -221,5 +229,109 @@ export async function settlePayout(
   return apiRequest<OwnerPayout>(
     `/payments/owner/payouts/${payoutId}/settle/`,
     { method: 'POST' },
+  )
+}
+
+export async function fetchOwnerLedger(): Promise<ApiResult<PaymentTransaction[]>> {
+  if (!hasAuthTokens()) return { ok: true, data: [] }
+  return apiRequest<PaymentTransaction[]>('/payments/owner/ledger/')
+}
+
+export async function fetchCollectionSettings(): Promise<
+  ApiResult<OwnerCollectionSettings>
+> {
+  return apiRequest<OwnerCollectionSettings>(
+    '/payments/owner/collection-settings/',
+  )
+}
+
+export async function updateCollectionSettings(
+  body: Partial<OwnerCollectionSettings> & Record<string, unknown>,
+): Promise<ApiResult<OwnerCollectionSettings>> {
+  return apiRequest<OwnerCollectionSettings>(
+    '/payments/owner/collection-settings/',
+    { method: 'PATCH', body },
+  )
+}
+
+export async function fetchGatewayCredentials(): Promise<
+  ApiResult<OwnerGatewayCredential[]>
+> {
+  return apiRequest<OwnerGatewayCredential[]>(
+    '/payments/owner/gateway-credentials/',
+  )
+}
+
+export async function upsertGatewayCredential(body: {
+  gateway: 'bkash' | 'nagad' | 'rocket'
+  displayName?: string
+  merchantNumber?: string
+  credentials?: Record<string, string>
+  isActive?: boolean
+  isSandbox?: boolean
+}): Promise<ApiResult<OwnerGatewayCredential>> {
+  return apiRequest<OwnerGatewayCredential>(
+    '/payments/owner/gateway-credentials/',
+    { method: 'POST', body },
+  )
+}
+
+export async function fetchPaymentInstructions(params: {
+  billId?: string
+  messId?: string
+}): Promise<ApiResult<PaymentInstructions>> {
+  const q = new URLSearchParams()
+  if (params.billId) q.set('billId', params.billId)
+  if (params.messId) q.set('messId', params.messId)
+  return apiRequest<PaymentInstructions>(`/payments/instructions/?${q}`)
+}
+
+export async function fetchPaymentClaims(opts?: {
+  ownerView?: boolean
+  status?: string
+}): Promise<ApiResult<PaymentClaim[]>> {
+  const q = new URLSearchParams()
+  if (opts?.ownerView) q.set('ownerView', '1')
+  if (opts?.status) q.set('status', opts.status)
+  const suffix = q.toString() ? `?${q}` : ''
+  return apiRequest<PaymentClaim[]>(`/payments/claims/${suffix}`)
+}
+
+export async function createPaymentClaim(body: {
+  billId?: string
+  messId?: string
+  studentId?: string
+  amount: number
+  paymentMethod: PaymentMethod
+  transactionId?: string
+  note?: string
+  date?: string
+}): Promise<ApiResult<PaymentClaim>> {
+  return apiRequest<PaymentClaim>('/payments/claims/', {
+    method: 'POST',
+    body,
+  })
+}
+
+export async function reviewPaymentClaim(
+  claimId: string,
+  body: { approve: boolean; reason?: string },
+): Promise<ApiResult<PaymentClaim>> {
+  return apiRequest<PaymentClaim>(`/payments/claims/${claimId}/review/`, {
+    method: 'POST',
+    body,
+  })
+}
+
+export async function fetchCollectionReport(params?: {
+  year?: number
+  month?: number
+}): Promise<ApiResult<CollectionReport>> {
+  const q = new URLSearchParams()
+  if (params?.year) q.set('year', String(params.year))
+  if (params?.month) q.set('month', String(params.month))
+  const suffix = q.toString() ? `?${q}` : ''
+  return apiRequest<CollectionReport>(
+    `/payments/owner/collection-report/${suffix}`,
   )
 }

@@ -55,6 +55,8 @@ export default function MessHisabPage() {
   const [mealsPerDay, setMealsPerDay] = useState('3')
   const [depositStudentId, setDepositStudentId] = useState('')
   const [depositAmount, setDepositAmount] = useState('')
+  const [depositMethod, setDepositMethod] = useState('Cash')
+  const [depositTrx, setDepositTrx] = useState('')
   const [waterAvail, setWaterAvail] = useState('24_7')
   const [powerAvail, setPowerAvail] = useState('24_7')
   const [hasIps, setHasIps] = useState(false)
@@ -218,12 +220,15 @@ export default function MessHisabPage() {
       studentId: depositStudentId,
       amount: Number(depositAmount),
       date: today,
+      paymentMethod: depositMethod,
+      transactionId: depositTrx,
     })
     if (!result.ok) {
       toast.error(result.error)
       return
     }
     setDepositAmount('')
+    setDepositTrx('')
     toast.success(t('depositAdded'))
     refetchDep()
     refetchMonth()
@@ -571,6 +576,23 @@ export default function MessHisabPage() {
                       value={depositAmount}
                       onChange={e => setDepositAmount(e.target.value)}
                     />
+                    <select
+                      className="h-10 rounded-md border px-3 text-sm"
+                      value={depositMethod}
+                      onChange={e => setDepositMethod(e.target.value)}
+                    >
+                      <option value="Cash">Cash</option>
+                      <option value="bKash">bKash</option>
+                      <option value="Nagad">Nagad</option>
+                      <option value="Rocket">Rocket</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                    <Input
+                      placeholder="TrxID"
+                      className="w-40"
+                      value={depositTrx}
+                      onChange={e => setDepositTrx(e.target.value)}
+                    />
                     <Button onClick={handleDeposit}>{t('addDeposit')}</Button>
                   </div>
                 ) : null}
@@ -582,6 +604,11 @@ export default function MessHisabPage() {
                     >
                       <span>
                         {d.studentName} · {d.date}
+                        {d.paymentMethod ? ` · ${d.paymentMethod}` : ''}
+                        {d.transactionId ? ` · ${d.transactionId}` : ''}
+                        {d.status && d.status !== 'confirmed'
+                          ? ` · ${d.status}`
+                          : ''}
                         {d.note ? (
                           <span className="text-muted-foreground"> — {d.note}</span>
                         ) : null}

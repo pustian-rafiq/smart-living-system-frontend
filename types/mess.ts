@@ -191,6 +191,9 @@ export interface MemberDeposit {
   amount: number
   date: string
   note: string
+  paymentMethod?: string
+  transactionId?: string
+  status?: 'confirmed' | 'pending_claim' | 'rejected'
   createdAt?: string | null
 }
 

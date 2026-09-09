@@ -127,6 +127,8 @@ export interface RecordCashPaymentInput {
   receivedBy?: string
   receiptNote?: string
   receiptFileName?: string
+  paymentMethod?: PaymentMethod
+  transactionId?: string
   ownerId: string
 }
 
@@ -137,6 +139,89 @@ export interface OwnerPaymentAnalytics {
   pendingPayouts: number
   paidPayouts: number
   collectionByMethod: { method: PaymentMethod; amount: number; count: number }[]
-  monthlyTrend: { month: string; gross: number; net: number }[]
+  monthlyTrend: { month: string; gross: number; net: number; amount?: number }[]
   commissionRate: number
+  collectionMode?: CollectionMode
+  platformCollectEnabled?: boolean
+  showsPlatformPayouts?: boolean
+  markedReceived?: number
+  messDepositsConfirmed?: number
+  outstandingBills?: number
+  pendingClaims?: number
+  receiptCount?: number
+  instructions?: PaymentInstructions
+}
+
+export type CollectionMode = 'manual' | 'owner_gateway' | 'platform_collect'
+
+export interface PaymentInstructions {
+  bkashNumber?: string
+  nagadNumber?: string
+  rocketNumber?: string
+  bankName?: string
+  bankAccountNumber?: string
+  bankAccountName?: string
+  paymentNote?: string
+  collectionMode?: CollectionMode
+  hasOwnerGateway?: boolean
+}
+
+export interface OwnerCollectionSettings {
+  collectionMode: CollectionMode
+  platformCollectEnabled: boolean
+  showsPlatformPayouts: boolean
+  instructions: PaymentInstructions
+}
+
+export interface OwnerGatewayCredential {
+  id: string
+  gateway: 'bkash' | 'nagad' | 'rocket'
+  displayName: string
+  merchantNumber: string
+  isActive: boolean
+  isSandbox: boolean
+  credentialKeys: string[]
+  hasCredentials: boolean
+  updatedAt?: string | null
+}
+
+export type PaymentClaimStatus = 'pending' | 'confirmed' | 'rejected'
+
+export interface PaymentClaim {
+  id: string
+  billId?: string | null
+  messId?: string | null
+  studentId?: string | null
+  claimedById: string
+  amount: number
+  paymentMethod: PaymentMethod
+  transactionId: string
+  note: string
+  status: PaymentClaimStatus
+  rejectionReason?: string
+  reviewedAt?: string | null
+  createdAt?: string | null
+  billName?: string | null
+  tenantName?: string
+  propertyName?: string
+}
+
+export interface CollectionReport {
+  year: number
+  month: number
+  total: number
+  count: number
+  rows: {
+    id: string
+    source: string
+    billId: string
+    label: string
+    tenantName: string
+    propertyName: string
+    amount: number
+    paymentMethod: PaymentMethod
+    transactionId: string
+    completedAt?: string | null
+  }[]
+  generatedAt: string
 }

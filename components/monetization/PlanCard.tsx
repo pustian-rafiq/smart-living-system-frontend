@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Check, Crown } from 'lucide-react'
-import { formatPlanLimit } from '@/lib/monetization/plans'
+import { formatPlanModulesSummary } from '@/lib/monetization/plans'
 import type { PlanTier, SubscriptionPlan } from '@/types/subscription'
 import { cn } from '@/lib/utils'
 
@@ -60,7 +60,7 @@ export function PlanCard({
           )}
         </p>
         <p className="text-sm text-muted-foreground">
-          {formatPlanLimit(plan.maxFlats)}
+          {formatPlanModulesSummary(plan)}
         </p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">

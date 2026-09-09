@@ -33,6 +33,9 @@ import {
 import { registerHotel } from '@/lib/api/hotels'
 import { uploadMediaFile } from '@/lib/api/media'
 import { toast } from '@/lib/feedback/toast'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
+import { VerticalLockedEmptyState } from '@/components/onboarding'
+import { LoadingState } from '@/components/page'
 import { CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -78,6 +81,7 @@ export default function RegisterHotelPage() {
   const t = useTranslations('hotels')
   const tc = useTranslations('common')
   const router = useRouter()
+  const { hasVertical, hydrated, needsFocusSelection } = useOwnerFocus()
   const [step, setStep] = useState(0)
   const [amenities, setAmenities] = useState<string[]>(['WiFi', 'AC'])
   const [createdId, setCreatedId] = useState<string | null>(null)
@@ -164,6 +168,26 @@ export default function RegisterHotelPage() {
     if (result.ok) setCreatedId(result.data.id)
     else toast.error(result.error)
   })
+
+  if (!hydrated || needsFocusSelection) {
+    return (
+      <Layout>
+        <PageContainer>
+          <LoadingState />
+        </PageContainer>
+      </Layout>
+    )
+  }
+
+  if (!hasVertical('hotel')) {
+    return (
+      <Layout>
+        <PageContainer>
+          <VerticalLockedEmptyState vertical="hotel" />
+        </PageContainer>
+      </Layout>
+    )
+  }
 
   if (createdId) {
     return (

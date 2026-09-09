@@ -8,6 +8,8 @@ const storageHost = process.env.NEXT_PUBLIC_STORAGE_CDN_HOST || ''
 
 const nextConfig = {
   reactStrictMode: true,
+  // Smaller production image for Docker (`next start` via standalone server.js)
+  output: 'standalone',
   // Keep trailing slashes on /api/v1/* so Django POST (login, refresh) is not 500.
   skipTrailingSlashRedirect: true,
   eslint: {

@@ -14,8 +14,9 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import Image from 'next/image'
 import { EmptyState, PageContainer, PageHeader, LoadingState } from '@/components/page'
-import { HotelOnboardingDialog } from '@/components/onboarding'
+import { HotelOnboardingDialog, VerticalLockedEmptyState } from '@/components/onboarding'
 import { useAppFormat } from '@/hooks/useAppFormat'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
 import { Hotel as HotelIcon } from 'lucide-react'
 
 type HotelStats = {
@@ -27,6 +28,7 @@ type HotelStats = {
 export default function MyHotelsPage() {
   const t = useTranslations('hotels')
   const { formatCurrency } = useAppFormat()
+  const { hasVertical, hydrated, needsFocusSelection } = useOwnerFocus()
   const loadHotels = useCallback(() => fetchOwnerHotels(), [])
   const { data: myHotels, loading } = useMockQuery(loadHotels)
   const [statsByHotel, setStatsByHotel] = useState<Record<string, HotelStats>>(
@@ -79,11 +81,21 @@ export default function MyHotelsPage() {
     }
 
 
-  if (loading) {
+  if (!hydrated || needsFocusSelection || loading) {
     return (
       <Layout>
         <PageContainer>
           <LoadingState label={t('myHotels.title')} />
+        </PageContainer>
+      </Layout>
+    )
+  }
+
+  if (!hasVertical('hotel')) {
+    return (
+      <Layout>
+        <PageContainer>
+          <VerticalLockedEmptyState vertical="hotel" />
         </PageContainer>
       </Layout>
     )
@@ -154,7 +166,7 @@ export default function MyHotelsPage() {
                   </p>
                   <p className="text-2xl font-bold">
                     {formatCurrency(
-                      myHotels.reduce(
+                      hotels.reduce(
                         (sum, h) => sum + getHotelStats(h.id).revenue,
                         0
                       )

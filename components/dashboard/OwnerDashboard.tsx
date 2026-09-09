@@ -18,9 +18,9 @@ import {
 } from './owner'
 import { useMockQuery } from '@/hooks/useMockQuery'
 import { useOwnerFocus } from '@/hooks/useOwnerFocus'
-import { fetchFlatLimitStatus } from '@/lib/api/subscriptions'
+import { fetchOwnerUsageStatus } from '@/lib/api/subscriptions'
 import { ok } from '@/lib/api/http'
-import type { FlatLimitStatus } from '@/types/subscription'
+import type { OwnerUsageStatus } from '@/types/subscription'
 import {
   OWNER_VERTICALS,
   OWNER_VERTICAL_META,
@@ -47,16 +47,14 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
   } = useOwnerFocus()
   const [manageFocusOpen, setManageFocusOpen] = useState(false)
 
-  const showApartment = hasVertical('apartment')
-
-  const loadLimit = useCallback(
+  const loadUsage = useCallback(
     () =>
-      showApartment
-        ? fetchFlatLimitStatus()
-        : Promise.resolve(ok(null as FlatLimitStatus | null)),
-    [showApartment]
+      focusSelected
+        ? fetchOwnerUsageStatus(ownerId)
+        : Promise.resolve(ok(null as OwnerUsageStatus | null)),
+    [focusSelected, ownerId]
   )
-  const { data: limitStatus } = useMockQuery(loadLimit)
+  const { data: usage } = useMockQuery(loadUsage)
 
   // Primary business first, remaining features in a stable order below it.
   const orderedVerticals = OWNER_VERTICALS.filter(v =>
@@ -85,9 +83,13 @@ export function OwnerDashboard({ ownerId }: OwnerDashboardProps) {
   return (
     <div className="space-y-6 md:space-y-8">
       <OwnerFocusDialog />
-      {showApartment && <OwnerOnboardingDialog />}
-      {limitStatus && showApartment && (
-        <FreeTierLimitBanner status={limitStatus} compact />
+      {hasVertical('apartment') && <OwnerOnboardingDialog />}
+      {usage && focusSelected && (
+        <FreeTierLimitBanner
+          usage={usage}
+          verticals={enabledVerticals}
+          compact
+        />
       )}
 
       {focusSelected && (

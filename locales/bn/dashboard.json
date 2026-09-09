@@ -9,5 +9,17 @@
   "totalFlats": "মোট ফ্ল্যাট",
   "dueRents": "বকেয়া ভাড়া",
   "quickActions": "দ্রুত কাজ",
-  "manageProperties": "সম্পত্তি পরিচালনা"
+  "manageProperties": "সম্পত্তি পরিচালনা",
+  "verticalLocked": {
+    "title": "{label} লুকানো আছে",
+    "description": "আপনি এখনও অ্যাকাউন্টে {label} চালু করেননি। ব্যবসায়িক ফোকাস সম্পাদনা করে যোগ করুন এবং এই অংশ পরিচালনা করুন।",
+    "enable": "{label} চালু করুন",
+    "back": "ড্যাশবোর্ডে ফিরে যান",
+    "apartment": {
+      "label": "অ্যাপার্টমেন্ট / বিল্ডিং"
+    },
+    "hotel": {
+      "label": "হোটেল"
+    }
+  }
 }

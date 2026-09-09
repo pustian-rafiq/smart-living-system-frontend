@@ -504,7 +504,14 @@ export async function fetchMemberDeposits(
 
 export async function addMemberDeposit(
   messId: string,
-  body: { studentId: string; amount: number; date: string; note?: string },
+  body: {
+    studentId: string
+    amount: number
+    date: string
+    note?: string
+    paymentMethod?: string
+    transactionId?: string
+  },
 ): Promise<ApiResult<MemberDeposit>> {
   return apiRequest(`/mess/${messId}/hisab/deposits/`, {
     method: 'POST',

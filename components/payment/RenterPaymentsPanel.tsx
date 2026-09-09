@@ -22,6 +22,7 @@ import { ScheduledPaymentCard } from '@/components/payment/ScheduledPaymentCard'
 import { SchedulePaymentDialog } from '@/components/payment/SchedulePaymentDialog'
 import { PaymentHistoryCard } from '@/components/payment/PaymentHistoryCard'
 import { PayBillDialog } from '@/components/payment/PayBillDialog'
+import { ClaimPaymentDialog } from '@/components/payment/ClaimPaymentDialog'
 import { ReceiptViewDialog } from '@/components/payment/ReceiptViewDialog'
 import {
   fetchPaymentHistory,
@@ -70,12 +71,19 @@ export function RenterPaymentsPanel() {
     [userId]
   )
 
-  const { data: transactions = [], refetch: refetchTransactions } =
+  // useMockQuery holds `null` until the first response lands, so a destructuring
+  // default would never fire — coalesce instead.
+  const { data: transactionData, refetch: refetchTransactions } =
     useMockQuery(loadPayments)
-  const { data: scheduledPayments = [], refetch: refetchScheduled } =
+  const { data: scheduledData, refetch: refetchScheduled } =
     useMockQuery(loadScheduled)
-  const { data: paymentSchedules = [] } = useMockQuery(loadSchedules)
-  const { data: tenantBills = [] } = useMockQuery(loadBills)
+  const { data: scheduleData } = useMockQuery(loadSchedules)
+  const { data: billData } = useMockQuery(loadBills)
+
+  const transactions = transactionData ?? []
+  const scheduledPayments = scheduledData ?? []
+  const paymentSchedules = scheduleData ?? []
+  const tenantBills = billData ?? []
 
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
@@ -84,6 +92,8 @@ export function RenterPaymentsPanel() {
   )
   const [payBillTarget, setPayBillTarget] = useState<Bill | null>(null)
   const [isPayBillOpen, setIsPayBillOpen] = useState(false)
+  const [claimTarget, setClaimTarget] = useState<Bill | null>(null)
+  const [isClaimOpen, setIsClaimOpen] = useState(false)
   const [receiptBill, setReceiptBill] = useState<Bill | null>(null)
   const [receiptPayment, setReceiptPayment] = useState<PaymentTransaction | null>(
     null
@@ -209,6 +219,16 @@ export function RenterPaymentsPanel() {
                   <p className="font-bold text-primary">
                     {formatCurrency(bill.amount)}
                   </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setClaimTarget(bill)
+                      setIsClaimOpen(true)
+                    }}
+                  >
+                    I paid
+                  </Button>
                   <Button
                     size="sm"
                     onClick={() => {
@@ -363,6 +383,16 @@ export function RenterPaymentsPanel() {
         onOpenChange={open => {
           setIsPayBillOpen(open)
           if (!open) setPayBillTarget(null)
+        }}
+        onSuccess={() => refresh()}
+      />
+
+      <ClaimPaymentDialog
+        bill={claimTarget}
+        open={isClaimOpen}
+        onOpenChange={open => {
+          setIsClaimOpen(open)
+          if (!open) setClaimTarget(null)
         }}
         onSuccess={() => refresh()}
       />

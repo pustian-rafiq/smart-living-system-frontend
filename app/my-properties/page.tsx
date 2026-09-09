@@ -8,10 +8,12 @@ import {
   PageContainer,
   PageHeader,
   EmptyState,
+  LoadingState,
 } from '@/components/page'
 import { BuildingCard } from '@/components/building/BuildingCard'
 import { AddBuildingDialog } from '@/components/building/AddBuildingDialog'
 import { FreeTierLimitBanner } from '@/components/monetization'
+import { VerticalLockedEmptyState } from '@/components/onboarding'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,12 +25,14 @@ import {
 import { Plus, FileText, MessageSquare, Receipt } from 'lucide-react'
 import { fetchBuildings } from '@/lib/api/buildings'
 import { useMockQuery } from '@/hooks/useMockQuery'
-import { fetchFlatLimitStatus } from '@/lib/api/subscriptions'
+import { useOwnerFocus } from '@/hooks/useOwnerFocus'
+import { fetchOwnerUsageStatus } from '@/lib/api/subscriptions'
 import type { Building } from '@/types/building'
 
 export default function MyPropertiesPage() {
   const t = useTranslations('portfolio.myProperties')
   const tc = useTranslations('common')
+  const { hasVertical, hydrated, needsFocusSelection } = useOwnerFocus()
 
   const loadBuildings = useCallback(() => fetchBuildings(), [])
   const { data: fetchedBuildings, refetch: refetchBuildings } =
@@ -39,22 +43,42 @@ export default function MyPropertiesPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [limitDialogOpen, setLimitDialogOpen] = useState(false)
 
-  const loadLimit = useCallback(() => fetchFlatLimitStatus(), [])
-  const { data: limitStatus, refetch: refetchLimit } = useMockQuery(loadLimit)
+  const loadUsage = useCallback(() => fetchOwnerUsageStatus(), [])
+  const { data: usage, refetch: refetchUsage } = useMockQuery(loadUsage)
 
   const handleAddBuilding = (newBuilding: Building) => {
     setLocalBuildings(prev => [...(prev ?? fetchedBuildings ?? []), newBuilding])
     setIsAddDialogOpen(false)
     refetchBuildings()
-    refetchLimit()
+    refetchUsage()
   }
 
   const tryAddBuilding = () => {
-    if (limitStatus?.atLimit) {
+    if (usage?.apartment.atLimit) {
       setLimitDialogOpen(true)
       return
     }
     setIsAddDialogOpen(true)
+  }
+
+  if (!hydrated || needsFocusSelection) {
+    return (
+      <Layout userRole="owner">
+        <PageContainer>
+          <LoadingState />
+        </PageContainer>
+      </Layout>
+    )
+  }
+
+  if (!hasVertical('apartment')) {
+    return (
+      <Layout userRole="owner">
+        <PageContainer>
+          <VerticalLockedEmptyState vertical="apartment" />
+        </PageContainer>
+      </Layout>
+    )
   }
 
   return (
@@ -71,9 +95,9 @@ export default function MyPropertiesPage() {
           }
         />
 
-        {limitStatus && (
+        {usage && (
           <div className="mb-6">
-            <FreeTierLimitBanner status={limitStatus} />
+            <FreeTierLimitBanner usage={usage} verticals={['apartment']} />
           </div>
         )}
 
@@ -134,9 +158,9 @@ export default function MyPropertiesPage() {
               <DialogTitle>{t('limitTitle')}</DialogTitle>
               <DialogDescription>
                 {t('limitDesc', {
-                  plan: limitStatus?.planName ?? '',
-                  max: limitStatus?.max ?? 0,
-                  used: limitStatus?.used ?? 0,
+                  plan: usage?.planName ?? '',
+                  max: usage?.apartment.max ?? 0,
+                  used: usage?.apartment.used ?? 0,
                 })}
               </DialogDescription>
             </DialogHeader>

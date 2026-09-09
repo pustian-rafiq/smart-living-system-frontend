@@ -12,6 +12,7 @@ export interface Bill {
   month: string
   year: number
   amount: number
+  amountPaid?: number
   dueDate: string
   paidDate?: string
   status: BillStatus

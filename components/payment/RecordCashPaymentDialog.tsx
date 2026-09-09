@@ -36,6 +36,8 @@ type FormValues = {
   receivedDate: string
   receivedBy?: string
   receiptNote?: string
+  paymentMethod: string
+  transactionId?: string
 }
 
 interface RecordCashPaymentDialogProps {
@@ -67,6 +69,8 @@ export function RecordCashPaymentDialog({
         receivedDate: z.string().min(1, t('dateRequired')),
         receivedBy: z.string().optional(),
         receiptNote: z.string().optional(),
+        paymentMethod: z.string().min(1),
+        transactionId: z.string().optional(),
       }),
     [t]
   )
@@ -78,6 +82,8 @@ export function RecordCashPaymentDialog({
       receivedDate: new Date().toISOString().split('T')[0],
       receivedBy: '',
       receiptNote: '',
+      paymentMethod: 'Cash',
+      transactionId: '',
     },
   })
 
@@ -87,11 +93,17 @@ export function RecordCashPaymentDialog({
     setTxnId(null)
     setError(null)
     setReceiptFileName(null)
+    const remaining = Math.max(
+      0,
+      bill.amount - (bill.amountPaid ?? 0)
+    )
     form.reset({
-      amount: bill.amount,
+      amount: remaining || bill.amount,
       receivedDate: new Date().toISOString().split('T')[0],
       receivedBy: '',
       receiptNote: '',
+      paymentMethod: 'Cash',
+      transactionId: '',
     })
   }, [open, bill, form])
 
@@ -110,6 +122,13 @@ export function RecordCashPaymentDialog({
       receivedBy: values.receivedBy,
       receiptNote: values.receiptNote,
       receiptFileName: receiptFileName || undefined,
+      paymentMethod: values.paymentMethod as
+        | 'Cash'
+        | 'bKash'
+        | 'Nagad'
+        | 'Rocket'
+        | 'Bank Transfer',
+      transactionId: values.transactionId,
       ownerId: getDemoOwnerId(),
     })
     setSubmitting(false)
@@ -171,6 +190,46 @@ export function RecordCashPaymentDialog({
                     <FormLabel>{t('amountReceived')}</FormLabel>
                     <FormControl>
                       <Input type="number" min={1} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Method</FormLabel>
+                    <FormControl>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        {...field}
+                      >
+                        <option value="Cash">Cash</option>
+                        <option value="bKash">bKash</option>
+                        <option value="Nagad">Nagad</option>
+                        <option value="Rocket">Rocket</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="transactionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>TrxID (optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="bKash / Nagad transaction ID"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -9,5 +9,17 @@
   "totalFlats": "Total flats",
   "dueRents": "Due rents",
   "quickActions": "Quick actions",
-  "manageProperties": "Manage properties"
+  "manageProperties": "Manage properties",
+  "verticalLocked": {
+    "title": "{label} is hidden",
+    "description": "You have not enabled {label} on your account yet. Use Edit business focus to add it and manage this side of your portfolio.",
+    "enable": "Enable {label}",
+    "back": "Back to dashboard",
+    "apartment": {
+      "label": "Apartment / Building"
+    },
+    "hotel": {
+      "label": "Hotel"
+    }
+  }
 }
